@@ -1,3 +1,19 @@
+// ボックススタイルの型
+export interface BoxStyles {
+  background?: string;
+  border?: string;
+  padding?: string;
+  borderRadius?: string;
+}
+
+// ボックスレイアウトの型
+export interface BoxLayout {
+  position?: 'start' | 'center' | 'end' | 'stretch';
+  flexDirection?: 'row' | 'column';
+  justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
+  alignItems?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
+}
+
 // コンポーネント定義の型
 export interface ComponentDefinition {
   type: string;
@@ -15,6 +31,15 @@ export interface ComponentDefinition {
   };
 }
 
+// ボックスコンポーネントの型
+export interface BoxComponent {
+  id: string;
+  name: string;
+  styles: BoxStyles;
+  layout: BoxLayout;
+  component?: ComponentDefinition;
+}
+
 // レイアウトアイテムの型
 export interface LayoutItem {
   id: string;
@@ -22,5 +47,7 @@ export interface LayoutItem {
   y: number;
   w: number;
   h: number;
-  component: ComponentDefinition;
+  isBox?: boolean;
+  boxSettings?: BoxComponent;
+  component?: ComponentDefinition;
 }
