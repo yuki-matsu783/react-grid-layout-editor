@@ -4,6 +4,10 @@ import type { ComponentDefinition, BoxComponent } from '../types';
 export const defaultComponentSizes: Record<string, { w: number; h: number }> = {
   TextField: { w: 4, h: 1 },
   Button: { w: 2, h: 1 },
+  Select: { w: 4, h: 1 },
+  Checkbox: { w: 2, h: 1 },
+  Radio: { w: 2, h: 1 },
+  Switch: { w: 2, h: 1 },
   Box: { w: 6, h: 4 },
 };
 
@@ -43,6 +47,30 @@ export const createComponentInstance = (type: string): ComponentDefinition => {
       variant: 'contained' as const,
       color: 'primary' as const,
       size: 'medium' as const,
+      label: 'Button',
+    },
+    Select: {
+      variant: 'outlined' as const,
+      fullWidth: true,
+      label: '選択してください',
+      options: [
+        { value: 'option1', label: 'オプション1' },
+        { value: 'option2', label: 'オプション2' },
+        { value: 'option3', label: 'オプション3' },
+      ],
+      size: 'medium' as const,
+    },
+    Checkbox: {
+      color: 'primary' as const,
+      label: 'チェックボックス',
+    },
+    Radio: {
+      color: 'primary' as const,
+      label: 'ラジオボタン',
+    },
+    Switch: {
+      color: 'primary' as const,
+      label: 'スイッチ',
     },
   };
 

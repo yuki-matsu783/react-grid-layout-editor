@@ -1,6 +1,7 @@
-import React from 'react';
-import { createTheme, ThemeProvider, CssBaseline, Box } from '@mui/material';
+import React, { useState } from 'react';
+import { createTheme, ThemeProvider, CssBaseline, Box, Tabs, Tab } from '@mui/material';
 import GridLayout from './components/editor/GridLayout';
+import ComponentLayout from './components/editor/ComponentLayout';
 
 const theme = createTheme({
   palette: {
@@ -29,12 +30,24 @@ const theme = createTheme({
 });
 
 const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState(0);
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
   return (
     <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-          <GridLayout />
+      <CssBaseline />
+      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab label="ページレイアウト" />
+            <Tab label="コンポーネント" />
+          </Tabs>
         </Box>
+        {activeTab === 0 ? <GridLayout /> : <ComponentLayout />}
+      </Box>
     </ThemeProvider>
   );
 };

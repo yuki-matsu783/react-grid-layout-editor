@@ -23,7 +23,9 @@ export interface ComponentDefinition {
     size?: string;
     fullWidth?: boolean;
     placeholder?: string;
-    [key: string]: string | boolean | undefined;
+    label?: string;
+    options?: Array<{ value: string; label: string }>;
+    [key: string]: string | boolean | Array<{ value: string; label: string }> | undefined;
   };
   styles: {
     custom: Record<string, string>;
