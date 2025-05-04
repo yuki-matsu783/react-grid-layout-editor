@@ -276,7 +276,6 @@ const ComponentLayout: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
-          p: 1,
           bgcolor: 'background.paper',
           borderRadius: 1,
           boxShadow: 1,
@@ -285,7 +284,6 @@ const ComponentLayout: React.FC = () => {
           cursor: 'pointer',
         }}
       >
-        <Box sx={{ width: '100%', pointerEvents: 'none' }}>
           {item.component.type === 'TextField' && (
             <TextField
               variant={item.component.props.variant as any}
@@ -301,8 +299,8 @@ const ComponentLayout: React.FC = () => {
               variant={item.component.props.variant as any}
               color={item.component.props.color as any}
               size={item.component.props.size as any}
-              fullWidth={item.component.props.fullWidth}
-              sx={{ pointerEvents: 'auto' }}
+              fullWidth
+              sx={{ height: '100%',pointerEvents: 'auto' }}
               onClick={(e) => e.stopPropagation()}
             >
               {item.component.props.label || 'Button'}
@@ -316,7 +314,7 @@ const ComponentLayout: React.FC = () => {
                 size={item.component.props.size as any}
                 label={item.component.props.label}
                 value={(item.component.props.options?.[0]?.value) || ''}
-                sx={{ pointerEvents: 'auto' }}
+                sx={{ height: '100%',pointerEvents: 'auto' }}
               >
                 {item.component.props.options?.map(option => (
                   <MenuItem key={option.value} value={option.value}>
@@ -332,7 +330,7 @@ const ComponentLayout: React.FC = () => {
                 <Checkbox
                   color={item.component.props.color as any}
                   size={item.component.props.size as any}
-                  sx={{ pointerEvents: 'auto' }}
+                  sx={{ height: '100%',pointerEvents: 'auto' }}
                   onClick={(e) => e.stopPropagation()}
                 />
               }
@@ -345,7 +343,7 @@ const ComponentLayout: React.FC = () => {
                 <Radio
                   color={item.component.props.color as any}
                   size={item.component.props.size as any}
-                  sx={{ pointerEvents: 'auto' }}
+                  sx={{ height: '100%',pointerEvents: 'auto' }}
                   onClick={(e) => e.stopPropagation()}
                 />
               }
@@ -358,7 +356,7 @@ const ComponentLayout: React.FC = () => {
                 <Switch
                   color={item.component.props.color as any}
                   size={item.component.props.size as any}
-                  sx={{ pointerEvents: 'auto' }}
+                  sx={{ height: '100%',pointerEvents: 'auto' }}
                   onClick={(e) => e.stopPropagation()}
                 />
               }
@@ -461,7 +459,6 @@ const ComponentLayout: React.FC = () => {
             </Box>
           )}
         </Box>
-      </Box>
     );
   };
 

@@ -202,69 +202,9 @@ const GridLayout: React.FC = () => {
               isSelected ? `2px solid ${theme.palette.primary.main}` : 'none',
           }}
         >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 4,
-              left: 4,
-              px: 1,
-              py: 0.5,
-              bgcolor: 'rgba(0, 0, 0, 0.04)',
-              borderRadius: 1,
-            }}
-          >
             <Typography variant="body2" color="text.secondary">
               {item.boxSettings.name}
             </Typography>
-          </Box>
-        </Box>
-      );
-    }
-
-    if (item.component) {
-      return (
-        <Box
-          key={item.id}
-          onClick={() => handleSelectItem(item.id)}
-          sx={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            p: 1,
-            bgcolor: 'background.paper',
-            borderRadius: 1,
-            boxShadow: 1,
-            border: theme => 
-              isSelected ? `2px solid ${theme.palette.primary.main}` : 'none',
-            cursor: 'pointer',
-          }}
-        >
-          <Box sx={{ width: '100%', pointerEvents: 'none' }}>
-            {item.component.type === 'TextField' && (
-              <TextField
-                variant={item.component.props.variant as any}
-                fullWidth={item.component.props.fullWidth}
-                placeholder={item.component.props.placeholder}
-                size={item.component.props.size as any}
-                sx={{ pointerEvents: 'auto' }}
-                inputProps={{ onClick: (e) => e.stopPropagation() }}
-              />
-            )}
-            {item.component.type === 'Button' && (
-              <Button
-                variant={item.component.props.variant as any}
-                color={item.component.props.color as any}
-                size={item.component.props.size as any}
-                sx={{ pointerEvents: 'auto' }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                Button
-              </Button>
-            )}
-          </Box>
         </Box>
       );
     }
