@@ -30,6 +30,22 @@ const initialLayoutItems: LayoutItem[] = [];
 // 利用可能なコンポーネント一覧
 const availableComponents = [
   {
+    type: 'GridContainer',
+    label: 'グリッドコンテナ',
+    preview: <Box sx={{ 
+      width: '100%',
+      height: 40,
+      bgcolor: '#ffffff',
+      border: '1px dashed #1976d2',
+      borderRadius: '4px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <Typography variant="caption">Grid Container</Typography>
+    </Box>
+  },
+  {
     type: 'TextField',
     label: 'テキストフィールド',
     preview: <TextField size="small" placeholder="プレビュー" />
@@ -142,6 +158,31 @@ const ComponentLayout: React.FC = () => {
       component,
     };
 
+    // 選択中のコンポーネントがGridContainerの場合は、その中に追加
+    if (selectedId) {
+      const parentComponent = layoutItems.find(item => item.id === selectedId)?.component;
+      if (parentComponent?.type === 'GridContainer') {
+        setLayoutItems(layoutItems.map(item => {
+          if (item.id === selectedId && item.component) {
+            return {
+              ...item,
+              component: {
+                ...item.component,
+                props: {
+                  ...item.component.props,
+                  children: [...(item.component.props.children || []), newLayoutItem]
+                }
+              }
+            };
+          }
+          return item;
+        }));
+        setCounter(counter + 1);
+        return;
+      }
+    }
+
+    // そうでない場合は、ルートレベルに追加
     setLayoutItems([...layoutItems, newLayoutItem]);
     setCounter(counter + 1);
   };
@@ -323,6 +364,101 @@ const ComponentLayout: React.FC = () => {
               }
               label={item.component.props.label}
             />
+          )}
+          {item.component.type === 'GridContainer' && (
+            <Box sx={{
+              width: '100%',
+              height: '100%',
+              bgcolor: item.component.props.background || '#ffffff',
+              border: item.component.props.border || '1px dashed #1976d2',
+              borderRadius: item.component.props.borderRadius || '4px',
+              p: 0,
+              minHeight: 200,
+              display: 'flex',
+              flexDirection: 'column',
+              position: 'relative',
+              '.react-grid-layout': {
+                position: 'absolute',
+                inset: 0,
+                padding: item.component.props.padding || 16,
+                '&.layout': {
+                  height: '100%'
+                }
+              }
+            }}>
+              <Box sx={{ 
+                flex: 1, 
+                position: 'relative', 
+                minHeight: '200px',
+                '& .react-grid-item': {
+                  position: 'absolute',
+                  transition: 'transform 200ms ease',
+                  width: 'auto !important',
+                  '&.react-draggable-dragging': {
+                    transition: 'none',
+                    zIndex: 3
+                  },
+                  '&.resizing': {
+                    zIndex: 2,
+                    '& > div': {
+                      width: '100%',
+                      height: '100%'
+                    }
+                  },
+                  '& > div': {
+                    width: '100%',
+                    height: '100%'
+                  }
+                }
+              }}>
+                <ReactGridLayout
+                  className="layout"
+                  layout={(item.component?.props.children || []).map(child => ({
+                    i: child.id,
+                    x: child.x,
+                    y: child.y,
+                    w: child.w,
+                    h: child.h,
+                  }))}
+                  cols={12}
+                  rowHeight={30}
+                  containerPadding={[10, 10]}
+                  margin={[10, 10]}
+                isDraggable
+                isResizable
+                onLayoutChange={(layout) => {
+                  if (item.component) {
+                    const updatedChildren = (item.component.props.children || []).map(child => {
+                      const layoutItem = layout.find(l => l.i === child.id);
+                      if (!layoutItem) return child;
+                      return {
+                        ...child,
+                        x: layoutItem.x,
+                        y: layoutItem.y,
+                        w: layoutItem.w,
+                        h: layoutItem.h,
+                      };
+                    });
+                    handleUpdateComponentSettings({
+                      ...item.component,
+                      type: item.component.type,
+                      props: {
+                        ...item.component.props,
+                        children: updatedChildren
+                      }
+                    });
+                  }
+                }}
+                useCSSTransforms
+                preventCollision={false}
+                compactType={null}
+                isDroppable={true}
+                droppingItem={{ i: 'new', w: 2, h: 2 }}
+              >
+                {(item.component?.props.children || []).map(child => renderComponent(child))}
+                </ReactGridLayout>
+              </Box>
+            </Box>
           )}
         </Box>
       </Box>
@@ -619,7 +755,100 @@ const ComponentLayout: React.FC = () => {
                 </FormControl>
               </>
             )}
-            {selectedComponent.type !== 'Checkbox' && selectedComponent.type !== 'Radio' && selectedComponent.type !== 'Switch' && (
+            {selectedComponent.type === 'GridContainer' && (
+              <>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <TextField
+                    label="背景色"
+                    type="color"
+                    value={selectedComponent.props.background || '#ffffff'}
+                    onChange={(e) => handleUpdateComponentSettings({
+                      ...selectedComponent,
+                      props: { ...selectedComponent.props, background: e.target.value }
+                    })}
+                  />
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <TextField
+                    label="ボーダー"
+                    value={selectedComponent.props.border || '1px solid #e0e0e0'}
+                    onChange={(e) => handleUpdateComponentSettings({
+                      ...selectedComponent,
+                      props: { ...selectedComponent.props, border: e.target.value }
+                    })}
+                  />
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <TextField
+                    label="パディング"
+                    type="number"
+                    value={selectedComponent.props.padding || 2}
+                    onChange={(e) => handleUpdateComponentSettings({
+                      ...selectedComponent,
+                      props: { ...selectedComponent.props, padding: Number(e.target.value) }
+                    })}
+                  />
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <TextField
+                    label="角丸"
+                    value={selectedComponent.props.borderRadius || '4px'}
+                    onChange={(e) => handleUpdateComponentSettings({
+                      ...selectedComponent,
+                      props: { ...selectedComponent.props, borderRadius: e.target.value }
+                    })}
+                  />
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>Flexの方向</InputLabel>
+                  <Select
+                    value={selectedComponent.props.flexDirection || 'row'}
+                    onChange={(e) => handleUpdateComponentSettings({
+                      ...selectedComponent,
+                      props: { ...selectedComponent.props, flexDirection: e.target.value as 'row' | 'column' }
+                    })}
+                    label="Flexの方向"
+                  >
+                    <MenuItem value="row">横方向</MenuItem>
+                    <MenuItem value="column">縦方向</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>水平方向の配置</InputLabel>
+                  <Select
+                    value={selectedComponent.props.justifyContent || 'flex-start'}
+                    onChange={(e) => handleUpdateComponentSettings({
+                      ...selectedComponent,
+                      props: { ...selectedComponent.props, justifyContent: e.target.value as 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' }
+                    })}
+                    label="水平方向の配置"
+                  >
+                    <MenuItem value="flex-start">左寄せ</MenuItem>
+                    <MenuItem value="center">中央</MenuItem>
+                    <MenuItem value="flex-end">右寄せ</MenuItem>
+                    <MenuItem value="space-between">均等配置</MenuItem>
+                    <MenuItem value="space-around">周囲均等配置</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth sx={{ mb: 2 }}>
+                  <InputLabel>垂直方向の配置</InputLabel>
+                  <Select
+                    value={selectedComponent.props.alignItems || 'flex-start'}
+                    onChange={(e) => handleUpdateComponentSettings({
+                      ...selectedComponent,
+                      props: { ...selectedComponent.props, alignItems: e.target.value as 'flex-start' | 'center' | 'flex-end' | 'stretch' }
+                    })}
+                    label="垂直方向の配置"
+                  >
+                    <MenuItem value="flex-start">上寄せ</MenuItem>
+                    <MenuItem value="center">中央</MenuItem>
+                    <MenuItem value="flex-end">下寄せ</MenuItem>
+                    <MenuItem value="stretch">引き伸ばし</MenuItem>
+                  </Select>
+                </FormControl>
+              </>
+            )}
+            {selectedComponent.type !== 'GridContainer' && selectedComponent.type !== 'Checkbox' && selectedComponent.type !== 'Radio' && selectedComponent.type !== 'Switch' && (
               <FormControl fullWidth sx={{ mb: 2 }}>
                 <InputLabel>サイズ</InputLabel>
                 <Select

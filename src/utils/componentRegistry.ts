@@ -8,7 +8,7 @@ export const defaultComponentSizes: Record<string, { w: number; h: number }> = {
   Checkbox: { w: 2, h: 1 },
   Radio: { w: 2, h: 1 },
   Switch: { w: 2, h: 1 },
-  Box: { w: 6, h: 4 },
+  GridContainer: { w: 6, h: 4 },
 };
 
 // 新しいBoxインスタンスを作成する関数
@@ -37,6 +37,13 @@ export const createBoxInstance = (id: string): BoxComponent => {
 // 新しいコンポーネントインスタンスを作成する関数
 export const createComponentInstance = (type: string): ComponentDefinition => {
   const defaultProps = {
+    GridContainer: {
+      background: '#ffffff',
+      border: '1px solid #e0e0e0',
+      borderRadius: '4px',
+      padding: 2,
+      children: [],
+    },
     TextField: {
       variant: 'outlined' as const,
       fullWidth: true,

@@ -25,7 +25,16 @@ export interface ComponentDefinition {
     placeholder?: string;
     label?: string;
     options?: Array<{ value: string; label: string }>;
-    [key: string]: string | boolean | Array<{ value: string; label: string }> | undefined;
+    // Box特有のプロパティ
+    background?: string;
+    border?: string;
+    borderRadius?: string;
+    padding?: number;
+    flexDirection?: 'row' | 'column';
+    justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
+    alignItems?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
+    children?: Array<LayoutItem>;
+    [key: string]: string | boolean | number | Array<{ value: string; label: string }> | Array<LayoutItem> | undefined;
   };
   styles: {
     custom: Record<string, string>;
