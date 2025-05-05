@@ -242,15 +242,93 @@ export default class NestedGridLayout extends React.PureComponent<NestedGridLayo
    * 編集対象が選択されている場合は子要素として追加し、
    * そうでない場合はルートレベルに追加する
    */
+  /**
+   * 指定されたサイズのアイテムを配置可能な位置を探す
+   * 12x12のグリッド内で、既存のアイテムと重ならない位置を返す
+   * @param w - 配置したいアイテムの幅
+   * @param h - 配置したいアイテムの高さ
+   * @param items - 現在配置されているアイテムの配列
+   * @returns 配置可能な位置の座標
+   */
+  /**
+   * 指定されたサイズのアイテムを配置可能な位置を探す
+   * 12x12のグリッド内で、既存のアイテムと重ならない位置を返す
+   * @param w - 配置したいアイテムの幅
+   * @param h - 配置したいアイテムの高さ
+   * @param items - 現在配置されているアイテムの配列
+   * @returns 配置可能な位置の座標と配置可能かどうかのフラグ
+   */
+  findAvailablePosition = (w: number, h: number, items: GridItem[]): { x: number, y: number, canPlace: boolean } => {
+    // 12x12のグリッドを作成し、falseで初期化（false = 空いている状態）
+    const grid = Array(12).fill(null).map(() => Array(12).fill(false));
+    
+    // 既存のアイテムで占有されているグリッドをマーク
+    const markOccupiedSpace = (nodes: GridItem[]) => {
+      nodes.forEach(item => {
+        const { x, y, w: itemW, h: itemH } = item.layout;
+        for (let i = x; i < x + itemW && i < 12; i++) {
+          for (let j = y; j < y + itemH && j < 12; j++) {
+            if (i >= 0 && j >= 0) {
+              grid[i][j] = true;
+            }
+          }
+        }
+        // 子アイテムも同様に処理
+        if (item.children.length > 0) {
+          markOccupiedSpace(item.children);
+        }
+      });
+    };
+
+    markOccupiedSpace(items);
+
+    // 利用可能な位置を探す
+    for (let y = 0; y < 12; y++) {
+      for (let x = 0; x <= 12 - w; x++) {
+        let canPlace = true;
+        
+        // 指定のサイズが配置可能かチェック
+        for (let i = x; i < x + w && canPlace; i++) {
+          for (let j = y; j < y + h && canPlace; j++) {
+            if (grid[i][j]) {
+              canPlace = false;
+            }
+          }
+        }
+
+        if (canPlace) {
+          return { x, y, canPlace: true };
+        }
+      }
+    }
+
+    // 配置可能な位置が見つからなかった
+    return { x: 0, y: 0, canPlace: false };
+  };
+
   handleAddItem = () => {
+    // まず2x2サイズでの配置を試みる
+    const defaultPosition = this.findAvailablePosition(2, 2, this.state.items);
+    
+    // 2x2で配置できない場合は1x1サイズを試みる
+    const fallbackPosition = !defaultPosition.canPlace 
+      ? this.findAvailablePosition(1, 1, this.state.items)
+      : defaultPosition;
+
+    // 1x1でも配置できない場合はアラートを表示して終了
+    if (!fallbackPosition.canPlace) {
+      alert('グリッド内に利用可能なスペースがありません。');
+      return;
+    }
+
     const newItem = {
       id: generateId(),
       layout: {
         i: generateId("layout"),
-        x: 0,
-        y: 0,
-        w: 1,
-        h: 1
+        x: fallbackPosition.x,
+        y: fallbackPosition.y,
+        w: defaultPosition.canPlace ? 2 : 1,
+        h: defaultPosition.canPlace ? 2 : 1
       },
       children: []
     };
