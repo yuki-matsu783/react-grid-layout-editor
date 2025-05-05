@@ -7,6 +7,58 @@ function generateId(prefix = "item") {
   return `${prefix}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// Wrapper that measures its own height and provides dynamic rowHeight = height / 12
+class NestedGridContainer extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = { height: 0 };
+    this.containerRef = React.createRef();
+  }
+
+  componentDidMount() {
+    this.updateHeight();
+    this.resizeObserver = new ResizeObserver(() => this.updateHeight());
+    if (this.containerRef.current) {
+      this.resizeObserver.observe(this.containerRef.current);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.resizeObserver && this.containerRef.current) {
+      this.resizeObserver.unobserve(this.containerRef.current);
+    }
+  }
+
+  updateHeight() {
+    const el = this.containerRef.current;
+    if (el) {
+      const h = el.clientHeight;
+      if (h !== this.state.height) {
+        this.setState({ height: h });
+      }
+    }
+  }
+
+  render() {
+    const { cols, margin, defaultRowHeight, children, ...rest } = this.props;
+    const { height } = this.state;
+    const rowHeight = height > 0 ? height / 12 : defaultRowHeight;
+
+    return (
+      <div ref={this.containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
+        <ResponsiveReactGridLayout
+          cols={cols}
+          margin={margin}
+          rowHeight={rowHeight}
+          {...rest}
+        >
+          {children}
+        </ResponsiveReactGridLayout>
+      </div>
+    );
+  }
+}
+
 export default class NestedGridLayout extends React.PureComponent {
   static defaultProps = {
     className: "layout",
@@ -45,84 +97,58 @@ export default class NestedGridLayout extends React.PureComponent {
     };
 
     if (!editTargetId) {
-      this.setState(prev => ({
-        items: [...prev.items, newItem]
-      }));
+      this.setState(prev => ({ items: [...prev.items, newItem] }));
     } else {
-      this.setState(prev => ({
-        items: this.addChildToTree(prev.items, editTargetId, newItem)
-      }));
+      this.setState(prev => ({ items: this.addChildToTree(prev.items, editTargetId, newItem) }));
     }
   };
 
   handleRemoveItem = () => {
     const { editTargetId } = this.state;
     if (!editTargetId) return;
-    this.setState(prev => ({
-      items: this.removeFromTree(prev.items, editTargetId),
-      editTargetId: null
-    }));
+    this.setState(prev => ({ items: this.removeFromTree(prev.items, editTargetId), editTargetId: null }));
   };
 
-  addChildToTree = (nodes, parentId, child) => {
-    return nodes.map(node => {
+  addChildToTree = (nodes, parentId, child) =>
+    nodes.map(node => {
       if (node.id === parentId) {
-        return {
-          ...node,
-          children: [...node.children, child]
-        };
-      } else if (node.children.length) {
-        return {
-          ...node,
-          children: this.addChildToTree(node.children, parentId, child)
-        };
-      } else {
-        return node;
+        return { ...node, children: [...node.children, child] };
       }
+      if (node.children.length) {
+        return { ...node, children: this.addChildToTree(node.children, parentId, child) };
+      }
+      return node;
     });
-  };
 
-  removeFromTree = (nodes, targetId) => {
-    return nodes
+  removeFromTree = (nodes, targetId) =>
+    nodes
       .map(node => {
         if (node.id === targetId) return null;
         if (node.children.length) {
-          return {
-            ...node,
-            children: this.removeFromTree(node.children, targetId)
-          };
+          return { ...node, children: this.removeFromTree(node.children, targetId) };
         }
         return node;
       })
       .filter(Boolean);
-  };
 
-  handleSelect = (id) => {
-    this.setState({ selectedItemId: id });
-  };
+  handleSelect = id => this.setState({ selectedItemId: id });
 
-  toggleEditTarget = () => {
-    this.setState(prev => ({
-      editTargetId: prev.editTargetId === prev.selectedItemId ? null : prev.selectedItemId
-    }));
-  };
+  toggleEditTarget = () =>
+    this.setState(prev => ({ editTargetId: prev.editTargetId === prev.selectedItemId ? null : prev.selectedItemId }));
 
   isNestedItemSelected = (selectedId, nodes, excludeSelfId = null) => {
     if (!selectedId) return false;
-
-    const search = (items) => {
-      return items.some(item => {
+    const search = items =>
+      items.some(item => {
         if (item.id === selectedId) {
           return excludeSelfId ? item.id !== excludeSelfId : true;
         }
         return search(item.children);
       });
-    };
-
     return search(nodes);
   };
 
-  renderElement = (item) => {
+  renderElement = item => {
     const { selectedItemId, editTargetId } = this.state;
     const isSelected = selectedItemId === item.id;
     const isEditTarget = editTargetId === item.id;
@@ -135,24 +161,20 @@ export default class NestedGridLayout extends React.PureComponent {
         className="grid-item"
         style={{
           border: isSelected ? "2px solid blue" : "1px solid #ccc",
-          padding: "5px",
           backgroundColor: isEditTarget ? "#eef" : "#fff",
-          position: "relative",
+          position: "relative"
         }}
-        onClick={(e) => {
-          e.stopPropagation();
-          this.handleSelect(item.id);
-        }}
+        onClick={e => { e.stopPropagation(); this.handleSelect(item.id); }}
       >
-        <ResponsiveReactGridLayout
+        <NestedGridContainer
           isDraggable={!isChildSelected}
           isResizable
-          cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
-          rowHeight={50}
-          margin={[10, 10]}
+          cols={this.props.cols}
+          margin={[0, 0]}
+          defaultRowHeight={this.props.rowHeight}
         >
           {item.children.map(child => this.renderElement(child))}
-        </ResponsiveReactGridLayout>
+        </NestedGridContainer>
       </div>
     );
   };
@@ -173,9 +195,9 @@ export default class NestedGridLayout extends React.PureComponent {
         <ResponsiveReactGridLayout
           isDraggable={isRootDraggable}
           isResizable
-          cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
-          rowHeight={50}
-          margin={[10, 10]}
+          cols={this.props.cols}
+          rowHeight={this.props.rowHeight}
+          margin={this.props.margin}
         >
           {items.map(item => this.renderElement(item))}
         </ResponsiveReactGridLayout>
