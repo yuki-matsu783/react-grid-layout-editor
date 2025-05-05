@@ -1,3 +1,30 @@
+/**
+ * グリッドレイアウトの基本定義
+ * x, y: グリッド上の位置
+ * w, h: 幅と高さ（グリッド単位）
+ */
+export interface Layout {
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * ツリー構造を持つグリッドアイテム
+ * レイアウト情報と子要素を持つ
+ */
+export interface TreeItem {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  layout: Layout;
+  children: TreeItem[];
+}
+
 // ボックススタイルの型
 export interface BoxStyles {
   background?: string;
