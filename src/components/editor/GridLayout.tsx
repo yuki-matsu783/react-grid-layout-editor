@@ -6,7 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import { createBoxInstance, getComponentDefaultSize } from '../../utils/componentRegistry';
+import { getComponentDefaultSize } from '../../utils/componentRegistry';
 import type { LayoutItem, BoxComponent } from '../../types';
 import BoxSettingsPanel from './BoxSettingsPanel';
 
@@ -85,7 +85,15 @@ const GridLayout: React.FC = () => {
   const handleAddBox = () => {
     const id = `Box-${counter}`;
     const defaultSize = getComponentDefaultSize('Box');
-    const boxSettings = createBoxInstance(id);
+    const boxSettings = {
+      name: `Box-${counter}`,
+      styles: {
+        background: "#ffffff",
+        border: "1px solid #e0e0e0",
+        borderRadius: "4px",
+        padding: "16px"
+      }
+    };
     const position = findAvailablePosition(defaultSize.w, defaultSize.h);
 
     const newLayoutItem: LayoutItem = {
@@ -93,8 +101,17 @@ const GridLayout: React.FC = () => {
       ...position,
       w: defaultSize.w,
       h: defaultSize.h,
-      isBox: true,
       boxSettings,
+      component: {
+        type: "grid-layout",
+        props: {
+          children: []
+        },
+        styles: {
+          custom: {},
+          mui: {}
+        }
+      }
     };
 
     setLayoutItems([...layoutItems, newLayoutItem]);
@@ -180,7 +197,7 @@ const GridLayout: React.FC = () => {
   const renderComponent = (item: LayoutItem) => {
     const isSelected = item.id === selectedId;
 
-    if (item.isBox && item.boxSettings) {
+    if (item.boxSettings) {
       return (
         <Box
           key={item.id}
@@ -188,10 +205,6 @@ const GridLayout: React.FC = () => {
           sx={{
             width: '100%',
             height: '100%',
-            display: 'flex',
-            flexDirection: item.boxSettings.layout.flexDirection,
-            justifyContent: item.boxSettings.layout.justifyContent,
-            alignItems: item.boxSettings.layout.alignItems,
             position: 'relative',
             bgcolor: item.boxSettings.styles.background,
             border: item.boxSettings.styles.border,
@@ -202,9 +215,10 @@ const GridLayout: React.FC = () => {
               isSelected ? `2px solid ${theme.palette.primary.main}` : 'none',
           }}
         >
-            <Typography variant="body2" color="text.secondary">
-              {item.boxSettings.name}
-            </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {item.boxSettings.name}
+          </Typography>
+          {item.component?.props.children?.map(child => renderComponent(child))}
         </Box>
       );
     }
