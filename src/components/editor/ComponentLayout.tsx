@@ -5,6 +5,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import EditIcon from '@mui/icons-material/Edit';
 import EditOffIcon from '@mui/icons-material/EditOff';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -41,14 +43,15 @@ interface ComponentLayoutState {
   items: GridItem[];
   selectedItemId: string | null;
   editTargetId: string | null;
+  fileInputKey: number;
 }
 
 /**
  * ユニークなID文字列を生成する
- * @param prefix - 生成されるIDのプレフィックス（デフォルト: "item"）
+ * @param prefix - 生成されるIDのプレフィックス
  * @returns プレフィックスとランダムな文字列を組み合わせたユニークID
  */
-function generateId(prefix = "item") {
+function generateId(prefix = "grid") {
   return `${prefix}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
@@ -161,6 +164,8 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
  * 複数の入れ子になったグリッドアイテムの配置、サイズ変更、ドラッグ＆ドロップを制御する
  */
 export default class ComponentLayout extends React.PureComponent<ComponentLayoutProps, ComponentLayoutState> {
+  private fileInputRef: React.MutableRefObject<HTMLInputElement | null> = React.createRef<HTMLInputElement>();
+
   constructor(props: ComponentLayoutProps) {
     super(props);
     const rootId = generateId();
@@ -173,7 +178,8 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
         }
       ],
       selectedItemId: null,
-      editTargetId: null
+      editTargetId: null,
+      fileInputKey: 0
     };
   }
 
@@ -447,6 +453,70 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
    * 選択されているグリッドアイテムを削除する
    * 削除後は編集対象をクリアする
    */
+  /**
+   * レイアウト設定をJSONファイルとしてエクスポートする
+   */
+  handleExport = () => {
+    try {
+      const exportData = {
+        version: '1.0',
+        items: this.state.items,
+      };
+      const jsonString = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'layout-export.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+    }
+  };
+
+  /**
+   * JSONファイルから設定をインポートし、レイアウトを復元する
+   */
+  handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const importData = JSON.parse(content);
+          
+          // バージョンチェック
+          if (importData.version !== '1.0') {
+            throw new Error('Unsupported version');
+          }
+
+          // レイアウトデータの検証
+          if (!Array.isArray(importData.items)) {
+            throw new Error('Invalid layout data');
+          }
+
+          this.setState({
+            items: importData.items,
+            selectedItemId: null,
+            editTargetId: null
+          });
+        } catch (error) {
+          console.error('Import failed:', error);
+        }
+      };
+      reader.readAsText(file);
+    } finally {
+      // ファイル入力をリセット
+      this.setState(prev => ({ fileInputKey: prev.fileInputKey + 1 }));
+    }
+  };
+
   handleRemoveItem = () => {
     const { selectedItemId } = this.state;
     if (!selectedItemId) return;
@@ -600,7 +670,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       >
         <Box sx={{ flex: 1 }}>
           <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, flex: 1 }}>
               <Button
                 variant="outlined"
                 onClick={this.handleAddItem}
@@ -630,6 +700,30 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
                   : "領域内を編集"
                 }
               </Button>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                onClick={() => this.fileInputRef.current?.click()}
+                startIcon={<FileUploadIcon />}
+              >
+                インポート
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={this.handleExport}
+                startIcon={<FileDownloadIcon />}
+              >
+                エクスポート
+              </Button>
+              <input
+                type="file"
+                ref={this.fileInputRef}
+                style={{ display: 'none' }}
+                accept=".json"
+                key={this.state.fileInputKey}
+                onChange={this.handleImport}
+              />
             </Box>
           </Box>
           <Box
