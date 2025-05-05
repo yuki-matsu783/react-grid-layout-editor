@@ -25,41 +25,42 @@ export default class NestedGridLayout extends React.PureComponent {
           children: []
         }
       ],
-      selectedItemId: null
+      selectedItemId: null,
+      editTargetId: null
     };
   }
 
   handleAddItem = () => {
-    const { selectedItemId } = this.state;
+    const { editTargetId } = this.state;
     const newItem = {
       id: generateId(),
       layout: {
         i: generateId("layout"),
         x: 0,
         y: Infinity,
-        w: 4, // 12分割中の幅
+        w: 4,
         h: 2
       },
       children: []
     };
 
-    if (!selectedItemId) {
+    if (!editTargetId) {
       this.setState(prev => ({
         items: [...prev.items, newItem]
       }));
     } else {
       this.setState(prev => ({
-        items: this.addChildToTree(prev.items, selectedItemId, newItem)
+        items: this.addChildToTree(prev.items, editTargetId, newItem)
       }));
     }
   };
 
   handleRemoveItem = () => {
-    const { selectedItemId } = this.state;
-    if (!selectedItemId) return;
+    const { editTargetId } = this.state;
+    if (!editTargetId) return;
     this.setState(prev => ({
-      items: this.removeFromTree(prev.items, selectedItemId),
-      selectedItemId: null
+      items: this.removeFromTree(prev.items, editTargetId),
+      editTargetId: null
     }));
   };
 
@@ -100,58 +101,83 @@ export default class NestedGridLayout extends React.PureComponent {
     this.setState({ selectedItemId: id });
   };
 
+  toggleEditTarget = () => {
+    this.setState(prev => ({
+      editTargetId: prev.editTargetId === prev.selectedItemId ? null : prev.selectedItemId
+    }));
+  };
+
+  isNestedItemSelected = (selectedId, nodes, excludeSelfId = null) => {
+    if (!selectedId) return false;
+
+    const search = (items) => {
+      return items.some(item => {
+        if (item.id === selectedId) {
+          return excludeSelfId ? item.id !== excludeSelfId : true;
+        }
+        return search(item.children);
+      });
+    };
+
+    return search(nodes);
+  };
+
   renderElement = (item) => {
-    const { selectedItemId } = this.state;
+    const { selectedItemId, editTargetId } = this.state;
     const isSelected = selectedItemId === item.id;
+    const isEditTarget = editTargetId === item.id;
+    const isChildSelected = this.isNestedItemSelected(editTargetId, item.children, item.id);
 
     return (
       <div
         key={item.layout.i}
         data-grid={item.layout}
+        className="grid-item"
+        style={{
+          border: isSelected ? "2px solid blue" : "1px solid #ccc",
+          padding: "5px",
+          backgroundColor: isEditTarget ? "#eef" : "#fff",
+          position: "relative",
+        }}
         onClick={(e) => {
           e.stopPropagation();
           this.handleSelect(item.id);
         }}
       >
-        <div
-          className="grid-item no-drag"
-          style={{
-            border: isSelected ? "2px solid blue" : "1px solid #ccc",
-            padding: "5px",
-            backgroundColor: isSelected ? "#eef" : "#fff"
-          }}
+        <ResponsiveReactGridLayout
+          isDraggable={!isChildSelected}
+          isResizable
+          cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
+          rowHeight={50}
+          margin={[10, 10]}
         >
-          <ResponsiveReactGridLayout
-            isDraggable
-            isResizable
-            draggableCancel=".no-drag"
-            cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
-            rowHeight={50}
-            margin={[10, 10]}
-          >
-            {item.children.map(child => this.renderElement(child))}
-          </ResponsiveReactGridLayout>
-        </div>
+          {item.children.map(child => this.renderElement(child))}
+        </ResponsiveReactGridLayout>
       </div>
     );
   };
 
   render() {
+    const { selectedItemId, editTargetId, items } = this.state;
+    const isRootDraggable = !this.isNestedItemSelected(editTargetId, items);
+
     return (
-      <div>
+      <div onClick={() => this.setState({ selectedItemId: null })}>
         <div style={{ marginBottom: 10 }}>
           <button onClick={this.handleAddItem}>Add Child</button>
           <button onClick={this.handleRemoveItem}>Remove</button>
+          <button onClick={this.toggleEditTarget} disabled={!selectedItemId}>
+            {editTargetId === selectedItemId ? "領域内の編集終了" : "領域内を編集"}
+          </button>
         </div>
         <ResponsiveReactGridLayout
-          isDraggable
+          isDraggable={isRootDraggable}
           isResizable
-          draggableCancel=".no-drag"
           cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
           rowHeight={50}
           margin={[10, 10]}
         >
-          {this.state.items.map(item => this.renderElement(item))}
+          {items.map(item => this.renderElement(item))}
         </ResponsiveReactGridLayout>
       </div>
     );
