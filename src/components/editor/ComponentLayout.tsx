@@ -1,5 +1,10 @@
 import React from "react";
 import { WidthProvider, Responsive, Layout } from "react-grid-layout";
+import { Box, Button, Typography } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import EditIcon from '@mui/icons-material/Edit';
+import EditOffIcon from '@mui/icons-material/EditOff';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -156,13 +161,6 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
  * 複数の入れ子になったグリッドアイテムの配置、サイズ変更、ドラッグ＆ドロップを制御する
  */
 export default class ComponentLayout extends React.PureComponent<ComponentLayoutProps, ComponentLayoutState> {
-  // static defaultProps = {
-  //   className: "layout",
-  //   cols: { lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 },
-  //   rowHeight: 50,
-  //   margin: [10, 10]
-  // };
-
   constructor(props: ComponentLayoutProps) {
     super(props);
     const rootId = generateId();
@@ -296,19 +294,6 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   };
 
   /**
-   * 新しいグリッドアイテムを追加する
-   * 編集対象が選択されている場合は子要素として追加し、
-   * そうでない場合はルートレベルに追加する
-   */
-  /**
-   * 指定されたサイズのアイテムを配置可能な位置を探す
-   * 12x12のグリッド内で、既存のアイテムと重ならない位置を返す
-   * @param w - 配置したいアイテムの幅
-   * @param h - 配置したいアイテムの高さ
-   * @param items - 現在配置されているアイテムの配列
-   * @returns 配置可能な位置の座標
-   */
-  /**
    * 指定されたサイズのアイテムを配置可能な位置を探す
    * 12x12のグリッド内で、既存のアイテムと重ならない位置を返す
    * @param w - 配置したいアイテムの幅
@@ -365,6 +350,28 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   };
 
   /**
+   * アイテムの階層の深さを計算する
+   * @param itemId - 計算対象のアイテムID
+   * @returns 階層の深さ（ルートは0）
+   */
+  calculateDepth = (itemId: string): number => {
+    const calculateDepthRecursive = (nodes: GridItem[], targetId: string, currentDepth: number = 0): number => {
+      for (const node of nodes) {
+        if (node.id === targetId) {
+          return currentDepth;
+        }
+        const childDepth = calculateDepthRecursive(node.children, targetId, currentDepth + 1);
+        if (childDepth !== -1) {
+          return childDepth;
+        }
+      }
+      return -1;
+    };
+
+    return calculateDepthRecursive(this.state.items, itemId, 0);
+  };
+
+  /**
    * 新しいグリッドアイテムを追加する
    * 編集対象が選択されている場合は子要素として追加し、
    * そうでない場合はルートレベルに追加する
@@ -372,6 +379,15 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   handleAddItem = () => {
     console.log('handleAddItem called');
     const { editTargetId, items } = this.state;
+
+    // 階層の深さをチェック
+    if (editTargetId) {
+      const depth = this.calculateDepth(editTargetId);
+      if (depth >= 4) { // 深さ4のアイテムに追加すると5階層目になるため
+        alert('これ以上階層を深くすることはできません（最大5階層まで）');
+        return;
+      }
+    }
     
     // 追加先の要素を特定（編集対象または全体）
     const targetItems = editTargetId 
@@ -432,9 +448,13 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
    * 削除後は編集対象をクリアする
    */
   handleRemoveItem = () => {
-    const { editTargetId } = this.state;
-    if (!editTargetId) return;
-    this.setState(prev => ({ items: this.removeFromTree(prev.items, editTargetId), editTargetId: null }));
+    const { selectedItemId } = this.state;
+    if (!selectedItemId) return;
+    this.setState(prev => ({ 
+      items: this.removeFromTree(prev.items, selectedItemId),
+      selectedItemId: null,
+      editTargetId: prev.editTargetId === selectedItemId ? null : prev.editTargetId
+    }));
   };
 
   /**
@@ -522,32 +542,26 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     const isEditTarget = editTargetId === item.id;
     const isChildSelected = this.isNestedItemSelected(editTargetId, item.children, item.id);
 
-    console.log('Rendering element:', { 
-      id: item.id, 
-      isSelected, 
-      isEditTarget, 
-      isChildSelected,
-      layoutId: item.layout.i
-    });
-
     const handleChildLayoutChange = (layout: Layout[]) => {
-      console.log('Child layout change:', layout);
       if (isEditTarget) {
         this.handleLayoutChange(layout);
       }
     };
 
     return (
-      <div
+      <Box
         key={item.layout.i}
         data-grid={item.layout}
         className="grid-item"
-        style={{
-          border: isSelected ? "2px solid blue" : "1px solid #ccc",
-          backgroundColor: isEditTarget ? "#eef" : "#fff",
-          position: "relative",
-          width: "100%",
-          height: "100%"
+        sx={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+          bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
+          border: theme => 
+            isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+          borderRadius: '4px',
+          cursor: 'pointer',
         }}
         onClick={e => { e.stopPropagation(); this.handleSelect(item.id); }}
       >
@@ -564,7 +578,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
             {item.children.map(child => this.renderElement(child))}
           </NestedGridContainer>
         )}
-      </div>
+      </Box>
     );
   };
 
@@ -573,27 +587,74 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     const isRootDraggable = !this.isNestedItemSelected(editTargetId, items);
 
     return (
-      <div onClick={() => this.setState({ selectedItemId: null })}>
-        <div style={{ marginBottom: 10 }}>
-          <button onClick={this.handleAddItem}>Add Child</button>
-          <button onClick={this.handleRemoveItem}>Remove</button>
-          <button onClick={this.toggleEditTarget} disabled={!selectedItemId}>
-            {editTargetId === selectedItemId ? "領域内の編集終了" : "領域内を編集"}
-          </button>
-        </div>
-        <ResponsiveReactGridLayout
-          isDraggable={isRootDraggable}
-          isResizable
-          cols={this.props.cols}
-          rowHeight={this.props.rowHeight}
-          margin={this.props.margin}
-          onLayoutChange={this.handleLayoutChange}
-          compactType={null}
-          preventCollision
-        >
-          {items.map(item => this.renderElement(item))}
-        </ResponsiveReactGridLayout>
-      </div>
+      <Box
+        sx={{
+          flex: 1,
+          height: '100%',
+          bgcolor: 'background.default',
+          p: 2,
+          overflow: 'auto',
+          display: 'flex',
+        }}
+        onClick={() => this.setState({ selectedItemId: null })}
+      >
+        <Box sx={{ flex: 1 }}>
+          <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                onClick={this.handleAddItem}
+                startIcon={<AddBoxIcon />}
+              >
+                領域を追加
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={this.handleRemoveItem}
+                disabled={!selectedItemId}
+                startIcon={<DeleteIcon />}
+              >
+                選択した領域を削除
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={this.toggleEditTarget}
+                disabled={!editTargetId && !selectedItemId || (!editTargetId && selectedItemId === null)}
+                startIcon={
+                  editTargetId && (!selectedItemId || selectedItemId === editTargetId) ? <EditOffIcon /> : <EditIcon />
+                }
+              >
+                {editTargetId && (!selectedItemId || selectedItemId === editTargetId) 
+                  ? "領域内の編集終了" 
+                  : "領域内を編集"
+                }
+              </Button>
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              border: '1px dashed #ccc',
+              borderRadius: 1,
+              bgcolor: 'rgba(0, 0, 0, 0.02)',
+              p: 1,
+            }}
+          >
+            <ResponsiveReactGridLayout
+              isDraggable={isRootDraggable}
+              isResizable
+              cols={this.props.cols}
+              rowHeight={this.props.rowHeight}
+              margin={this.props.margin}
+              onLayoutChange={this.handleLayoutChange}
+              compactType={null}
+              preventCollision
+            >
+              {items.map(item => this.renderElement(item))}
+            </ResponsiveReactGridLayout>
+          </Box>
+        </Box>
+      </Box>
     );
   }
 }
