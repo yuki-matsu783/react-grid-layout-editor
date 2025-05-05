@@ -10,59 +10,92 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
+/**
+ * ネストされたグリッドコンテナのプロパティ
+ */
 interface NestedGridContainerProps {
-  cols: { [key: string]: number };
-  margin: [number, number];
-  defaultRowHeight: number;
-  children: React.ReactNode;
-  isDraggable?: boolean;
-  isResizable?: boolean;
-  onLayoutChange?: (layout: Layout[]) => void;
-  itemId?: string;
+  cols: { [key: string]: number };  // カラム数の設定
+  margin: [number, number];         // グリッドアイテム間のマージン
+  defaultRowHeight: number;         // デフォルトの行の高さ
+  children: React.ReactNode;        // 子要素
+  isDraggable?: boolean;           // ドラッグ可能かどうか
+  isResizable?: boolean;           // サイズ変更可能かどうか
+  onLayoutChange?: (layout: Layout[]) => void;  // レイアウト変更時のコールバック
+  itemId?: string;                 // コンテナのID
 }
 
+/**
+ * ネストされたグリッドコンテナの状態
+ */
 interface NestedGridContainerState {
-  height: number;
-  layouts?: Layout[];
+  height: number;      // コンテナの高さ
+  layouts?: Layout[];  // レイアウト情報
 }
 
+/**
+ * コンポーネントの種類を定義
+ */
 type ComponentType = 'gridLayout';
 
+/**
+ * コンポーネントのプロパティ構造を定義
+ */
 interface ComponentProps {
   gridLayout: {
     children: GridItem[];
   };
 }
 
+/**
+ * コンポーネントの設定構造を定義
+ */
 interface ComponentConfig {
   type: ComponentType;
   props: ComponentProps[ComponentType];
 }
 
+/**
+ * グリッドアイテムの構造を定義
+ */
 interface GridItem {
-  id: string;
-  layout: Layout;
-  component: ComponentConfig;
+  id: string;               // アイテムの一意のID
+  layout: Layout;           // レイアウト情報
+  component: ComponentConfig; // コンポーネントの設定
 }
 
+/**
+ * メインレイアウトコンポーネントのプロパティ
+ */
 interface ComponentLayoutProps {
-  className?: string;
-  cols: { [key: string]: number };
-  rowHeight: number;
-  margin: [number, number];
+  className?: string;  // CSSクラス名
+  cols: { [key: string]: number };  // カラム数の設定
+  rowHeight: number;   // 行の高さ
+  margin: [number, number];  // グリッドアイテム間のマージン
 }
 
+/**
+ * メインレイアウトコンポーネントの状態
+ */
 interface ComponentLayoutState {
-  items: GridItem[];
-  selectedItemId: string | null;
-  editTargetId: string | null;
-  fileInputKey: number;
+  items: GridItem[];           // グリッドアイテムの配列
+  selectedItemId: string | null;  // 選択中のアイテムID
+  editTargetId: string | null;    // 編集対象のアイテムID
+  fileInputKey: number;           // ファイル入力のキー
 }
 
+/**
+ * ユニークなID文字列を生成する
+ * @param prefix - 生成されるIDのプレフィックス
+ * @returns プレフィックスとランダムな文字列を組み合わせたユニークID
+ */
 function generateId(prefix = "grid"): string {
-  return `${prefix}_${Math.random().toString(36).substr(2, 9)}`;
+  return `${prefix}_${Math.random().toString(36).substring(2, 11)}`;
 }
 
+/**
+ * 自身の高さを測定し、動的なrowHeight（高さ/12）を提供するグリッドコンテナ
+ * 子要素のグリッドレイアウトを管理し、サイズ変更に応じて自動的に調整する
+ */
 class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, NestedGridContainerState> {
   private containerRef = React.createRef<HTMLDivElement>();
   private resizeObserver: ResizeObserver | null;
@@ -73,6 +106,10 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
     this.resizeObserver = null;
   }
 
+  /**
+   * コンポーネントがマウントされた際の処理
+   * 高さの初期測定を行い、ResizeObserverを設定してサイズ変更を監視する
+   */
   componentDidMount() {
     this.updateHeight();
     this.resizeObserver = new ResizeObserver(() => this.updateHeight());
@@ -81,12 +118,20 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
     }
   }
 
+  /**
+   * コンポーネントがアンマウントされる際の処理
+   * ResizeObserverを解除してメモリリークを防止する
+   */
   componentWillUnmount() {
     if (this.resizeObserver && this.containerRef.current) {
       this.resizeObserver.unobserve(this.containerRef.current);
     }
   }
 
+  /**
+   * コンテナの高さを測定し、必要に応じてstateを更新する
+   * 高さが変更された場合のみstateを更新することで、不要な再レンダリングを防止する
+   */
   updateHeight() {
     const el = this.containerRef.current;
     if (el) {
@@ -97,6 +142,11 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
     }
   }
 
+  /**
+   * 子要素のレイアウトが変更された際のハンドラー
+   * 親コンポーネントに変更を通知し、内部のレイアウト状態も更新する
+   * @param layout - 新しいレイアウト配列
+   */
   handleNestedLayoutChange = (layout: Layout[]) => {
     const { onLayoutChange } = this.props;
     if (onLayoutChange) {
@@ -132,6 +182,10 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
   }
 }
 
+/**
+ * ネストされたグリッドレイアウトを管理するメインコンポーネント
+ * 複数の入れ子になったグリッドアイテムの配置、サイズ変更、ドラッグ＆ドロップを制御する
+ */
 export default class ComponentLayout extends React.PureComponent<ComponentLayoutProps, ComponentLayoutState> {
   private fileInputRef: React.MutableRefObject<HTMLInputElement | null> = React.createRef<HTMLInputElement>();
 
@@ -155,6 +209,11 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     };
   }
 
+  /**
+   * 指定されたアイテムのレイアウトを更新する
+   * @param itemId - 更新対象のアイテムID
+   * @param newLayout - 新しいレイアウト設定
+   */
   updateItemLayout = (itemId: string, newLayout: Layout) => {
     this.setState(prevState => ({
       ...prevState,
@@ -162,6 +221,13 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     }));
   };
 
+  /**
+   * ツリー構造内の特定アイテムのレイアウトを再帰的に更新する
+   * @param nodes - 更新対象のツリー構造
+   * @param itemId - 更新対象のアイテムID
+   * @param newLayout - 新しいレイアウト設定
+   * @returns 更新されたツリー構造
+   */
   updateLayoutInTree = (nodes: GridItem[], itemId: string, newLayout: Layout): GridItem[] => {
     return nodes.map(node => {
       if (node.id === itemId) {
@@ -188,14 +254,28 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     });
   };
 
+  /**
+   * アイテムのレイアウトIDを生成する
+   * @param itemId - アイテムのID
+   * @returns レイアウトID
+   */
   generateLayoutId = (itemId: string): string => {
     return `layout_${itemId}`;
   };
 
+  /**
+   * レイアウトIDからアイテムIDを抽出する
+   * @param layoutId - レイアウトID
+   * @returns アイテムID
+   */
   extractItemId = (layoutId: string): string => {
     return layoutId.startsWith('layout_') ? layoutId.substring(7) : layoutId;
   };
 
+  /**
+   * レイアウトの変更を処理し、影響を受けるアイテムを更新する
+   * @param layout - 変更後のレイアウト配列
+   */
   handleLayoutChange = (layout: Layout[]) => {
     const processedLayout = layout.map(layoutItem => {
       const itemId = this.extractItemId(layoutItem.i);
@@ -214,6 +294,12 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     });
   };
 
+  /**
+   * ツリー構造から指定されたIDを持つアイテムを検索する
+   * @param nodes - 検索対象のツリー構造
+   * @param id - 検索するアイテムのID
+   * @returns 見つかったアイテム、または null
+   */
   findItemInTree = (nodes: GridItem[], id: string): GridItem | null => {
     for (const node of nodes) {
       if (node.id === id) {
@@ -229,7 +315,16 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     return null;
   };
 
+  /**
+   * 指定されたサイズのアイテムを配置可能な位置を探す
+   * 12x12のグリッド内で、既存のアイテムと重ならない位置を返す
+   * @param w - 配置したいアイテムの幅
+   * @param h - 配置したいアイテムの高さ
+   * @param items - 現在配置されているアイテムの配列
+   * @returns 配置可能な位置の座標と配置可能かどうかのフラグ
+   */
   findAvailablePosition = (w: number, h: number, items: GridItem[]): { x: number, y: number, canPlace: boolean } => {
+    // 12x12のグリッドを作成し、falseで初期化（false = 空いている状態）
     const grid = Array(12).fill(null).map(() => Array(12).fill(false));
     
     const markOccupiedSpace = (nodes: GridItem[]) => {
@@ -250,9 +345,11 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
 
     markOccupiedSpace(items);
 
+    // 利用可能な位置を探す
     for (let y = 0; y < 12; y++) {
       for (let x = 0; x <= 12 - w; x++) {
         let canPlace = true;
+        // 指定のサイズが配置可能かチェック
         for (let i = x; i < x + w && canPlace; i++) {
           for (let j = y; j < y + h && canPlace; j++) {
             if (grid[i][j]) {
@@ -268,6 +365,11 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     return { x: 0, y: 0, canPlace: false };
   };
 
+  /**
+   * アイテムの階層の深さを計算する
+   * @param itemId - 計算対象のアイテムID
+   * @returns 階層の深さ（ルートは0）
+   */
   calculateDepth = (itemId: string): number => {
     const calculateDepthRecursive = (nodes: GridItem[], targetId: string, currentDepth: number = 0): number => {
       for (const node of nodes) {
@@ -285,6 +387,10 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     return calculateDepthRecursive(this.state.items, itemId, 0);
   };
 
+  /**
+   * 新しいグリッドアイテムを追加する
+   * 編集対象が選択されている場合は子要素として追加し、そうでない場合はルートレベルに追加する
+   */
   handleAddItem = () => {
     const { editTargetId, items } = this.state;
 
@@ -340,6 +446,9 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     });
   };
 
+  /**
+   * レイアウト設定をJSONファイルとしてエクスポートする
+   */
   handleExport = () => {
     try {
       const exportData = {
@@ -361,6 +470,10 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     }
   };
 
+  /**
+   * JSONファイルから設定をインポートし、レイアウトを復元する
+   * @param event - ファイル選択イベント
+   */
   handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
@@ -395,6 +508,10 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     }
   };
 
+  /**
+   * 選択されているグリッドアイテムを削除する
+   * 削除後は編集対象をクリアする
+   */
   handleRemoveItem = () => {
     const { selectedItemId } = this.state;
     if (!selectedItemId) return;
@@ -405,6 +522,13 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     }));
   };
 
+  /**
+   * ツリー構造の指定された親ノードに子要素を追加する
+   * @param nodes - 更新対象のツリー構造
+   * @param parentId - 親ノードのID
+   * @param child - 追加する子要素
+   * @returns 更新されたツリー構造
+   */
   addChildToTree = (nodes: GridItem[], parentId: string, child: GridItem): GridItem[] => {
     return nodes.map(node => {
       if (node.id === parentId) {
@@ -433,6 +557,12 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     });
   };
 
+  /**
+   * ツリー構造から指定されたIDのノードを削除する
+   * @param nodes - 更新対象のツリー構造
+   * @param targetId - 削除対象のID
+   * @returns 更新されたツリー構造
+   */
   removeFromTree = (nodes: GridItem[], targetId: string): GridItem[] =>
     nodes
       .map(node => {
@@ -452,15 +582,31 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       })
       .filter((node): node is GridItem => node !== null);
 
+  /**
+   * グリッドアイテムを選択状態にする
+   * @param id - 選択するアイテムのID
+   */
   handleSelect = (id: string): void => {
     this.setState({ selectedItemId: id });
   };
 
+  /**
+   * 編集対象の切り替えを行う
+   * 現在の編集対象と選択中のアイテムが同じ場合はクリアし、
+   * 異なる場合は選択中のアイテムを編集対象に設定する
+   */
   toggleEditTarget = () =>
     this.setState(prev => ({ 
       editTargetId: prev.editTargetId === prev.selectedItemId ? null : prev.selectedItemId 
     }));
 
+  /**
+   * 指定されたIDのアイテムまたはその子孫が選択されているかを確認する
+   * @param selectedId - 確認対象の選択ID
+   * @param nodes - 検索対象のツリー構造
+   * @param excludeSelfId - 除外するID（自身のIDを除外する場合に使用）
+   * @returns 選択状態の真偽値
+   */
   isNestedItemSelected = (selectedId: string | null, nodes: GridItem[], excludeSelfId: string | null = null): boolean => {
     if (!selectedId) return false;
     const search = (items: GridItem[]): boolean =>
@@ -473,6 +619,12 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     return search(nodes);
   };
 
+  /**
+   * グリッドアイテムをレンダリングする
+   * 選択状態や編集対象の状態に応じて、スタイルや挙動を変更する
+   * @param item - レンダリングするグリッドアイテム
+   * @returns レンダリングされたReactノード
+   */
   renderElement = (item: GridItem): React.ReactNode => {
     const { selectedItemId, editTargetId } = this.state;
     const isSelected = selectedItemId === item.id;
