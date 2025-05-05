@@ -25,14 +25,14 @@ interface GridItem {
   children: GridItem[];
 }
 
-interface NestedGridLayoutProps {
+interface ComponentLayoutProps {
   className?: string;
   cols: { [key: string]: number };
   rowHeight: number;
   margin: [number, number];
 }
 
-interface NestedGridLayoutState {
+interface ComponentLayoutState {
   items: GridItem[];
   selectedItemId: string | null;
   editTargetId: string | null;
@@ -105,9 +105,18 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
    * @param layout - 新しいレイアウト配列
    */
   handleNestedLayoutChange = (layout: Layout[]) => {
-    const { onLayoutChange } = this.props;
+    console.log('NestedGridContainer layout change:', layout);
+    console.log('Container props:', this.props);
+    
+    const { onLayoutChange, itemId } = this.props;
     if (onLayoutChange) {
-      onLayoutChange(layout);
+      // layout.iにlayout_プレフィックスを追加して親へ通知
+      const updatedLayout = layout.map(item => ({
+        ...item,
+        i: item.i.startsWith('layout_') ? item.i : `layout_${item.i}`
+      }));
+      console.log('Notifying parent with layout:', updatedLayout);
+      onLayoutChange(updatedLayout);
     }
     this.setState({ layouts: layout });
   };
@@ -118,20 +127,22 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
    * グリッドレイアウトを適用して子要素を表示する
    */
   render() {
-    const { cols, margin, defaultRowHeight, children, ...rest } = this.props;
+    const { defaultRowHeight, children, ...rest } = this.props;
     const { height } = this.state;
     const rowHeight = height > 0 ? height / 12 : defaultRowHeight;
+
+    // 常に12カラムのグリッドを使用
+    const fixedCols = { lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 };
 
     return (
       <div ref={this.containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
         <ResponsiveReactGridLayout
-          cols={cols}
-          margin={margin}
+          {...rest}
+          cols={fixedCols}
           rowHeight={rowHeight}
           onLayoutChange={this.handleNestedLayoutChange}
           compactType={null}
           preventCollision
-          {...rest}
         >
           {children}
         </ResponsiveReactGridLayout>
@@ -144,21 +155,22 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
  * ネストされたグリッドレイアウトを管理するメインコンポーネント
  * 複数の入れ子になったグリッドアイテムの配置、サイズ変更、ドラッグ＆ドロップを制御する
  */
-export default class NestedGridLayout extends React.PureComponent<NestedGridLayoutProps, NestedGridLayoutState> {
-  static defaultProps = {
-    className: "layout",
-    cols: { lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 },
-    rowHeight: 50,
-    margin: [10, 10]
-  };
+export default class ComponentLayout extends React.PureComponent<ComponentLayoutProps, ComponentLayoutState> {
+  // static defaultProps = {
+  //   className: "layout",
+  //   cols: { lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 },
+  //   rowHeight: 50,
+  //   margin: [10, 10]
+  // };
 
-  constructor(props: NestedGridLayoutProps) {
+  constructor(props: ComponentLayoutProps) {
     super(props);
+    const rootId = generateId();
     this.state = {
       items: [
         {
-          id: generateId(),
-          layout: { i: "0", x: 0, y: 0, w: 12, h: 4 },
+          id: rootId,
+          layout: { i: `layout_${rootId}`, x: 0, y: 0, w: 12, h: 4 },
           children: []
         }
       ],
@@ -211,29 +223,75 @@ export default class NestedGridLayout extends React.PureComponent<NestedGridLayo
    * レイアウトの変更を処理し、影響を受けるアイテムを更新する
    * @param layout - 変更後のレイアウト配列
    */
+  /**
+   * アイテムのレイアウトIDを生成する
+   * @param itemId - アイテムのID
+   * @returns レイアウトID
+   */
+  generateLayoutId = (itemId: string): string => {
+    return `layout_${itemId}`;
+  };
+
+  /**
+   * レイアウトIDからアイテムIDを抽出する
+   * @param layoutId - レイアウトID
+   * @returns アイテムID
+   */
+  extractItemId = (layoutId: string): string => {
+    return layoutId.startsWith('layout_') ? layoutId.substring(7) : layoutId;
+  };
+
   handleLayoutChange = (layout: Layout[]) => {
-    layout.forEach(layoutItem => {
-      const affectedItem = this.findItemInTree(this.state.items, layoutItem.i);
+    console.log('handleLayoutChange called with:', layout);
+    
+    const processedLayout = layout.map(layoutItem => {
+      const itemId = this.extractItemId(layoutItem.i);
+      const newLayoutItem = {
+        ...layoutItem,
+        i: this.generateLayoutId(itemId)
+      };
+      console.log('Processing layout item:', { original: layoutItem, processed: newLayoutItem });
+      return newLayoutItem;
+    });
+
+    processedLayout.forEach(layoutItem => {
+      const itemId = this.extractItemId(layoutItem.i);
+      console.log('Looking for item with id:', itemId);
+      const affectedItem = this.findItemInTree(this.state.items, itemId);
+      
       if (affectedItem) {
+        console.log('Updating layout for item:', affectedItem);
         this.updateItemLayout(affectedItem.id, layoutItem);
+      } else {
+        console.log('Item not found for layout:', layoutItem);
       }
     });
   };
 
   /**
-   * ツリー構造から指定されたレイアウトIDを持つアイテムを検索する
+   * ツリー構造から指定されたIDを持つアイテムを検索する
    * @param nodes - 検索対象のツリー構造
-   * @param layoutId - 検索するレイアウトID
+   * @param id - 検索するアイテムのID
    * @returns 見つかったアイテム、または null
    */
-  findItemInTree = (nodes: GridItem[], layoutId: string): GridItem | null => {
+  findItemInTree = (nodes: GridItem[], id: string): GridItem | null => {
+    console.log('findItemInTree called with id:', id);
+    console.log('searching in nodes:', nodes);
+    
     for (const node of nodes) {
-      if (node.layout.i === layoutId) return node;
+      if (node.id === id) {
+        console.log('Found node:', node);
+        return node;
+      }
       if (node.children.length) {
-        const found = this.findItemInTree(node.children, layoutId);
-        if (found) return found;
+        const found = this.findItemInTree(node.children, id);
+        if (found) {
+          console.log('Found node in children:', found);
+          return found;
+        }
       }
     }
+    console.log('Node not found');
     return null;
   };
 
@@ -306,25 +364,45 @@ export default class NestedGridLayout extends React.PureComponent<NestedGridLayo
     return { x: 0, y: 0, canPlace: false };
   };
 
+  /**
+   * 新しいグリッドアイテムを追加する
+   * 編集対象が選択されている場合は子要素として追加し、
+   * そうでない場合はルートレベルに追加する
+   */
   handleAddItem = () => {
+    console.log('handleAddItem called');
+    const { editTargetId, items } = this.state;
+    
+    // 追加先の要素を特定（編集対象または全体）
+    const targetItems = editTargetId 
+      ? this.findItemInTree(items, editTargetId)?.children || []
+      : items;
+    
+    console.log('Target items:', targetItems);
+    console.log('Edit target ID:', editTargetId);
+
     // まず2x2サイズでの配置を試みる
-    const defaultPosition = this.findAvailablePosition(2, 2, this.state.items);
+    const defaultPosition = this.findAvailablePosition(2, 2, targetItems);
+    console.log('Default position (2x2):', defaultPosition);
     
     // 2x2で配置できない場合は1x1サイズを試みる
     const fallbackPosition = !defaultPosition.canPlace 
-      ? this.findAvailablePosition(1, 1, this.state.items)
+      ? this.findAvailablePosition(1, 1, targetItems)
       : defaultPosition;
+    
+    console.log('Fallback position:', fallbackPosition);
 
     // 1x1でも配置できない場合はアラートを表示して終了
     if (!fallbackPosition.canPlace) {
-      alert('グリッド内に利用可能なスペースがありません。');
+      alert('利用可能なスペースがありません。');
       return;
     }
 
+    const itemId = generateId();
     const newItem = {
-      id: generateId(),
+      id: itemId,
       layout: {
-        i: generateId("layout"),
+        i: `layout_${itemId}`,
         x: fallbackPosition.x,
         y: fallbackPosition.y,
         w: defaultPosition.canPlace ? 2 : 1,
@@ -333,13 +411,18 @@ export default class NestedGridLayout extends React.PureComponent<NestedGridLayo
       children: []
     };
 
+    console.log('New item:', newItem);
+
     this.setState(prevState => {
       const { editTargetId } = prevState;
+      const newItems = !editTargetId
+        ? [...prevState.items, newItem]
+        : this.addChildToTree(prevState.items, editTargetId, newItem);
+      
+      console.log('Updated items:', newItems);
       return {
         ...prevState,
-        items: !editTargetId
-          ? [...prevState.items, newItem]
-          : this.addChildToTree(prevState.items, editTargetId, newItem),
+        items: newItems
       };
     });
   };
@@ -361,16 +444,21 @@ export default class NestedGridLayout extends React.PureComponent<NestedGridLayo
    * @param child - 追加する子要素
    * @returns 更新されたツリー構造
    */
-  addChildToTree = (nodes: GridItem[], parentId: string, child: GridItem): GridItem[] =>
-    nodes.map(node => {
+  addChildToTree = (nodes: GridItem[], parentId: string, child: GridItem): GridItem[] => {
+    console.log('addChildToTree called with parentId:', parentId);
+    return nodes.map(node => {
       if (node.id === parentId) {
-        return { ...node, children: [...node.children, child] };
+        console.log('Found parent node:', node);
+        const updatedNode = { ...node, children: [...node.children, child] };
+        console.log('Updated node:', updatedNode);
+        return updatedNode;
       }
       if (node.children.length) {
         return { ...node, children: this.addChildToTree(node.children, parentId, child) };
       }
       return node;
     });
+  };
 
   /**
    * ツリー構造から指定されたIDのノードを削除する
@@ -434,6 +522,21 @@ export default class NestedGridLayout extends React.PureComponent<NestedGridLayo
     const isEditTarget = editTargetId === item.id;
     const isChildSelected = this.isNestedItemSelected(editTargetId, item.children, item.id);
 
+    console.log('Rendering element:', { 
+      id: item.id, 
+      isSelected, 
+      isEditTarget, 
+      isChildSelected,
+      layoutId: item.layout.i
+    });
+
+    const handleChildLayoutChange = (layout: Layout[]) => {
+      console.log('Child layout change:', layout);
+      if (isEditTarget) {
+        this.handleLayoutChange(layout);
+      }
+    };
+
     return (
       <div
         key={item.layout.i}
@@ -442,21 +545,25 @@ export default class NestedGridLayout extends React.PureComponent<NestedGridLayo
         style={{
           border: isSelected ? "2px solid blue" : "1px solid #ccc",
           backgroundColor: isEditTarget ? "#eef" : "#fff",
-          position: "relative"
+          position: "relative",
+          width: "100%",
+          height: "100%"
         }}
         onClick={e => { e.stopPropagation(); this.handleSelect(item.id); }}
       >
-        <NestedGridContainer
-          isDraggable={!isChildSelected}
-          isResizable
-          cols={this.props.cols}
-          margin={[0, 0]}
-          defaultRowHeight={this.props.rowHeight}
-          onLayoutChange={(layout) => this.handleLayoutChange(layout)}
-          itemId={item.id}
-        >
-          {item.children.map(child => this.renderElement(child))}
-        </NestedGridContainer>
+        {item.children.length > 0 && (
+          <NestedGridContainer
+            isDraggable={isEditTarget}
+            isResizable
+            cols={this.props.cols}
+            margin={[0, 0]}
+            defaultRowHeight={this.props.rowHeight}
+            onLayoutChange={handleChildLayoutChange}
+            itemId={item.id}
+          >
+            {item.children.map(child => this.renderElement(child))}
+          </NestedGridContainer>
+        )}
       </div>
     );
   };
