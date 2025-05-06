@@ -1,5 +1,5 @@
 import React from "react";
-import { WidthProvider, Responsive, Layout } from "react-grid-layout";
+import { WidthProvider, Responsive } from "react-grid-layout";
 import { Box, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -7,6 +7,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import EditOffIcon from '@mui/icons-material/EditOff';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import type { Layout, GridItem, ButtonConfig, GridLayoutConfig } from '../../types';
+import BoxSettingsPanel from './BoxSettingsPanel';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -33,49 +35,18 @@ interface NestedGridContainerState {
 }
 
 /**
- * グリッドレイアウトコンポーネントの設定を定義
- */
-interface GridLayoutConfig {
-  type: 'gridLayout';
-  props: {
-    children: GridItem[];
-  };
-}
-
-/**
- * ボタンコンポーネントの設定を定義
- */
-interface ButtonConfig {
-  type: 'button';
-  props: {
-    variant: 'text' | 'contained' | 'outlined';
-    color?: 'primary' | 'secondary' | 'error';
-    label: string;
-  };
-}
-
-/**
- * コンポーネントの設定構造を定義
- */
-type ComponentConfig = GridLayoutConfig | ButtonConfig;
-
-/**
  * ボタンコンポーネントのデフォルトプロパティ
  */
 const defaultButtonProps: ButtonConfig['props'] = {
   variant: 'contained',
   color: 'primary',
-  label: 'ボタン'
+  label: 'ボタン',
+  size: 'medium',
+  widthPercentage: 80,
+  heightPercentage: 50,
+  horizontalAlign: 'center',
+  verticalAlign: 'center'
 };
-
-/**
- * グリッドアイテムの構造を定義
- */
-interface GridItem {
-  id: string;               // アイテムの一意のID
-  layout: Layout;           // レイアウト情報
-  component: ComponentConfig; // コンポーネントの設定
-}
 
 /**
  * メインレイアウトコンポーネントのプロパティ
@@ -253,7 +224,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
           }
         };
       }
-      if (node.component.type === 'gridLayout') {
+      if (node.component.type === 'gridLayout' && 'children' in node.component.props) {
         return {
           ...node,
           component: {
@@ -487,7 +458,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     
     const targetItems = editTargetId 
       ? this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
-        ? this.findItemInTree(items, editTargetId)?.component.props.children || []
+        ? (this.findItemInTree(items, editTargetId)?.component.props as { children: GridItem[] })?.children || []
         : []
       : items;
 
@@ -644,6 +615,43 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
    * @param targetId - 削除対象のID
    * @returns 更新されたツリー構造
    */
+  /**
+   * ボタンのプロパティを更新する
+   * @param nodes - 更新対象のツリー構造
+   * @param itemId - 更新対象のアイテムID
+   * @param newProps - 新しいプロパティ
+   * @returns 更新されたツリー構造
+   */
+  updateItemProps = (nodes: GridItem[], itemId: string, newProps: Partial<ButtonConfig['props']>): GridItem[] => {
+    return nodes.map(node => {
+      if (node.id === itemId && node.component.type === 'button') {
+        return {
+          ...node,
+          component: {
+            ...node.component,
+            props: {
+              ...node.component.props,
+              ...newProps
+            }
+          }
+        };
+      }
+      if (node.component.type === 'gridLayout' && 'children' in node.component.props) {
+        const gridLayout = node.component as GridLayoutConfig;
+        return {
+          ...node,
+          component: {
+            ...gridLayout,
+            props: {
+              children: this.updateItemProps(gridLayout.props.children, itemId, newProps)
+            }
+          }
+        };
+      }
+      return node;
+    });
+  };
+
   removeFromTree = (nodes: GridItem[], targetId: string): GridItem[] => {
     return nodes
       .filter(node => node.id !== targetId)
@@ -734,19 +742,47 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     };
 
     if (item.component.type === 'button') {
+      const {
+        variant,
+        color,
+        label,
+        size,
+        widthPercentage,
+        heightPercentage,
+        horizontalAlign,
+        verticalAlign,
+        disabled
+      } = item.component.props;
+
+      // 水平・垂直方向の配置設定をflexboxのalignmentに変換
+      const justifyContent = horizontalAlign === 'start' ? 'flex-start' 
+        : horizontalAlign === 'end' ? 'flex-end' 
+        : 'center';
+      
+      const alignItems = verticalAlign === 'start' ? 'flex-start'
+        : verticalAlign === 'end' ? 'flex-end'
+        : 'center';
+
       return (
         <Box {...commonBoxProps} sx={{ 
           ...commonBoxProps.sx, 
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 1
+          alignItems,
+          justifyContent,
         }}>
           <Button
-            variant={item.component.props.variant}
-            color={item.component.props.color}
+            variant={variant}
+            color={color}
+            size={size}
+            disabled={disabled}
+            sx={{
+              width: `${widthPercentage}%`,
+              height: `${heightPercentage}%`,
+              maxWidth: '100%',
+              maxHeight: '100%'
+            }}
           >
-            {item.component.props.label}
+            {label}
           </Button>
         </Box>
       );
@@ -778,25 +814,34 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     return (
       <Box
         sx={{
-          flex: 1,
           height: '100%',
           bgcolor: 'background.default',
           p: 2,
-          overflow: 'auto',
+          overflow: 'hidden',
           display: 'flex',
+          gap: 2,
         }}
         onClick={() => this.setState({ selectedItemId: null })}
       >
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
           <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
             <Box sx={{ display: 'flex', gap: 1, flex: 1 }}>
-              <Button
-                variant="outlined"
-                onClick={this.handleAddItem}
-                startIcon={<AddBoxIcon />}
-              >
-                領域を追加
-              </Button>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button
+                  variant="outlined"
+                  onClick={this.handleAddItem}
+                  startIcon={<AddBoxIcon />}
+                >
+                  領域を追加
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={this.handleAddButton}
+                  startIcon={<AddBoxIcon />}
+                >
+                  ボタンを追加
+                </Button>
+              </Box>
               <Button
                 variant="contained"
                 color="error"
@@ -806,15 +851,35 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
               >
                 選択した領域を削除
               </Button>
+              {/* 「領域内を編集」ボタンの活性・表示制御
+                * 
+                * 編集状態（editTargetId !== null）の場合：
+                * 1. 編集状態の領域以外のgridLayoutが選択されている場合 → 「領域内を編集」表示・有効
+                * 2. それ以外（選択なし・編集中の領域が選択・ボタンが選択等）→ 「領域内の編集終了」表示・有効
+                * 
+                * 非編集状態の場合：
+                * - gridLayout型の領域が選択されている時のみ → 「領域内を編集」表示・有効
+                */}
               <Button
                 variant="outlined"
                 onClick={this.toggleEditTarget}
-                disabled={!editTargetId && !selectedItemId || (!editTargetId && selectedItemId === null)}
+                disabled={!editTargetId && (
+                  !selectedItemId || 
+                  this.findItemInTree(items, selectedItemId)?.component.type !== 'gridLayout'
+                )}
                 startIcon={
-                  editTargetId && (!selectedItemId || selectedItemId === editTargetId) ? <EditOffIcon /> : <EditIcon />
+                  editTargetId && (
+                    !selectedItemId || 
+                    selectedItemId === editTargetId || 
+                    this.findItemInTree(items, selectedItemId)?.component.type !== 'gridLayout'
+                  ) ? <EditOffIcon /> : <EditIcon />
                 }
               >
-                {editTargetId && (!selectedItemId || selectedItemId === editTargetId) 
+                {editTargetId && (
+                  !selectedItemId || 
+                  selectedItemId === editTargetId || 
+                  this.findItemInTree(items, selectedItemId)?.component.type !== 'gridLayout'
+                ) 
                   ? "領域内の編集終了" 
                   : "領域内を編集"
                 }
@@ -867,6 +932,26 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
             </ResponsiveReactGridLayout>
           </Box>
         </Box>
+        {/* ボタン設定パネル（常に表示） */}
+        <Box 
+          sx={{ width: 300, flexShrink: 0 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+            <BoxSettingsPanel
+              selectedItem={
+                (() => {
+                  const item = selectedItemId ? this.findItemInTree(items, selectedItemId) : null;
+                  return item && item.component.type === 'button' 
+                    ? { id: item.id, component: item.component as ButtonConfig }
+                    : null;
+                })()
+              }
+              onUpdate={(id, newProps) => {
+                const updatedItems = this.updateItemProps(items, id, newProps);
+                this.setState({ items: updatedItems });
+              }}
+            />
+          </Box>
       </Box>
     );
   }

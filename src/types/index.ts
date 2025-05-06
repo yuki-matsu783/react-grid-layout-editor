@@ -1,53 +1,58 @@
-// ボックススタイルの型
-export interface BoxStyles {
-  background?: string;
-  border?: string;
-  padding?: string;
-  borderRadius?: string;
-}
+import type { Layout as RGLLayout } from 'react-grid-layout';
 
-// コンポーネント定義の型
-export interface ComponentDefinition {
-  type: string;
+/**
+ * Layout構造の型
+ */
+export type Layout = RGLLayout;
+
+/**
+ * ボタンの配置位置を定義
+ */
+export type ButtonAlignment = 'start' | 'center' | 'end';
+
+/**
+ * ボタンコンポーネントの設定を定義
+ */
+export interface ButtonConfig {
+  type: 'button';
   props: {
-    variant?: string;
-    color?: string;
-    size?: string;
-    fullWidth?: boolean;
-    placeholder?: string;
-    label?: string;
-    options?: Array<{ value: string; label: string }>;
-    // Box特有のプロパティ
-    background?: string;
-    border?: string;
-    borderRadius?: string;
-    padding?: number;
-    flexDirection?: 'row' | 'column';
-    justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
-    alignItems?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
-    children?: Array<LayoutItem>;
-    [key: string]: string | boolean | number | Array<{ value: string; label: string }> | Array<LayoutItem> | undefined;
-  };
-  styles: {
-    custom: Record<string, string>;
-    mui: Record<string, any>;
+    // ボタンの見た目の設定
+    variant: 'text' | 'contained' | 'outlined';
+    color?: 'primary' | 'secondary' | 'error';
+    label: string;
+    disabled?: boolean;
+    size?: 'small' | 'medium' | 'large';
+    
+    // サイズ設定（親要素に対する割合 1-100%）
+    widthPercentage: number;
+    heightPercentage: number;
+    
+    // 配置設定
+    horizontalAlign: ButtonAlignment;
+    verticalAlign: ButtonAlignment;
   };
 }
 
-// ボックスコンポーネントの型
-export interface BoxComponent {
-  name: string;
-  styles: BoxStyles;
-  component?: ComponentDefinition;
+/**
+ * グリッドレイアウトコンポーネントの設定を定義
+ */
+export interface GridLayoutConfig {
+  type: 'gridLayout';
+  props: {
+    children: GridItem[];
+  };
 }
 
-// レイアウトアイテムの型
-export interface LayoutItem {
+/**
+ * グリッドアイテムの構造を定義
+ */
+export interface GridItem {
   id: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  boxSettings?: BoxComponent;
-  component?: ComponentDefinition;
+  layout: Layout;
+  component: ButtonConfig | GridLayoutConfig;
 }
+
+/**
+ * コンポーネントの設定構造を定義
+ */
+export type ComponentConfig = ButtonConfig | GridLayoutConfig;

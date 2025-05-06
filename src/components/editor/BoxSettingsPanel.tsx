@@ -1,89 +1,165 @@
 import React from 'react';
 import {
   Box,
-  Paper,
-  TextField,
   Typography,
+  Slider,
+  Select,
+  MenuItem,
   FormControl,
+  InputLabel,
+  Button,
+  ButtonGroup,
+  TextField,
 } from '@mui/material';
-import type { BoxComponent, BoxStyles } from '../../types';
+import type { ButtonConfig } from '../../types';
 
 interface BoxSettingsPanelProps {
-  selectedBox: BoxComponent;
-  onUpdate: (settings: BoxComponent) => void;
+  selectedItem: {
+    id: string;
+    component: {
+      type: 'button';
+      props: ButtonConfig['props'];
+    };
+  } | null;
+  onUpdate: (id: string, newProps: Partial<ButtonConfig['props']>) => void;
 }
 
-const BoxSettingsPanel: React.FC<BoxSettingsPanelProps> = ({
-  selectedBox,
-  onUpdate,
-}) => {
-  const handleStyleChange = (key: keyof BoxStyles, value: string) => {
-    onUpdate({
-      ...selectedBox,
-      styles: {
-        ...selectedBox.styles,
-        [key]: value,
-      },
-    });
-  };
-
+/**
+ * ボタンの設定を編集するパネルコンポーネント
+ */
+const BoxSettingsPanel: React.FC<BoxSettingsPanelProps> = ({ selectedItem, onUpdate }) => {
   return (
-    <Paper
-      sx={{
-        width: 300,
-        height: '100%',
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        borderRadius: 0,
-        overflow: 'auto',
-      }}
-    >
-      <Typography variant="h6" sx={{ p: 2 }}>
-        Box設定: {selectedBox.name}
-      </Typography>
-      <Box sx={{ px: 2, pb: 2 }}>
+    <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Typography variant="h6">ボタン設定</Typography>
+      {selectedItem && selectedItem.component.type === 'button' ? (
+        <>
+          {/* 選択中のボタンのprops */}
+          {(() => {
+            const props = selectedItem.component.props;
+            return (
+
+              <>
+                {/* テキスト設定 */}
+                <Box>
         <TextField
           fullWidth
-          label="Box名"
-          value={selectedBox.name}
-          onChange={(e) => onUpdate({ ...selectedBox, name: e.target.value })}
-          sx={{ mb: 2 }}
+          label="ラベル"
+          value={props.label}
+          onChange={(e) => onUpdate(selectedItem.id, { label: e.target.value })}
         />
-      </Box>
+                </Box>
 
-      <Box sx={{ p: 3 }}>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <TextField
-            label="背景色"
-            type="color"
-            value={selectedBox.styles.background || '#ffffff'}
-            onChange={(e) => handleStyleChange('background', e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="ボーダー"
-            value={selectedBox.styles.border || ''}
-            onChange={(e) => handleStyleChange('border', e.target.value)}
-            placeholder="1px solid #000"
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="余白"
-            value={selectedBox.styles.padding || ''}
-            onChange={(e) => handleStyleChange('padding', e.target.value)}
-            placeholder="8px"
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="角丸"
-            value={selectedBox.styles.borderRadius || ''}
-            onChange={(e) => handleStyleChange('borderRadius', e.target.value)}
-            placeholder="4px"
-          />
+                {/* サイズ設定 */}
+                <Box>
+        <Typography gutterBottom>幅 ({props.widthPercentage}%)</Typography>
+        <Slider
+          value={props.widthPercentage}
+          onChange={(_, value) => 
+            onUpdate(selectedItem.id, { widthPercentage: value as number })}
+          min={10}
+          max={100}
+          step={1}
+        />
+        <Typography gutterBottom>高さ ({props.heightPercentage}%)</Typography>
+        <Slider
+          value={props.heightPercentage}
+          onChange={(_, value) => 
+            onUpdate(selectedItem.id, { heightPercentage: value as number })}
+          min={10}
+          max={100}
+          step={1}
+        />
+                </Box>
+
+                {/* 配置設定 */}
+                <Box sx={{ display: 'flex', gap: 2 }}>
+        <FormControl fullWidth>
+          <InputLabel>水平方向</InputLabel>
+          <Select
+            value={props.horizontalAlign}
+            label="水平方向"
+            onChange={(e) => onUpdate(selectedItem.id, { horizontalAlign: e.target.value as 'start' | 'center' | 'end' })}
+          >
+            <MenuItem value="start">左寄せ</MenuItem>
+            <MenuItem value="center">中央</MenuItem>
+            <MenuItem value="end">右寄せ</MenuItem>
+          </Select>
         </FormControl>
-      </Box>
-    </Paper>
+        <FormControl fullWidth>
+          <InputLabel>垂直方向</InputLabel>
+          <Select
+            value={props.verticalAlign}
+            label="垂直方向"
+            onChange={(e) => onUpdate(selectedItem.id, { verticalAlign: e.target.value as 'start' | 'center' | 'end' })}
+          >
+            <MenuItem value="start">上寄せ</MenuItem>
+            <MenuItem value="center">中央</MenuItem>
+            <MenuItem value="end">下寄せ</MenuItem>
+          </Select>
+        </FormControl>
+                </Box>
+
+                {/* スタイル設定 */}
+                <Box>
+        <Typography gutterBottom>スタイル</Typography>
+        <ButtonGroup variant="outlined" fullWidth sx={{ mb: 1 }}>
+          {(['contained', 'outlined', 'text'] as const).map((v) => (
+            <Button
+              key={v}
+              onClick={() => onUpdate(selectedItem.id, { variant: v })}
+              color={props.variant === v ? 'primary' : 'inherit'}
+            >
+              {v}
+            </Button>
+          ))}
+        </ButtonGroup>
+
+        <ButtonGroup variant="outlined" fullWidth sx={{ mb: 1 }}>
+          {(['primary', 'secondary', 'error'] as const).map((c) => (
+            <Button
+              key={c}
+              onClick={() => onUpdate(selectedItem.id, { color: c })}
+              color={props.color === c ? c : 'inherit'}
+            >
+              {c}
+            </Button>
+          ))}
+        </ButtonGroup>
+
+        <ButtonGroup variant="outlined" fullWidth>
+          {(['small', 'medium', 'large'] as const).map((s) => (
+            <Button
+              key={s}
+              onClick={() => onUpdate(selectedItem.id, { size: s })}
+              color={props.size === s ? 'primary' : 'inherit'}
+            >
+              {s}
+            </Button>
+          ))}
+        </ButtonGroup>
+                </Box>
+
+                {/* その他の設定 */}
+                <Box>
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={() => onUpdate(selectedItem.id, { disabled: !props.disabled })}
+          color={props.disabled ? 'primary' : 'inherit'}
+        >
+          無効化 {props.disabled ? 'ON' : 'OFF'}
+        </Button>
+                </Box>
+              </>
+            );
+          })()}
+        </>
+      ) : (
+        <Typography color="text.secondary">
+          ボタンを選択してください
+        </Typography>
+      )}
+    </Box>
   );
 };
 
