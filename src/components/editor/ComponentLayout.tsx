@@ -422,152 +422,116 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   };
 
   /**
-   * 新しいグリッドアイテムを追加する
-   * 編集対象が選択されている場合は子要素として追加し、そうでない場合はルートレベルに追加する
+   * コンポーネントを追加する共通処理
+   * @param componentType - 追加するコンポーネントのタイプ
+   * @param idPrefix - 生成するIDのプレフィックス
+   * @returns 処理の成功/失敗
    */
-  handleAddItem = () => {
+  private handleAddComponent = (
+    componentType: ComponentType,
+    idPrefix: string
+  ): boolean => {
     const { editTargetId, items } = this.state;
 
+    // 階層の深さチェック
     if (editTargetId) {
       const depth = this.calculateDepth(editTargetId);
       if (depth >= 4) {
         alert('これ以上階層を深くすることはできません（最大5階層まで）');
-        return;
+        return false;
       }
     }
     
-    const targetItems = editTargetId
-      ? (item => item?.component.type === 'gridLayout' ? item.component.props.children : [])(this.findItemInTree(items, editTargetId))
+    // 対象のアイテムを取得
+    const targetItems = editTargetId 
+      ? this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
+        ? (this.findItemInTree(items, editTargetId)?.component.props as GridLayoutProps).children || []
+        : []
       : items;
 
-    const defaultPosition = this.findAvailablePosition(2, 2, targetItems);
-    const fallbackPosition = !defaultPosition.canPlace 
+    // コンポーネントのメタデータと配置位置を取得
+    const defaultGridLayoutMetadata = { 
+      defaultWidth: 2, 
+      defaultHeight: 2, 
+      defaultProps: { children: [] as GridItem[] } 
+    };
+
+    const metadata = componentType === 'gridLayout' 
+      ? defaultGridLayoutMetadata
+      : componentRegistry.getMetadata(componentType);
+
+    if (!metadata) {
+      console.error(`${componentType} component metadata not found`);
+      return false;
+    }
+
+    // 配置位置を計算
+    const defaultPosition = this.findAvailablePosition(
+      metadata.defaultWidth,
+      metadata.defaultHeight,
+      targetItems
+    );
+
+    const position = !defaultPosition.canPlace && componentType === 'gridLayout'
       ? this.findAvailablePosition(1, 1, targetItems)
       : defaultPosition;
 
-    if (!fallbackPosition.canPlace) {
+    if (!position.canPlace) {
       alert('利用可能なスペースがありません。');
-      return;
+      return false;
     }
 
-    const itemId = generateId();
-    const newItem: GridItem = {
-      id: itemId,
-      layout: {
-        i: `layout_${itemId}`,
-        x: fallbackPosition.x,
-        y: fallbackPosition.y,
-        w: defaultPosition.canPlace ? 2 : 1,
-        h: defaultPosition.canPlace ? 2 : 1
-      },
-      component: {
-        type: 'gridLayout',
-        props: {
-          children: []
+    // 新しいアイテムを作成
+    const itemId = generateId(idPrefix);
+    const newItem: GridItem = componentType === 'gridLayout'
+      ? {
+          id: itemId,
+          layout: {
+            i: `layout_${itemId}`,
+            x: position.x,
+            y: position.y,
+            w: defaultPosition.canPlace ? 2 : 1,
+            h: defaultPosition.canPlace ? 2 : 1
+          },
+          component: {
+            type: 'gridLayout' as const,
+            props: {
+              children: []
+            }
+          }
         }
-      }
-    };
+      : createNewComponent(componentType, itemId, position, metadata);
 
-    this.setState(prevState => {
-      const newItems = !prevState.editTargetId
+    // 状態を更新
+    this.setState(prevState => ({
+      ...prevState,
+      items: !prevState.editTargetId
         ? [...prevState.items, newItem]
-        : this.addChildToTree(prevState.items, prevState.editTargetId, newItem);
-      
-      return {
-        ...prevState,
-        items: newItems
-      };
-    });
+        : this.addChildToTree(prevState.items, prevState.editTargetId, newItem)
+    }));
+
+    return true;
   };
 
+  /**
+   * グリッドレイアウトを追加する
+   */
+  handleAddGridLayout = () => {
+    this.handleAddComponent('gridLayout', 'grid');
+  };
+
+  /**
+   * ボタンを追加する
+   */
   handleAddButton = () => {
-    const { editTargetId, items } = this.state;
-
-    if (editTargetId) {
-      const depth = this.calculateDepth(editTargetId);
-      if (depth >= 4) {
-        alert('これ以上階層を深くすることはできません（最大5階層まで）');
-        return;
-      }
-    }
-    
-    const targetItems = editTargetId 
-      ? this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
-        ? (this.findItemInTree(items, editTargetId)?.component.props as { children: GridItem[] })?.children || []
-        : []
-      : items;
-
-    const metadata = componentRegistry.getMetadata('button');
-    if (!metadata) {
-      console.error('Button component metadata not found');
-      return;
-    }
-
-    const position = this.findAvailablePosition(metadata.defaultWidth, metadata.defaultHeight, targetItems);
-
-    if (!position.canPlace) {
-      alert('利用可能なスペースがありません。');
-      return;
-    }
-
-    const itemId = generateId('btn');
-    const newItem = createNewComponent('button', itemId, position, metadata);
-
-    this.setState(prevState => {
-      const newItems = !prevState.editTargetId
-        ? [...prevState.items, newItem]
-        : this.addChildToTree(prevState.items, prevState.editTargetId, newItem);
-      
-      return {
-        ...prevState,
-        items: newItems
-      };
-    });
+    this.handleAddComponent('button', 'btn');
   };
 
+  /**
+   * テキストフィールドを追加する
+   */
   handleAddTextField = () => {
-    const { editTargetId, items } = this.state;
-
-    if (editTargetId) {
-      const depth = this.calculateDepth(editTargetId);
-      if (depth >= 4) {
-        alert('これ以上階層を深くすることはできません（最大5階層まで）');
-        return;
-      }
-    }
-    
-    const targetItems = editTargetId 
-      ? this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
-        ? (this.findItemInTree(items, editTargetId)?.component.props as { children: GridItem[] })?.children || []
-        : []
-      : items;
-
-    const metadata = componentRegistry.getMetadata('textField');
-    if (!metadata) {
-      console.error('TextField component metadata not found');
-      return;
-    }
-
-    const position = this.findAvailablePosition(metadata.defaultWidth, metadata.defaultHeight, targetItems);
-
-    if (!position.canPlace) {
-      alert('利用可能なスペースがありません。');
-      return;
-    }
-
-    const itemId = generateId('txt');
-    const newItem = createNewComponent('textField', itemId, position, metadata);
-
-    this.setState(prevState => {
-      const newItems = !prevState.editTargetId
-        ? [...prevState.items, newItem]
-        : this.addChildToTree(prevState.items, prevState.editTargetId, newItem);
-      
-      return {
-        ...prevState,
-        items: newItems
-      };
-    });
+    this.handleAddComponent('textField', 'txt');
   };
 
   handleExport = () => {
@@ -911,7 +875,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button
                   variant="outlined"
-                  onClick={this.handleAddItem}
+                  onClick={this.handleAddGridLayout}
                   startIcon={<AddBoxIcon />}
                 >
                   領域を追加
