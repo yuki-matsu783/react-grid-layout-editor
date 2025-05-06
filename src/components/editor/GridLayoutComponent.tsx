@@ -13,10 +13,40 @@ import type {
   ComponentAlignment,
   BaseComponent 
 } from '../../types';
+import { GridLayout } from './ComponentEditor';  // GridLayoutをインポート
 
 const GridLayoutComponent: BaseComponent<GridLayoutProps> = {
   render: (props: GridLayoutProps) => {
-    return null; // レンダリングは不要（GridLayoutは独自にレンダリング）
+    const { children, widthPercentage, heightPercentage, horizontalAlign, verticalAlign } = props;
+
+    // 水平・垂直方向の配置設定をflexboxのalignmentに変換
+    const justifyContent = horizontalAlign === 'start' ? 'flex-start'
+      : horizontalAlign === 'end' ? 'flex-end'
+      : 'center';
+    
+    const alignItems = verticalAlign === 'start' ? 'flex-start'
+      : verticalAlign === 'end' ? 'flex-end'
+      : 'center';
+
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems,
+          justifyContent,
+          '& > *': {
+            width: `${widthPercentage}%`,
+            height: `${heightPercentage}%`,
+            maxWidth: '100%',
+            maxHeight: '100%'
+          }
+        }}
+      >
+        {children}
+      </Box>
+    );
   },
 
   renderSettings: (props: GridLayoutProps, onUpdate: (newProps: Partial<GridLayoutProps>) => void) => {

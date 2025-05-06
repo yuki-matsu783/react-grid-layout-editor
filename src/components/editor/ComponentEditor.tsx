@@ -19,6 +19,7 @@ import type {
 import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
+import GridLayoutComponent from './GridLayoutComponent';
 import componentRegistry, { ComponentMetadata } from '../../utils/componentRegistry';
 
 
@@ -55,7 +56,7 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const componentMap = {
   button: ButtonComponent,
   textField: TextFieldComponent,
-  // 新しいコンポーネントタイプはここに追加
+  gridLayout: GridLayoutComponent,
 };
 
 type ComponentMapType = typeof componentMap;
@@ -118,7 +119,7 @@ function generateId(prefix = "grid"): string {
  * 自身の高さを測定し、動的なrowHeight（高さ/12）を提供するグリッドコンテナ
  * 子要素のグリッドレイアウトを管理し、サイズ変更に応じて自動的に調整する
  */
-class GridLayout extends React.PureComponent<GridLayoutProps, GridLayoutState> {
+export class GridLayout extends React.PureComponent<GridLayoutProps, GridLayoutState> {
   private containerRef = React.createRef<HTMLDivElement>();
   private resizeObserver: ResizeObserver | null;
 
@@ -464,10 +465,10 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
     }
     
     // 対象のアイテムを取得
-    const targetItems = editTargetId 
-      ? this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
-        ? (this.findItemInTree(items, editTargetId)?.component.props as GridLayoutProps).children || []
-        : []
+    const targetItems = editTargetId
+      ? (this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
+        ? (this.findItemInTree(items, editTargetId)?.component.props as GridLayoutProps).children
+        : []) || []
       : items;
 
     // コンポーネントのメタデータと配置位置を取得
@@ -909,81 +910,40 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
       : verticalAlign === 'end' ? 'flex-end'
       : 'center';
 
-    // コンポーネントの種類に応じたレンダリング
-    if (item.component.type in componentMap) {
-      const ComponentRenderer = componentMap[item.component.type as keyof ComponentMapType];
-      return (
-        <Box
-          key={item.layout.i}
-          data-grid={item.layout}
-          className="grid-item"
-          sx={{
-            width: '100%',
-            height: '100%',
-            position: 'relative',
-            bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
-            border: (theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems,
-            justifyContent,
-            '& > *': {
-              width: `${widthPercentage}%`,
-              height: `${heightPercentage}%`,
-              maxWidth: '100%',
-              maxHeight: '100%'
-            }
-          }}
-          onClick={(e) => { e.stopPropagation(); this.handleSelect(item.id); }}
-        >
-          {ComponentRenderer.render(item.component.props as any)}
-        </Box>
-      );
+    if (!(item.component.type in componentMap)) {
+      return null;
     }
 
-    if (item.component.type === 'gridLayout') {
-      return (
-        <Box
-          key={item.layout.i}
-          data-grid={item.layout}
-          className="grid-item"
-          sx={{
-            width: '100%',
-            height: '100%',
-            position: 'relative',
-            bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
-            border: (theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems,
-            justifyContent
-          }}
-          onClick={(e) => { e.stopPropagation(); this.handleSelect(item.id); }}
-        >
-          <GridLayout
-            isDraggable={isEditTarget && !this.state.selectingMode}
-            isResizable={isEditTarget && !this.state.selectingMode}
-            cols={this.props.cols}
-            margin={[0, 0]}
-            defaultRowHeight={this.props.rowHeight}
-            onLayoutChange={this.handleLayoutChange}
-            itemId={item.id}
-            sx={{
-              width: `${widthPercentage}%`,
-              height: `${heightPercentage}%`,
-              maxWidth: '100%',
-              maxHeight: '100%'
-            }}
-          >
-            {item.component.props.children.map(child => this.renderElement(child))}
-          </GridLayout>
-        </Box>
-      );
-    }
-
-    return null;
+    // すべてのコンポーネントに共通のレンダリングロジック
+    const ComponentRenderer = componentMap[item.component.type as keyof ComponentMapType];
+    return (
+      <Box
+        key={item.layout.i}
+        data-grid={item.layout}
+        className="grid-item"
+        sx={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+          bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
+          border: (theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems,
+          justifyContent,
+          '& > *': {
+            width: `${widthPercentage}%`,
+            height: `${heightPercentage}%`,
+            maxWidth: '100%',
+            maxHeight: '100%'
+          }
+        }}
+        onClick={(e) => { e.stopPropagation(); this.handleSelect(item.id); }}
+      >
+        {ComponentRenderer.render(item.component.props as any)}
+      </Box>
+    );
   };
 
   /**
