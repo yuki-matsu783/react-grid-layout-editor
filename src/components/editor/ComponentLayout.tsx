@@ -826,8 +826,8 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   /**
    * 編集モード/領域選択モードの切り替えを行う
    * - 編集対象がある場合：編集モードを終了
-   * - 選択モード中の場合：選択モードを終了
-   * - それ以外の場合：選択モードを開始
+   * - 選択モード中の場合：領域選択モードを終了
+   * - それ以外の場合：領域選択モードを開始
    */
   toggleEditTarget = () =>
     this.setState(prev => {
