@@ -1,6 +1,7 @@
 import { ReactNode, createElement } from 'react';
-import type { ComponentType, ComponentConfig, ButtonProps, GridLayoutProps } from '../types';
+import type { ComponentType, ComponentConfig, ButtonProps, GridLayoutProps, TextFieldProps } from '../types';
 import AddBoxIcon from '@mui/icons-material/AddBox';
+import TextFieldsIcon from '@mui/icons-material/TextFields';
 
 /**
  * コンポーネントのメタデータを定義するインターフェース
@@ -24,6 +25,7 @@ export interface ComponentMetadata<T extends ComponentConfig['props']> {
 type ComponentMetadataMap = {
   button: ComponentMetadata<ButtonProps>;
   gridLayout: ComponentMetadata<GridLayoutProps>;
+  textField: ComponentMetadata<TextFieldProps>;
 };
 
 /**
@@ -118,6 +120,29 @@ componentRegistry.registerComponent('gridLayout', {
   defaultWidth: 2,
   defaultHeight: 2,
   defaultProps: defaultGridLayoutProps
+});
+
+// デフォルトのテキストフィールドコンポーネントを登録
+const defaultTextFieldProps: TextFieldProps = {
+  label: 'テキストフィールド',
+  placeholder: '',
+  variant: 'outlined',
+  type: 'text',
+  multiline: false,
+  disabled: false,
+  required: false,
+  widthPercentage: 80,
+  heightPercentage: 50,
+  horizontalAlign: 'center',
+  verticalAlign: 'center',
+};
+
+componentRegistry.registerComponent('textField', {
+  displayName: 'テキストフィールド',
+  icon: createElement(TextFieldsIcon),
+  defaultWidth: 2,
+  defaultHeight: 1,
+  defaultProps: defaultTextFieldProps
 });
 
 export default componentRegistry;

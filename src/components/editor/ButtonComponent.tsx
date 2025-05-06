@@ -16,7 +16,7 @@ import type { ButtonProps, BaseComponent } from '../../types';
 /**
  * ボタンコンポーネントの実装
  */
-class ButtonComponent implements BaseComponent {
+class ButtonComponent implements BaseComponent<ButtonProps> {
   /**
    * ボタンをレンダリングする
    * @param props ボタンのプロパティ

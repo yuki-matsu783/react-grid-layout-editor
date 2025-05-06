@@ -14,9 +14,11 @@ import type {
   ComponentType,
   ButtonProps,
   GridLayoutProps,
+  TextFieldProps,
 } from '../../types';
 import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
+import TextFieldComponent from './TextFieldComponent';
 import componentRegistry, { ComponentMetadata } from '../../utils/componentRegistry';
 
 
@@ -52,6 +54,7 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive);
  */
 const componentMap = {
   button: ButtonComponent,
+  textField: TextFieldComponent,
   // 新しいコンポーネントタイプはここに追加
 };
 
@@ -522,6 +525,51 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     });
   };
 
+  handleAddTextField = () => {
+    const { editTargetId, items } = this.state;
+
+    if (editTargetId) {
+      const depth = this.calculateDepth(editTargetId);
+      if (depth >= 4) {
+        alert('これ以上階層を深くすることはできません（最大5階層まで）');
+        return;
+      }
+    }
+    
+    const targetItems = editTargetId 
+      ? this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
+        ? (this.findItemInTree(items, editTargetId)?.component.props as { children: GridItem[] })?.children || []
+        : []
+      : items;
+
+    const metadata = componentRegistry.getMetadata('textField');
+    if (!metadata) {
+      console.error('TextField component metadata not found');
+      return;
+    }
+
+    const position = this.findAvailablePosition(metadata.defaultWidth, metadata.defaultHeight, targetItems);
+
+    if (!position.canPlace) {
+      alert('利用可能なスペースがありません。');
+      return;
+    }
+
+    const itemId = generateId('txt');
+    const newItem = createNewComponent('textField', itemId, position, metadata);
+
+    this.setState(prevState => {
+      const newItems = !prevState.editTargetId
+        ? [...prevState.items, newItem]
+        : this.addChildToTree(prevState.items, prevState.editTargetId, newItem);
+      
+      return {
+        ...prevState,
+        items: newItems
+      };
+    });
+  };
+
   handleExport = () => {
     try {
       const exportData = {
@@ -657,14 +705,13 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   updateItemProps = (
     nodes: GridItem[],
     itemId: string,
-    newProps: Partial<ButtonProps | GridLayoutProps>
+    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps>
   ): GridItem[] => {
     return nodes.map(node => {
       if (node.id === itemId) {
         // コンポーネントの型に基づいて適切な更新を行う
         switch (node.component.type) {
           case 'button':
-            // ButtonPropsの型チェックは行わず、直接更新
             return {
               ...node,
               component: {
@@ -675,8 +722,18 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
                 }
               }
             };
+          case 'textField':
+            return {
+              ...node,
+              component: {
+                ...node.component,
+                props: {
+                  ...node.component.props,
+                  ...newProps as Partial<TextFieldProps>
+                }
+              }
+            };
           case 'gridLayout':
-            // GridLayoutPropsの型チェックは行わず、直接更新
             return {
               ...node,
               component: {
@@ -865,6 +922,13 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
                   startIcon={<AddBoxIcon />}
                 >
                   ボタンを追加
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={this.handleAddTextField}
+                  startIcon={<AddBoxIcon />}
+                >
+                  テキストフィールドを追加
                 </Button>
               </Box>
               <Button

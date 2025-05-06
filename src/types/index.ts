@@ -14,7 +14,7 @@ export type ComponentAlignment = 'start' | 'center' | 'end';
 /**
  * 利用可能なコンポーネントタイプを定義
  */
-export type ComponentType = 'button' | 'gridLayout';
+export type ComponentType = 'button' | 'gridLayout' | 'textField';
 
 /**
  * ボタンコンポーネントのプロパティを定義
@@ -37,6 +37,29 @@ export interface ButtonProps {
 }
 
 /**
+ * テキストフィールドコンポーネントのプロパティを定義
+ */
+export interface TextFieldProps {
+  // 入力フィールドの設定
+  label: string;
+  placeholder?: string;
+  variant: 'outlined' | 'filled' | 'standard';
+  type: 'text' | 'password' | 'number' | 'email';
+  multiline: boolean;
+  rows?: number;
+  disabled?: boolean;
+  required?: boolean;
+  
+  // サイズ設定（親要素に対する割合 1-100%）
+  widthPercentage: number;
+  heightPercentage: number;
+  
+  // 配置設定
+  horizontalAlign: ComponentAlignment;
+  verticalAlign: ComponentAlignment;
+}
+
+/**
  * グリッドレイアウトのプロパティを定義
  */
 export interface GridLayoutProps {
@@ -48,7 +71,8 @@ export interface GridLayoutProps {
  */
 export type ComponentConfig =
   | { type: 'button'; props: ButtonProps }
-  | { type: 'gridLayout'; props: GridLayoutProps };
+  | { type: 'gridLayout'; props: GridLayoutProps }
+  | { type: 'textField'; props: TextFieldProps };
 
 /**
  * グリッドアイテムの構造を定義
@@ -62,13 +86,13 @@ export interface GridItem {
 /**
  * コンポーネントの基本インターフェース
  */
-export interface BaseComponent {
+export interface BaseComponent<T = any> {
   /**
    * コンポーネントをレンダリングする
    * @param props コンポーネントのプロパティ
    * @returns レンダリングされたコンポーネント
    */
-  render(props: any): ReactNode;
+  render(props: T): ReactNode;
 
   /**
    * コンポーネントの設定UIをレンダリングする
@@ -76,7 +100,7 @@ export interface BaseComponent {
    * @param onUpdate プロパティ更新時のコールバック
    * @returns 設定UI
    */
-  renderSettings(props: any, onUpdate: (newProps: any) => void): ReactNode;
+  renderSettings(props: T, onUpdate: (newProps: Partial<T>) => void): ReactNode;
 }
 
 /**
@@ -86,6 +110,8 @@ export type ComponentProps<T extends ComponentConfig> = T extends { type: 'butto
   ? ButtonProps
   : T extends { type: 'gridLayout' }
   ? GridLayoutProps
+  : T extends { type: 'textField' }
+  ? TextFieldProps
   : never;
 
 export interface ComponentSettingsPanelProps {
