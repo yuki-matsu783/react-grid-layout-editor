@@ -17,29 +17,33 @@ export type ComponentAlignment = 'start' | 'center' | 'end';
 export type ComponentType = 'button' | 'gridLayout' | 'textField';
 
 /**
- * ボタンコンポーネントのプロパティを定義
+ * コンポーネントの基本レイアウトプロパティを定義
  */
-export interface ButtonProps {
-  // ボタンの見た目の設定
-  variant: 'text' | 'contained' | 'outlined';
-  color?: 'primary' | 'secondary' | 'error';
-  label: string;
-  disabled?: boolean;
-  size?: 'small' | 'medium' | 'large';
-  
+export interface BaseLayoutProps {
   // サイズ設定（親要素に対する割合 1-100%）
   widthPercentage: number;
   heightPercentage: number;
-  
   // 配置設定
   horizontalAlign: ComponentAlignment;
   verticalAlign: ComponentAlignment;
 }
 
 /**
+ * ボタンコンポーネントのプロパティを定義
+ */
+export interface ButtonProps extends BaseLayoutProps {
+  // ボタンの見た目の設定
+  variant: 'text' | 'contained' | 'outlined';
+  color?: 'primary' | 'secondary' | 'error';
+  label: string;
+  disabled?: boolean;
+  size?: 'small' | 'medium' | 'large';
+}
+
+/**
  * テキストフィールドコンポーネントのプロパティを定義
  */
-export interface TextFieldProps {
+export interface TextFieldProps extends BaseLayoutProps {
   // 入力フィールドの設定
   label: string;
   placeholder?: string;
@@ -49,27 +53,13 @@ export interface TextFieldProps {
   rows?: number;
   disabled?: boolean;
   required?: boolean;
-  
-  // サイズ設定（親要素に対する割合 1-100%）
-  widthPercentage: number;
-  heightPercentage: number;
-  
-  // 配置設定
-  horizontalAlign: ComponentAlignment;
-  verticalAlign: ComponentAlignment;
 }
 
 /**
  * グリッドレイアウトのプロパティを定義
  */
-export interface GridLayoutProps {
+export interface GridLayoutProps extends BaseLayoutProps {
   children: GridItem[];
-  // サイズ設定（親要素に対する割合 1-100%）
-  widthPercentage: number;
-  heightPercentage: number;
-  // 配置設定
-  horizontalAlign: ComponentAlignment;
-  verticalAlign: ComponentAlignment;
 }
 
 /**

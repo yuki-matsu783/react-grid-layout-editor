@@ -31,46 +31,23 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
       rows,
       disabled,
       required,
-      widthPercentage,
-      heightPercentage,
-      horizontalAlign,
-      verticalAlign,
     } = props;
 
-    // 水平・垂直方向の配置設定をflexboxのalignmentに変換
-    const justifyContent = horizontalAlign === 'start' ? 'flex-start'
-      : horizontalAlign === 'end' ? 'flex-end'
-      : 'center';
-    
-    const alignItems = verticalAlign === 'start' ? 'flex-start'
-      : verticalAlign === 'end' ? 'flex-end'
-      : 'center';
-
     return (
-      <Box sx={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems,
-        justifyContent
-      }}>
-        <TextField
-          label={label}
-          placeholder={placeholder}
-          variant={variant}
-          type={type}
-          multiline={multiline}
-          rows={rows}
-          disabled={disabled}
-          required={required}
-          sx={{
-            width: `${widthPercentage}%`,
-            height: multiline ? `${heightPercentage}%` : 'auto',
-            maxWidth: '100%',
-            maxHeight: '100%'
-          }}
-        />
-      </Box>
+      <TextField
+        label={label}
+        placeholder={placeholder}
+        variant={variant}
+        type={type}
+        multiline={multiline}
+        rows={rows}
+        disabled={disabled}
+        required={required}
+        sx={{
+          width: '100%',
+          height: multiline ? '100%' : 'auto'
+        }}
+      />
     );
   }
 

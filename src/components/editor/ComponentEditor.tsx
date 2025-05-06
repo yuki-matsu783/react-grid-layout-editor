@@ -894,85 +894,96 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
    * @param item - レンダリングするグリッドアイテム
    * @returns レンダリングされたReactノード
    */
-  /**
-   * グリッドアイテムをレンダリングする
-   * 選択状態や編集対象の状態に応じて、スタイルや挙動を変更する
-   * @param item - レンダリングするグリッドアイテム
-   * @returns レンダリングされたReactノード
-   */
   renderElement = (item: GridItem): React.ReactNode => {
     const { selectedItemId, editTargetId } = this.state;
     const isSelected = selectedItemId === item.id;
     const isEditTarget = editTargetId === item.id;
 
-    const commonBoxProps = {
-      key: item.layout.i,
-      'data-grid': item.layout,
-      className: "grid-item",
-      sx: {
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
-        border: (theme: { palette: { primary: { main: string } } }) => 
-          isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
-        borderRadius: '4px',
-        cursor: 'pointer',
-      } as const,
-      onClick: (e: React.MouseEvent) => { e.stopPropagation(); this.handleSelect(item.id); }
-    };
+    // レイアウトロジック
+    const { horizontalAlign, verticalAlign, widthPercentage, heightPercentage } = item.component.props;
+    const justifyContent = horizontalAlign === 'start' ? 'flex-start'
+      : horizontalAlign === 'end' ? 'flex-end'
+      : 'center';
+    
+    const alignItems = verticalAlign === 'start' ? 'flex-start'
+      : verticalAlign === 'end' ? 'flex-end'
+      : 'center';
 
     // コンポーネントの種類に応じたレンダリング
     if (item.component.type in componentMap) {
       const ComponentRenderer = componentMap[item.component.type as keyof ComponentMapType];
       return (
-        <Box {...commonBoxProps}>
+        <Box
+          key={item.layout.i}
+          data-grid={item.layout}
+          className="grid-item"
+          sx={{
+            width: '100%',
+            height: '100%',
+            position: 'relative',
+            bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
+            border: (theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems,
+            justifyContent,
+            '& > *': {
+              width: `${widthPercentage}%`,
+              height: `${heightPercentage}%`,
+              maxWidth: '100%',
+              maxHeight: '100%'
+            }
+          }}
+          onClick={(e) => { e.stopPropagation(); this.handleSelect(item.id); }}
+        >
           {ComponentRenderer.render(item.component.props as any)}
         </Box>
       );
     }
-    if (item.component.type === 'gridLayout'){
-      const gridProps = item.component.props;
-      const justifyContent = gridProps.horizontalAlign === 'start' ? 'flex-start'
-        : gridProps.horizontalAlign === 'end' ? 'flex-end'
-        : 'center';
-      
-      const alignItems = gridProps.verticalAlign === 'start' ? 'flex-start'
-        : gridProps.verticalAlign === 'end' ? 'flex-end'
-        : 'center';
 
+    if (item.component.type === 'gridLayout') {
       return (
-        <Box {...commonBoxProps}>
-          <Box sx={{
+        <Box
+          key={item.layout.i}
+          data-grid={item.layout}
+          className="grid-item"
+          sx={{
             width: '100%',
             height: '100%',
+            position: 'relative',
+            bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
+            border: (theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+            borderRadius: '4px',
+            cursor: 'pointer',
             display: 'flex',
             alignItems,
             justifyContent
-          }}>
-            <GridLayout
-              isDraggable={isEditTarget && !this.state.selectingMode}
-              isResizable={isEditTarget && !this.state.selectingMode}
-              cols={this.props.cols}
-              margin={[0, 0]}
-              defaultRowHeight={this.props.rowHeight}
-              onLayoutChange={this.handleLayoutChange}
-              itemId={item.id}
-              sx={{
-                width: `${gridProps.widthPercentage}%`,
-                height: `${gridProps.heightPercentage}%`,
-                maxWidth: '100%',
-                maxHeight: '100%'
-              }}
-            >
-              {gridProps.children.map(child => this.renderElement(child))}
-            </GridLayout>
-          </Box>
+          }}
+          onClick={(e) => { e.stopPropagation(); this.handleSelect(item.id); }}
+        >
+          <GridLayout
+            isDraggable={isEditTarget && !this.state.selectingMode}
+            isResizable={isEditTarget && !this.state.selectingMode}
+            cols={this.props.cols}
+            margin={[0, 0]}
+            defaultRowHeight={this.props.rowHeight}
+            onLayoutChange={this.handleLayoutChange}
+            itemId={item.id}
+            sx={{
+              width: `${widthPercentage}%`,
+              height: `${heightPercentage}%`,
+              maxWidth: '100%',
+              maxHeight: '100%'
+            }}
+          >
+            {item.component.props.children.map(child => this.renderElement(child))}
+          </GridLayout>
         </Box>
       );
     }
 
-    return null
+    return null;
   };
 
   /**

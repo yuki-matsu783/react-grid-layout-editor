@@ -27,45 +27,22 @@ class ButtonComponent implements BaseComponent<ButtonProps> {
       color,
       label,
       size,
-      widthPercentage,
-      heightPercentage,
-      horizontalAlign,
-      verticalAlign,
       disabled
     } = props;
 
-    // 水平・垂直方向の配置設定をflexboxのalignmentに変換
-    const justifyContent = horizontalAlign === 'start' ? 'flex-start'
-      : horizontalAlign === 'end' ? 'flex-end'
-      : 'center';
-    
-    const alignItems = verticalAlign === 'start' ? 'flex-start'
-      : verticalAlign === 'end' ? 'flex-end'
-      : 'center';
-
     return (
-      <Box sx={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems,
-        justifyContent
-      }}>
-        <Button
-          variant={variant}
-          color={color}
-          size={size}
-          disabled={disabled}
-          sx={{
-            width: `${widthPercentage}%`,
-            height: `${heightPercentage}%`,
-            maxWidth: '100%',
-            maxHeight: '100%'
-          }}
-        >
-          {label}
-        </Button>
-      </Box>
+      <Button
+        variant={variant}
+        color={color}
+        size={size}
+        disabled={disabled}
+        sx={{
+          width: '100%',
+          height: '100%'
+        }}
+      >
+        {label}
+      </Button>
     );
   }
 
