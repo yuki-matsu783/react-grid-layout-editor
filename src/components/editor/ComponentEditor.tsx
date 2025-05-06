@@ -894,6 +894,12 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
    * @param item - レンダリングするグリッドアイテム
    * @returns レンダリングされたReactノード
    */
+  /**
+   * グリッドアイテムをレンダリングする
+   * 選択状態や編集対象の状態に応じて、スタイルや挙動を変更する
+   * @param item - レンダリングするグリッドアイテム
+   * @returns レンダリングされたReactノード
+   */
   renderElement = (item: GridItem): React.ReactNode => {
     const { selectedItemId, editTargetId } = this.state;
     const isSelected = selectedItemId === item.id;
@@ -909,81 +915,64 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
       : verticalAlign === 'end' ? 'flex-end'
       : 'center';
 
-    // コンポーネントの種類に応じたレンダリング
+    // 共通のスタイルとプロパティを持つBoxコンポーネント
+    const baseBoxProps = {
+      key: item.layout.i,
+      'data-grid': item.layout,
+      className: "grid-item",
+      sx: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
+        border: (theme: Theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems,
+        justifyContent,
+        '& > *': {
+          width: `${widthPercentage}%`,
+          height: `${heightPercentage}%`,
+          maxWidth: '100%',
+          maxHeight: '100%'
+        }
+      },
+      onClick: (e: React.MouseEvent) => { e.stopPropagation(); this.handleSelect(item.id); }
+    };
+
+    // コンポーネントタイプに応じたコンテンツのレンダリング
+    let content: React.ReactNode = null;
+
     if (item.component.type in componentMap) {
       const ComponentRenderer = componentMap[item.component.type as keyof ComponentMapType];
-      return (
-        <Box
-          key={item.layout.i}
-          data-grid={item.layout}
-          className="grid-item"
-          sx={{
-            width: '100%',
-            height: '100%',
-            position: 'relative',
-            bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
-            border: (theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems,
-            justifyContent,
-            '& > *': {
-              width: `${widthPercentage}%`,
-              height: `${heightPercentage}%`,
-              maxWidth: '100%',
-              maxHeight: '100%'
-            }
-          }}
-          onClick={(e) => { e.stopPropagation(); this.handleSelect(item.id); }}
+      content = ComponentRenderer.render(item.component.props as any);
+    } else if (item.component.type === 'gridLayout') {
+      // グリッドレイアウトの場合、子要素を再帰的にレンダリングする必要があるのでComponentRendererではなくここで定義
+      content = (
+        <GridLayout
+          isDraggable={isEditTarget && !this.state.selectingMode}
+          isResizable={isEditTarget && !this.state.selectingMode}
+          cols={this.props.cols}
+          margin={[0, 0]}
+          defaultRowHeight={this.props.rowHeight}
+          onLayoutChange={this.handleLayoutChange}
+          itemId={item.id}
         >
-          {ComponentRenderer.render(item.component.props as any)}
-        </Box>
+          {item.component.props.children.map(child => this.renderElement(child))}
+        </GridLayout>
       );
     }
 
-    if (item.component.type === 'gridLayout') {
-      return (
-        <Box
-          key={item.layout.i}
-          data-grid={item.layout}
-          className="grid-item"
-          sx={{
-            width: '100%',
-            height: '100%',
-            position: 'relative',
-            bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
-            border: (theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems,
-            justifyContent
-          }}
-          onClick={(e) => { e.stopPropagation(); this.handleSelect(item.id); }}
-        >
-          <GridLayout
-            isDraggable={isEditTarget && !this.state.selectingMode}
-            isResizable={isEditTarget && !this.state.selectingMode}
-            cols={this.props.cols}
-            margin={[0, 0]}
-            defaultRowHeight={this.props.rowHeight}
-            onLayoutChange={this.handleLayoutChange}
-            itemId={item.id}
-            sx={{
-              width: `${widthPercentage}%`,
-              height: `${heightPercentage}%`,
-              maxWidth: '100%',
-              maxHeight: '100%'
-            }}
-          >
-            {item.component.props.children.map(child => this.renderElement(child))}
-          </GridLayout>
-        </Box>
-      );
-    }
+    // コンテンツがない場合はnullを返す
+    if (!content) return null;
 
-    return null;
+    // 共通のBoxコンポーネントでラップして返す
+    return (
+      <Box {...baseBoxProps}>
+        {content}
+      </Box>
+    );
   };
 
   /**
