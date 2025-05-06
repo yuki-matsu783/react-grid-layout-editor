@@ -65,7 +65,7 @@ type ComponentMapType = typeof componentMap;
  */
 import { SxProps, Theme } from '@mui/material';
 
-interface NestedGridContainerProps {
+interface GridLayoutProps {
   cols: { [key: string]: number };  // カラム数の設定
   margin: [number, number];         // グリッドアイテム間のマージン
   defaultRowHeight: number;         // デフォルトの行の高さ
@@ -80,7 +80,7 @@ interface NestedGridContainerProps {
 /**
  * ネストされたグリッドコンテナの状態
  */
-interface NestedGridContainerState {
+interface GridLayoutState {
   height: number;      // コンテナの高さ
   layouts?: Layout[];  // レイアウト情報
 }
@@ -118,11 +118,11 @@ function generateId(prefix = "grid"): string {
  * 自身の高さを測定し、動的なrowHeight（高さ/12）を提供するグリッドコンテナ
  * 子要素のグリッドレイアウトを管理し、サイズ変更に応じて自動的に調整する
  */
-class GridLayout extends React.PureComponent<NestedGridContainerProps, NestedGridContainerState> {
+class GridLayout extends React.PureComponent<GridLayoutProps, GridLayoutState> {
   private containerRef = React.createRef<HTMLDivElement>();
   private resizeObserver: ResizeObserver | null;
 
-  constructor(props: NestedGridContainerProps) {
+  constructor(props: GridLayoutProps) {
     super(props);
     this.state = { height: 0 };
     this.resizeObserver = null;
@@ -206,6 +206,7 @@ class GridLayout extends React.PureComponent<NestedGridContainerProps, NestedGri
           onLayoutChange={this.handleNestedLayoutChange}
           compactType={null}
           preventCollision
+          resizeHandles={rest.isResizable? ['se']:[]}
         >
           {children}
         </ResponsiveReactGridLayout>
@@ -1097,6 +1098,7 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
               onLayoutChange={this.handleLayoutChange}
               compactType={null}
               preventCollision
+              resizeHandles={isDraggableResizable? ['se']:[]}
             >
               {items.map(item => this.renderElement(item))}
             </ResponsiveReactGridLayout>
