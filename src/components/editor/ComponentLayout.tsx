@@ -63,6 +63,8 @@ type ComponentMapType = typeof componentMap;
 /**
  * ネストされたグリッドコンテナのプロパティ
  */
+import { SxProps, Theme } from '@mui/material';
+
 interface NestedGridContainerProps {
   cols: { [key: string]: number };  // カラム数の設定
   margin: [number, number];         // グリッドアイテム間のマージン
@@ -72,6 +74,7 @@ interface NestedGridContainerProps {
   isResizable?: boolean;           // サイズ変更可能かどうか
   onLayoutChange?: (layout: Layout[]) => void;  // レイアウト変更時のコールバック
   itemId?: string;                 // コンテナのID
+  sx?: SxProps<Theme>;             // スタイルプロパティ
 }
 
 /**
@@ -185,7 +188,17 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
     const fixedCols = { lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 };
 
     return (
-      <div ref={this.containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
+      <Box 
+        ref={this.containerRef}
+        sx={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+          border: '1px solid #e0e0e0',
+          borderRadius: '4px',
+          ...(this.props.sx || {})
+        }}
+      >
         <ResponsiveReactGridLayout
           {...rest}
           cols={fixedCols}
@@ -196,7 +209,7 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
         >
           {children}
         </ResponsiveReactGridLayout>
-      </div>
+      </Box>
     );
   }
 }
@@ -215,12 +228,16 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       items: [{
         id: rootId,
         layout: { i: `layout_${rootId}`, x: 0, y: 0, w: 12, h: 4 },
-        component: {
-          type: 'gridLayout',
-          props: {
-            children: []
+          component: {
+            type: 'gridLayout',
+            props: {
+              children: [],
+              widthPercentage: 100,
+              heightPercentage: 100,
+              horizontalAlign: 'center',
+              verticalAlign: 'center'
+            }
           }
-        }
       }],
       selectedItemId: null,
       editTargetId: null,
@@ -261,12 +278,13 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
           }
         };
       }
-      if (node.component.type === 'gridLayout' && 'children' in node.component.props) {
+      if (node.component.type === 'gridLayout') {
         return {
           ...node,
           component: {
             ...node.component,
             props: {
+              ...node.component.props,
               children: this.updateLayoutInTree(node.component.props.children, itemId, newLayout)
             }
           }
@@ -457,7 +475,13 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       icon: 'grid_view',
       defaultWidth: 2, 
       defaultHeight: 2, 
-      defaultProps: { children: [] as GridItem[] } 
+      defaultProps: {
+        children: [] as GridItem[],
+        widthPercentage: 100,
+        heightPercentage: 100,
+        horizontalAlign: 'center',
+        verticalAlign: 'center'
+      } 
     } as ComponentMetadata<GridLayoutProps>;
 
     const metadata = componentType === 'gridLayout' 
@@ -500,7 +524,11 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
           component: {
             type: 'gridLayout' as const,
             props: {
-              children: []
+              children: [],
+              widthPercentage: 100,
+              heightPercentage: 100,
+              horizontalAlign: 'center',
+              verticalAlign: 'center'
             }
           }
         }
@@ -650,20 +678,6 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   };
 
   /**
-   * ツリー構造から指定されたIDのノードを削除する
-   * 削除対象のノードを取り除き、グリッドレイアウトの場合は子要素も再帰的に処理する
-   * @param nodes - 更新対象のツリー構造
-   * @param targetId - 削除対象のID
-   * @returns 更新されたツリー構造
-   */
-  /**
-   * ボタンのプロパティを更新する
-   * @param nodes - 更新対象のツリー構造
-   * @param itemId - 更新対象のアイテムID
-   * @param newProps - 新しいプロパティ
-   * @returns 更新されたツリー構造
-   */
-  /**
    * コンポーネントのプロパティを更新する
    * @param nodes - 更新対象のツリー構造
    * @param itemId - 更新対象のアイテムID
@@ -710,7 +724,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
         };
       }
       
-      if (node.component.type === 'gridLayout' && 'children' in node.component.props) {
+      if (node.component.type === 'gridLayout') {
         return {
           ...node,
           component: {
@@ -917,8 +931,24 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       );
     }
     if (item.component.type === 'gridLayout'){
+      const gridProps = item.component.props;
+      const justifyContent = gridProps.horizontalAlign === 'start' ? 'flex-start'
+        : gridProps.horizontalAlign === 'end' ? 'flex-end'
+        : 'center';
+      
+      const alignItems = gridProps.verticalAlign === 'start' ? 'flex-start'
+        : gridProps.verticalAlign === 'end' ? 'flex-end'
+        : 'center';
+
       return (
         <Box {...commonBoxProps}>
+          <Box sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems,
+            justifyContent
+          }}>
             <NestedGridContainer
               isDraggable={isEditTarget && !this.state.selectingMode}
               isResizable={isEditTarget && !this.state.selectingMode}
@@ -927,9 +957,16 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
               defaultRowHeight={this.props.rowHeight}
               onLayoutChange={this.handleLayoutChange}
               itemId={item.id}
+              sx={{
+                width: `${gridProps.widthPercentage}%`,
+                height: `${gridProps.heightPercentage}%`,
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }}
             >
-              {item.component.props.children.map(child => this.renderElement(child))}
+              {gridProps.children.map(child => this.renderElement(child))}
             </NestedGridContainer>
+          </Box>
         </Box>
       );
     }

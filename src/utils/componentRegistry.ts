@@ -111,7 +111,11 @@ componentRegistry.registerComponent('button', {
 
 // デフォルトのグリッドレイアウトコンポーネントを登録
 const defaultGridLayoutProps: GridLayoutProps = {
-  children: []
+  children: [],
+  widthPercentage: 100,
+  heightPercentage: 100,
+  horizontalAlign: 'center',
+  verticalAlign: 'center'
 };
 
 componentRegistry.registerComponent('gridLayout', {

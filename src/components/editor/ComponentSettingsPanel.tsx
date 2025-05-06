@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material';
 import type { ComponentSettingsPanelProps } from '../../types';
 import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
+import GridLayoutComponent from './GridLayoutComponent';
 
 /**
  * コンポーネントタイプごとの設定コンポーネントマッピング
@@ -10,6 +11,7 @@ import TextFieldComponent from './TextFieldComponent';
 const componentMap = {
   button: ButtonComponent,
   textField: TextFieldComponent,
+  gridLayout: GridLayoutComponent,
   // 新しいコンポーネントタイプはここに追加
 };
 
@@ -39,8 +41,8 @@ const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
       <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>コンポーネント設定</Typography>
       {selectedItem && settingsComponent ? (
         settingsComponent.renderSettings(
-          selectedItem.component.props,
-          (newProps) => onUpdate(selectedItem.id, newProps)
+          selectedItem.component.props as any,
+          (newProps: Partial<typeof selectedItem.component.props>) => onUpdate(selectedItem.id, newProps)
         )
       ) : (
         <Typography variant="body2" color="text.secondary">

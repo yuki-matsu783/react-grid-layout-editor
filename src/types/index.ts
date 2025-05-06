@@ -64,6 +64,12 @@ export interface TextFieldProps {
  */
 export interface GridLayoutProps {
   children: GridItem[];
+  // サイズ設定（親要素に対する割合 1-100%）
+  widthPercentage: number;
+  heightPercentage: number;
+  // 配置設定
+  horizontalAlign: ComponentAlignment;
+  verticalAlign: ComponentAlignment;
 }
 
 /**
