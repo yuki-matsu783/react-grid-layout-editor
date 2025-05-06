@@ -1,97 +1,123 @@
-import type { ComponentDefinition, BoxComponent } from '../types';
+import { ReactNode, createElement } from 'react';
+import type { ComponentType, ComponentConfig, ButtonProps, GridLayoutProps } from '../types';
+import AddBoxIcon from '@mui/icons-material/AddBox';
 
-// コンポーネントのデフォルトサイズ（グリッドユニット）
-export const defaultComponentSizes: Record<string, { w: number; h: number }> = {
-  TextField: { w: 4, h: 1 },
-  Button: { w: 2, h: 1 },
-  Select: { w: 4, h: 1 },
-  Checkbox: { w: 2, h: 1 },
-  Radio: { w: 2, h: 1 },
-  Switch: { w: 2, h: 1 },
-  GridContainer: { w: 6, h: 4 },
+/**
+ * コンポーネントのメタデータを定義するインターフェース
+ */
+export interface ComponentMetadata<T extends ComponentConfig['props']> {
+  // コンポーネントの表示名
+  displayName: string;
+  // コンポーネント追加ボタンに表示するアイコン
+  icon: ReactNode;
+  // コンポーネントのデフォルトの幅（グリッド単位）
+  defaultWidth: number;
+  // コンポーネントのデフォルトの高さ（グリッド単位）
+  defaultHeight: number;
+  // コンポーネントのデフォルトプロパティ
+  defaultProps: T;
+}
+
+/**
+ * コンポーネントタイプごとのメタデータマップ
+ */
+type ComponentMetadataMap = {
+  button: ComponentMetadata<ButtonProps>;
+  gridLayout: ComponentMetadata<GridLayoutProps>;
 };
 
-// 新しいBoxインスタンスを作成する関数
-export const createBoxInstance = (id: string): BoxComponent => {
-  // IDからデフォルトの名前を生成（例：Box-1 → Box 1）
-  const defaultName = id.replace('-', ' ');
-  
-  return {
-    id,
-    name: defaultName,
-    styles: {
-      background: '#ffffff',
-      border: '1px solid #e0e0e0',
-      padding: '16px',
-      borderRadius: '4px',
-    },
-    layout: {
-      position: 'start',
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'flex-start',
-    },
-  };
+/**
+ * コンポーネントの登録と管理を行うクラス
+ */
+class ComponentRegistry {
+  private components: Map<ComponentType, ComponentMetadataMap[ComponentType]> = new Map();
+
+  /**
+   * コンポーネントを登録する
+   * @param type コンポーネントのタイプ
+   * @param metadata コンポーネントのメタデータ
+   */
+  registerComponent<T extends ComponentType>(
+    type: T,
+    metadata: ComponentMetadataMap[T]
+  ): void {
+    this.components.set(type, metadata);
+    console.log(`Registered component: ${type}`);
+  }
+
+  /**
+   * 登録済みのコンポーネントタイプの一覧を取得
+   */
+  getRegisteredTypes(): ComponentType[] {
+    return Array.from(this.components.keys());
+  }
+
+  /**
+   * コンポーネントのメタデータを取得
+   * @param type コンポーネントのタイプ
+   */
+  getMetadata<T extends ComponentType>(type: T): ComponentMetadataMap[T] | undefined {
+    return this.components.get(type) as ComponentMetadataMap[T] | undefined;
+  }
+
+  /**
+   * コンポーネントのデフォルトプロパティを取得
+   * @param type コンポーネントのタイプ
+   */
+  getDefaultProps<T extends ComponentType>(type: T): ComponentMetadataMap[T]['defaultProps'] | undefined {
+    return this.components.get(type)?.defaultProps as ComponentMetadataMap[T]['defaultProps'] | undefined;
+  }
+
+  /**
+   * コンポーネントのデフォルトサイズを取得する
+   * @param type コンポーネントのタイプ
+   * @returns {[number, number]} [width, height] のタプル
+   */
+  getComponentDefaultSize(type: ComponentType): [number, number] {
+    const metadata = this.components.get(type);
+    return metadata ? [metadata.defaultWidth, metadata.defaultHeight] : [1, 1];
+  }
+}
+
+// Export named function for direct use
+export const getComponentDefaultSize = (type: ComponentType): [number, number] => {
+  return componentRegistry.getComponentDefaultSize(type);
 };
 
-// 新しいコンポーネントインスタンスを作成する関数
-export const createComponentInstance = (type: string): ComponentDefinition => {
-  const defaultProps = {
-    GridContainer: {
-      background: '#ffffff',
-      border: '1px solid #e0e0e0',
-      borderRadius: '4px',
-      padding: 2,
-      children: [],
-    },
-    TextField: {
-      variant: 'outlined' as const,
-      fullWidth: true,
-      placeholder: 'テキストを入力',
-      size: 'medium' as const,
-    },
-    Button: {
-      variant: 'contained' as const,
-      color: 'primary' as const,
-      size: 'medium' as const,
-      label: 'Button',
-    },
-    Select: {
-      variant: 'outlined' as const,
-      fullWidth: true,
-      label: '選択してください',
-      options: [
-        { value: 'option1', label: 'オプション1' },
-        { value: 'option2', label: 'オプション2' },
-        { value: 'option3', label: 'オプション3' },
-      ],
-      size: 'medium' as const,
-    },
-    Checkbox: {
-      color: 'primary' as const,
-      label: 'チェックボックス',
-    },
-    Radio: {
-      color: 'primary' as const,
-      label: 'ラジオボタン',
-    },
-    Switch: {
-      color: 'primary' as const,
-      label: 'スイッチ',
-    },
-  };
+// シングルトンインスタンスを作成
+export const componentRegistry = new ComponentRegistry();
 
-  return {
-    type,
-    props: defaultProps[type as keyof typeof defaultProps],
-    styles: {
-      custom: {},
-      mui: {},
-    },
-  };
+// デフォルトのボタンコンポーネントを登録
+const defaultButtonProps: ButtonProps = {
+  variant: 'contained',
+  color: 'primary',
+  label: 'ボタン',
+  size: 'medium',
+  widthPercentage: 80,
+  heightPercentage: 50,
+  horizontalAlign: 'center',
+  verticalAlign: 'center',
 };
 
-// コンポーネントのデフォルトサイズを取得する関数
-export const getComponentDefaultSize = (type: string) => {
-  return defaultComponentSizes[type] || { w: 2, h: 2 };
+componentRegistry.registerComponent('button', {
+  displayName: 'ボタン',
+  icon: createElement(AddBoxIcon),
+  defaultWidth: 2,
+  defaultHeight: 1,
+  defaultProps: defaultButtonProps
+});
+
+// デフォルトのグリッドレイアウトコンポーネントを登録
+const defaultGridLayoutProps: GridLayoutProps = {
+  children: []
 };
+
+componentRegistry.registerComponent('gridLayout', {
+  displayName: 'グリッドレイアウト',
+  icon: createElement(AddBoxIcon),
+  defaultWidth: 2,
+  defaultHeight: 2,
+  defaultProps: defaultGridLayoutProps
+});
+
+export default componentRegistry;

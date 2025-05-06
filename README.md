@@ -1,54 +1,135 @@
-# React + TypeScript + Vite
+# グリッドレイアウトエディタ
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 概要
 
-Currently, two official plugins are available:
+このプロジェクトは、React Grid Layoutを利用したインタラクティブなグリッドレイアウトエディタです。
+ドラッグ＆ドロップで自由にレイアウトを編集でき、コンポーネントのネスト構造にも対応しています。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 主な機能
 
-## Expanding the ESLint configuration
+- グリッドレイアウトの動的な編集
+- コンポーネントのドラッグ＆ドロップ配置
+- サイズ変更可能なグリッドアイテム
+- 最大5階層までのネスト構造
+- レイアウト設定のインポート/エクスポート
+- ボタンコンポーネントの追加と設定
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 必要要件
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Node.js 18.0.0以上
+- pnpm 8.0.0以上
+
+## インストール
+
+```bash
+# パッケージのインストール
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 開発サーバーの起動
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+# 開発サーバーを起動
+pnpm dev
 ```
+
+## ビルド
+
+```bash
+# プロダクション用にビルド
+pnpm build
+```
+
+## 使用方法
+
+### 基本操作
+
+1. **領域の追加**
+   - 「領域を追加」ボタンをクリックして新しいグリッド領域を追加
+   - ドラッグで位置を移動可能
+   - 右下のハンドルでサイズを変更可能
+
+2. **ボタンの追加**
+   - 「ボタンを追加」ボタンをクリックしてボタンコンポーネントを追加
+   - 右側のパネルでボタンの設定を編集可能
+
+3. **編集モード**
+   - 領域を選択して「領域内を編集」ボタンをクリックすると、その領域内のみを編集可能
+   - 「領域内の編集終了」で編集モードを終了
+
+4. **削除**
+   - 要素を選択して「選択した領域を削除」ボタンをクリック
+
+### インポート/エクスポート
+
+- 「エクスポート」ボタンでレイアウト設定をJSONファイルとして保存
+- 「インポート」ボタンで保存したレイアウト設定を読み込み
+
+## コンポーネントの追加方法
+
+新しいコンポーネントタイプを追加する場合は、以下の手順で実装します：
+
+1. `src/types/index.ts`にコンポーネントの型定義を追加
+
+```typescript
+export type ComponentType = 'button' | 'gridLayout' | /* 新しいコンポーネントタイプ */;
+
+// コンポーネントのプロパティ型を定義
+export interface NewComponentProps {
+  // プロパティを定義
+}
+```
+
+2. `src/utils/componentRegistry.ts`にコンポーネントのメタデータを登録
+
+```typescript
+componentRegistry.register('newComponent', {
+  defaultWidth: 2,
+  defaultHeight: 1,
+  defaultProps: {
+    // デフォルトのプロパティ値
+  }
+});
+```
+
+3. `src/components/editor/ComponentLayout.tsx`にコンポーネントのマッピングを追加
+
+```typescript
+const componentMap = {
+  button: ButtonComponent,
+  // 新しいコンポーネントを追加
+  newComponent: NewComponent
+};
+```
+
+4. コンポーネントの実装
+
+```typescript
+// src/components/editor/NewComponent.tsx
+export default class NewComponent extends React.PureComponent<NewComponentProps> {
+  static render(props: NewComponentProps) {
+    return (
+      // コンポーネントの実装
+    );
+  }
+}
+```
+
+## 制限事項
+
+- ネストは最大5階層まで
+- グリッドは12x12サイズ
+- コンポーネントは重ならないように配置される
+
+## 技術スタック
+
+- React
+- TypeScript
+- Material-UI
+- react-grid-layout
+- Vite
+- ESLint
+
+## ライセンス
+
+このプロジェクトはMITライセンスの下で公開されています。

@@ -1,4 +1,5 @@
 import type { Layout as RGLLayout } from 'react-grid-layout';
+import type { ReactNode } from 'react';
 
 /**
  * Layout構造の型
@@ -6,42 +7,48 @@ import type { Layout as RGLLayout } from 'react-grid-layout';
 export type Layout = RGLLayout;
 
 /**
- * ボタンの配置位置を定義
+ * コンポーネントの配置位置を定義
  */
-export type ButtonAlignment = 'start' | 'center' | 'end';
+export type ComponentAlignment = 'start' | 'center' | 'end';
 
 /**
- * ボタンコンポーネントの設定を定義
+ * 利用可能なコンポーネントタイプを定義
  */
-export interface ButtonConfig {
-  type: 'button';
-  props: {
-    // ボタンの見た目の設定
-    variant: 'text' | 'contained' | 'outlined';
-    color?: 'primary' | 'secondary' | 'error';
-    label: string;
-    disabled?: boolean;
-    size?: 'small' | 'medium' | 'large';
-    
-    // サイズ設定（親要素に対する割合 1-100%）
-    widthPercentage: number;
-    heightPercentage: number;
-    
-    // 配置設定
-    horizontalAlign: ButtonAlignment;
-    verticalAlign: ButtonAlignment;
-  };
+export type ComponentType = 'button' | 'gridLayout';
+
+/**
+ * ボタンコンポーネントのプロパティを定義
+ */
+export interface ButtonProps {
+  // ボタンの見た目の設定
+  variant: 'text' | 'contained' | 'outlined';
+  color?: 'primary' | 'secondary' | 'error';
+  label: string;
+  disabled?: boolean;
+  size?: 'small' | 'medium' | 'large';
+  
+  // サイズ設定（親要素に対する割合 1-100%）
+  widthPercentage: number;
+  heightPercentage: number;
+  
+  // 配置設定
+  horizontalAlign: ComponentAlignment;
+  verticalAlign: ComponentAlignment;
 }
 
 /**
- * グリッドレイアウトコンポーネントの設定を定義
+ * グリッドレイアウトのプロパティを定義
  */
-export interface GridLayoutConfig {
-  type: 'gridLayout';
-  props: {
-    children: GridItem[];
-  };
+export interface GridLayoutProps {
+  children: GridItem[];
 }
+
+/**
+ * コンポーネントの設定を定義
+ */
+export type ComponentConfig =
+  | { type: 'button'; props: ButtonProps }
+  | { type: 'gridLayout'; props: GridLayoutProps };
 
 /**
  * グリッドアイテムの構造を定義
@@ -49,10 +56,39 @@ export interface GridLayoutConfig {
 export interface GridItem {
   id: string;
   layout: Layout;
-  component: ButtonConfig | GridLayoutConfig;
+  component: ComponentConfig;
 }
 
 /**
- * コンポーネントの設定構造を定義
+ * コンポーネントの基本インターフェース
  */
-export type ComponentConfig = ButtonConfig | GridLayoutConfig;
+export interface BaseComponent {
+  /**
+   * コンポーネントをレンダリングする
+   * @param props コンポーネントのプロパティ
+   * @returns レンダリングされたコンポーネント
+   */
+  render(props: any): ReactNode;
+
+  /**
+   * コンポーネントの設定UIをレンダリングする
+   * @param props 現在のプロパティ
+   * @param onUpdate プロパティ更新時のコールバック
+   * @returns 設定UI
+   */
+  renderSettings(props: any, onUpdate: (newProps: any) => void): ReactNode;
+}
+
+/**
+ * 設定パネルのプロパティを定義
+ */
+export type ComponentProps<T extends ComponentConfig> = T extends { type: 'button' }
+  ? ButtonProps
+  : T extends { type: 'gridLayout' }
+  ? GridLayoutProps
+  : never;
+
+export interface ComponentSettingsPanelProps {
+  selectedItem: GridItem | null;
+  onUpdate: <T extends ComponentConfig>(id: string, newProps: Partial<ComponentProps<T>>) => void;
+}

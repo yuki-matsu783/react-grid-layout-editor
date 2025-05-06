@@ -7,10 +7,55 @@ import EditIcon from '@mui/icons-material/Edit';
 import EditOffIcon from '@mui/icons-material/EditOff';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import type { Layout, GridItem, ButtonConfig, GridLayoutConfig } from '../../types';
-import BoxSettingsPanel from './BoxSettingsPanel';
+import type { 
+  Layout, 
+  GridItem, 
+  ComponentConfig, 
+  ComponentType,
+  ButtonProps,
+  GridLayoutProps,
+} from '../../types';
+import ComponentSettingsPanel from './ComponentSettingsPanel';
+import ButtonComponent from './ButtonComponent';
+import componentRegistry, { ComponentMetadata } from '../../utils/componentRegistry';
+
+
+/**
+ * 新しいコンポーネントを作成する
+ */
+function createNewComponent(
+  type: ComponentType,
+  itemId: string,
+  position: { x: number, y: number },
+  metadata: ComponentMetadata<any>
+): GridItem {
+  return {
+    id: itemId,
+    layout: {
+      i: `layout_${itemId}`,
+      x: position.x,
+      y: position.y,
+      w: metadata.defaultWidth,
+      h: metadata.defaultHeight
+    },
+    component: {
+      type,
+      props: metadata.defaultProps
+    } as ComponentConfig
+  };
+}
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
+
+/**
+ * コンポーネントのレンダリングマッピング
+ */
+const componentMap = {
+  button: ButtonComponent,
+  // 新しいコンポーネントタイプはここに追加
+};
+
+type ComponentMapType = typeof componentMap;
 
 /**
  * ネストされたグリッドコンテナのプロパティ
@@ -34,19 +79,6 @@ interface NestedGridContainerState {
   layouts?: Layout[];  // レイアウト情報
 }
 
-/**
- * ボタンコンポーネントのデフォルトプロパティ
- */
-const defaultButtonProps: ButtonConfig['props'] = {
-  variant: 'contained',
-  color: 'primary',
-  label: 'ボタン',
-  size: 'medium',
-  widthPercentage: 80,
-  heightPercentage: 50,
-  horizontalAlign: 'center',
-  verticalAlign: 'center'
-};
 
 /**
  * メインレイアウトコンポーネントのプロパティ
@@ -462,7 +494,13 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
         : []
       : items;
 
-    const position = this.findAvailablePosition(2, 1, targetItems);
+    const metadata = componentRegistry.getMetadata('button');
+    if (!metadata) {
+      console.error('Button component metadata not found');
+      return;
+    }
+
+    const position = this.findAvailablePosition(metadata.defaultWidth, metadata.defaultHeight, targetItems);
 
     if (!position.canPlace) {
       alert('利用可能なスペースがありません。');
@@ -470,20 +508,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     }
 
     const itemId = generateId('btn');
-    const newItem: GridItem = {
-      id: itemId,
-      layout: {
-        i: `layout_${itemId}`,
-        x: position.x,
-        y: position.y,
-        w: 2,
-        h: 1
-      },
-      component: {
-        type: 'button',
-        props: defaultButtonProps
-      }
-    };
+    const newItem = createNewComponent('button', itemId, position, metadata);
 
     this.setState(prevState => {
       const newItems = !prevState.editTargetId
@@ -622,28 +647,59 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
    * @param newProps - 新しいプロパティ
    * @returns 更新されたツリー構造
    */
-  updateItemProps = (nodes: GridItem[], itemId: string, newProps: Partial<ButtonConfig['props']>): GridItem[] => {
+  /**
+   * コンポーネントのプロパティを更新する
+   * @param nodes - 更新対象のツリー構造
+   * @param itemId - 更新対象のアイテムID
+   * @param newProps - 新しいプロパティ
+   * @returns 更新されたツリー構造
+   */
+  updateItemProps = (
+    nodes: GridItem[],
+    itemId: string,
+    newProps: Partial<ButtonProps | GridLayoutProps>
+  ): GridItem[] => {
     return nodes.map(node => {
-      if (node.id === itemId && node.component.type === 'button') {
+      if (node.id === itemId) {
+        // コンポーネントの型に基づいて適切な更新を行う
+        switch (node.component.type) {
+          case 'button':
+            // ButtonPropsの型チェックは行わず、直接更新
+            return {
+              ...node,
+              component: {
+                ...node.component,
+                props: {
+                  ...node.component.props,
+                  ...newProps as Partial<ButtonProps>
+                }
+              }
+            };
+          case 'gridLayout':
+            // GridLayoutPropsの型チェックは行わず、直接更新
+            return {
+              ...node,
+              component: {
+                ...node.component,
+                props: {
+                  ...node.component.props,
+                  ...newProps as Partial<GridLayoutProps>
+                }
+              }
+            };
+          default:
+            console.warn(`Unsupported component type: ${node.component.type}`);
+            return node;
+        }
+      }
+      if (node.component.type === 'gridLayout' && 'children' in node.component.props) {
         return {
           ...node,
           component: {
             ...node.component,
             props: {
               ...node.component.props,
-              ...newProps
-            }
-          }
-        };
-      }
-      if (node.component.type === 'gridLayout' && 'children' in node.component.props) {
-        const gridLayout = node.component as GridLayoutConfig;
-        return {
-          ...node,
-          component: {
-            ...gridLayout,
-            props: {
-              children: this.updateItemProps(gridLayout.props.children, itemId, newProps)
+              children: this.updateItemProps(node.component.props.children, itemId, newProps)
             }
           }
         };
@@ -719,6 +775,12 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
    * @param item - レンダリングするグリッドアイテム
    * @returns レンダリングされたReactノード
    */
+  /**
+   * グリッドアイテムをレンダリングする
+   * 選択状態や編集対象の状態に応じて、スタイルや挙動を変更する
+   * @param item - レンダリングするグリッドアイテム
+   * @returns レンダリングされたReactノード
+   */
   renderElement = (item: GridItem): React.ReactNode => {
     const { selectedItemId, editTargetId } = this.state;
     const isSelected = selectedItemId === item.id;
@@ -741,49 +803,12 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       onClick: (e: React.MouseEvent) => { e.stopPropagation(); this.handleSelect(item.id); }
     };
 
-    if (item.component.type === 'button') {
-      const {
-        variant,
-        color,
-        label,
-        size,
-        widthPercentage,
-        heightPercentage,
-        horizontalAlign,
-        verticalAlign,
-        disabled
-      } = item.component.props;
-
-      // 水平・垂直方向の配置設定をflexboxのalignmentに変換
-      const justifyContent = horizontalAlign === 'start' ? 'flex-start' 
-        : horizontalAlign === 'end' ? 'flex-end' 
-        : 'center';
-      
-      const alignItems = verticalAlign === 'start' ? 'flex-start'
-        : verticalAlign === 'end' ? 'flex-end'
-        : 'center';
-
+    // コンポーネントの種類に応じたレンダリング
+    if (item.component.type in componentMap) {
+      const ComponentRenderer = componentMap[item.component.type as keyof ComponentMapType];
       return (
-        <Box {...commonBoxProps} sx={{ 
-          ...commonBoxProps.sx, 
-          display: 'flex',
-          alignItems,
-          justifyContent,
-        }}>
-          <Button
-            variant={variant}
-            color={color}
-            size={size}
-            disabled={disabled}
-            sx={{
-              width: `${widthPercentage}%`,
-              height: `${heightPercentage}%`,
-              maxWidth: '100%',
-              maxHeight: '100%'
-            }}
-          >
-            {label}
-          </Button>
+        <Box {...commonBoxProps}>
+          {ComponentRenderer.render(item.component.props as any)}
         </Box>
       );
     }
@@ -937,18 +962,16 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
           sx={{ width: 300, flexShrink: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
-            <BoxSettingsPanel
-              selectedItem={
-                (() => {
-                  const item = selectedItemId ? this.findItemInTree(items, selectedItemId) : null;
-                  return item && item.component.type === 'button' 
-                    ? { id: item.id, component: item.component as ButtonConfig }
-                    : null;
-                })()
-              }
+            <ComponentSettingsPanel
+              selectedItem={selectedItemId ? this.findItemInTree(items, selectedItemId) : null}
               onUpdate={(id, newProps) => {
-                const updatedItems = this.updateItemProps(items, id, newProps);
-                this.setState({ items: updatedItems });
+                if (selectedItemId) {
+                  const selectedItem = this.findItemInTree(items, selectedItemId);
+                  if (selectedItem) {
+                    const updatedItems = this.updateItemProps(items, id, newProps);
+                    this.setState({ items: updatedItems });
+                  }
+                }
               }}
             />
           </Box>
