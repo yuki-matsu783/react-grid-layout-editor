@@ -102,10 +102,11 @@ export interface BaseComponent<T = any> {
 /**
  * 設定パネルのプロパティを定義
  */
-export type ComponentProps<T extends ComponentConfig> = T extends { type: 'button' }
-  ? ButtonProps
-  : T extends { type: 'gridLayout' }
+export type ComponentProps<T extends ComponentConfig> = 
+    T extends { type: 'gridLayout' }
   ? GridLayoutProps
+  : T extends { type: 'button' }
+  ? ButtonProps
   : T extends { type: 'textField' }
   ? TextFieldProps
   : never;

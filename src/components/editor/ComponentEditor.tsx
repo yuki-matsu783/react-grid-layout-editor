@@ -13,8 +13,8 @@ import type {
   ComponentConfig, 
   ComponentType,
   ButtonProps,
-  GridLayoutProps,
   TextFieldProps,
+  GridLayoutProps
 } from '../../types';
 import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
@@ -65,7 +65,7 @@ type ComponentMapType = typeof componentMap;
  */
 import { SxProps, Theme } from '@mui/material';
 
-interface GridLayoutProps {
+interface NestGridLayoutProps {
   cols: { [key: string]: number };  // カラム数の設定
   margin: [number, number];         // グリッドアイテム間のマージン
   defaultRowHeight: number;         // デフォルトの行の高さ
@@ -118,11 +118,11 @@ function generateId(prefix = "grid"): string {
  * 自身の高さを測定し、動的なrowHeight（高さ/12）を提供するグリッドコンテナ
  * 子要素のグリッドレイアウトを管理し、サイズ変更に応じて自動的に調整する
  */
-class GridLayout extends React.PureComponent<GridLayoutProps, GridLayoutState> {
+class GridLayout extends React.PureComponent<NestGridLayoutProps, GridLayoutState> {
   private containerRef = React.createRef<HTMLDivElement>();
   private resizeObserver: ResizeObserver | null;
 
-  constructor(props: GridLayoutProps) {
+  constructor(props: NestGridLayoutProps) {
     super(props);
     this.state = { height: 0 };
     this.resizeObserver = null;
