@@ -205,7 +205,7 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
  * 複数の入れ子になったグリッドアイテムの配置、サイズ変更、ドラッグ＆ドロップを制御する
  */
 export default class ComponentLayout extends React.PureComponent<ComponentLayoutProps, ComponentLayoutState> {
-  private fileInputRef: React.MutableRefObject<HTMLInputElement | null> = React.createRef<HTMLInputElement>();
+  private fileInputRef: React.MutableRefObject<HTMLInputElement | null> = React.createRef();
 
   constructor(props: ComponentLayoutProps) {
     super(props);
@@ -451,10 +451,12 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
 
     // コンポーネントのメタデータと配置位置を取得
     const defaultGridLayoutMetadata = { 
+      displayName: 'Grid Layout',
+      icon: 'grid_view',
       defaultWidth: 2, 
       defaultHeight: 2, 
       defaultProps: { children: [] as GridItem[] } 
-    };
+    } as ComponentMetadata<GridLayoutProps>;
 
     const metadata = componentType === 'gridLayout' 
       ? defaultGridLayoutMetadata
@@ -673,46 +675,39 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   ): GridItem[] => {
     return nodes.map(node => {
       if (node.id === itemId) {
-        // コンポーネントの型に基づいて適切な更新を行う
-        switch (node.component.type) {
+        const updatedComponent = { ...node.component };
+        const componentType = updatedComponent.type as ComponentType;
+        
+        switch (componentType) {
           case 'button':
-            return {
-              ...node,
-              component: {
-                ...node.component,
-                props: {
-                  ...node.component.props,
-                  ...newProps as Partial<ButtonProps>
-                }
-              }
-            };
+            updatedComponent.props = {
+              ...updatedComponent.props,
+              ...(newProps as Partial<ButtonProps>)
+            } as ButtonProps;
+            break;
           case 'textField':
-            return {
-              ...node,
-              component: {
-                ...node.component,
-                props: {
-                  ...node.component.props,
-                  ...newProps as Partial<TextFieldProps>
-                }
-              }
-            };
+            updatedComponent.props = {
+              ...updatedComponent.props,
+              ...(newProps as Partial<TextFieldProps>)
+            } as TextFieldProps;
+            break;
           case 'gridLayout':
-            return {
-              ...node,
-              component: {
-                ...node.component,
-                props: {
-                  ...node.component.props,
-                  ...newProps as Partial<GridLayoutProps>
-                }
-              }
-            };
+            updatedComponent.props = {
+              ...updatedComponent.props,
+              ...(newProps as Partial<GridLayoutProps>)
+            } as GridLayoutProps;
+            break;
           default:
-            console.warn(`Unsupported component type: ${node.component.type}`);
+            console.warn(`Unsupported component type: ${componentType}`);
             return node;
         }
+        
+        return {
+          ...node,
+          component: updatedComponent as ComponentConfig
+        };
       }
+      
       if (node.component.type === 'gridLayout' && 'children' in node.component.props) {
         return {
           ...node,
@@ -725,6 +720,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
           }
         };
       }
+      
       return node;
     });
   };
