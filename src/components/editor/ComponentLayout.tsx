@@ -101,6 +101,7 @@ interface ComponentLayoutState {
   selectedItemId: string | null;  // 選択中のアイテムID
   editTargetId: string | null;    // 編集対象のアイテムID
   fileInputKey: number;           // ファイル入力のキー
+  selectingMode: boolean;         // 領域選択モードの状態
 }
 
 /**
@@ -223,7 +224,8 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       }],
       selectedItemId: null,
       editTargetId: null,
-      fileInputKey: 0
+      fileInputKey: 0,
+      selectingMode: false
     };
   }
 
@@ -747,21 +749,106 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
 
   /**
    * グリッドアイテムを選択状態にする
+   * 領域選択モード中：
+   *  - グリッドレイアウトの場合、編集対象に設定し選択モードを終了
+   *  - それ以外の場合、選択状態のみ更新
    * @param id - 選択するアイテムのID
    */
-  handleSelect = (id: string): void => {
-    this.setState({ selectedItemId: id });
+  /**
+   * 指定されたアイテムが編集対象の領域内にあるかどうかを判定する
+   * @param itemId - 判定対象のアイテムID
+   * @param editTargetId - 編集対象の領域ID
+   * @returns 編集対象の領域内にある場合はtrue
+   */
+  isItemInEditTarget = (itemId: string, editTargetId: string): boolean => {
+    const editTarget = this.findItemInTree(this.state.items, editTargetId);
+    if (!editTarget || editTarget.component.type !== 'gridLayout') return false;
+
+    // 編集対象自身の場合もtrue
+    if (itemId === editTargetId) return true;
+
+    const searchInChildren = (nodes: GridItem[]): boolean => {
+      return nodes.some(node => {
+        if (node.id === itemId) return true;
+        if (node.component.type === 'gridLayout') {
+          return searchInChildren(node.component.props.children);
+        }
+        return false;
+      });
+    };
+
+    return searchInChildren(editTarget.component.props.children);
   };
 
   /**
-   * 編集対象の切り替えを行う
-   * 現在の編集対象と選択中のアイテムが同じ場合はクリアし、
-   * 異なる場合は選択中のアイテムを編集対象に設定する
+   * グリッドアイテムを選択状態にする
+   * - 領域選択モード中：グリッドレイアウトのみ選択可能
+   * - 編集モード中：編集対象の領域とその子要素のみ選択可能
+   * - 通常モード：全て選択可能
+   * @param id - 選択するアイテムのID
+   */
+  handleSelect = (id: string): void => {
+    this.setState(prev => {
+      const selectedItem = this.findItemInTree(prev.items, id);
+      if (!selectedItem) return prev;
+
+      if (prev.selectingMode) {
+        if (selectedItem.component.type === 'gridLayout') {
+          return {
+            ...prev,
+            selectedItemId: id,
+            editTargetId: id,
+            selectingMode: false
+          };
+        }
+        // 領域選択モード中はグリッドレイアウト以外選択不可
+        return prev;
+      }
+
+      // 編集モード中は編集対象の領域とその子要素のみ選択可能
+      if (prev.editTargetId) {
+        if (this.isItemInEditTarget(id, prev.editTargetId)) {
+          return {
+            ...prev,
+            selectedItemId: id
+          };
+        }
+        return prev;
+      }
+
+      return {
+        ...prev,
+        selectedItemId: id
+      };
+    });
+  };
+
+  /**
+   * 編集モード/領域選択モードの切り替えを行う
+   * - 編集対象がある場合：編集モードを終了
+   * - 選択モード中の場合：選択モードを終了
+   * - それ以外の場合：選択モードを開始
    */
   toggleEditTarget = () =>
-    this.setState(prev => ({ 
-      editTargetId: prev.editTargetId === prev.selectedItemId ? null : prev.selectedItemId 
-    }));
+    this.setState(prev => {
+      if (prev.editTargetId) {
+        return {
+          ...prev,
+          editTargetId: null,
+          selectingMode: false
+        };
+      }
+      if (prev.selectingMode) {
+        return {
+          ...prev,
+          selectingMode: false
+        };
+      }
+      return {
+        ...prev,
+        selectingMode: true
+      };
+    });
 
   /**
    * 指定されたアイテムまたはその子孫が選択されているかを判定する
@@ -834,8 +921,8 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       <Box {...commonBoxProps}>
         {item.component.type === 'gridLayout' && item.component.props.children.length > 0 && (
           <NestedGridContainer
-            isDraggable={isEditTarget}
-            isResizable
+            isDraggable={isEditTarget && !this.state.selectingMode}
+            isResizable={isEditTarget && !this.state.selectingMode}
             cols={this.props.cols}
             margin={[0, 0]}
             defaultRowHeight={this.props.rowHeight}
@@ -849,9 +936,20 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     );
   };
 
+  /**
+   * グリッドレイアウトのドラッグとリサイズが可能かどうかを判定する
+   * - 領域選択モード中：常に不可
+   * - 通常モード：編集対象がない、または編集対象の子要素が選択されていない場合のみ可能
+   */
+  isDraggableAndResizable = (): boolean => {
+    const { selectingMode, editTargetId, items } = this.state;
+    if (selectingMode) return false;
+    return !editTargetId || !this.isNestedItemSelected(editTargetId, items);
+  };
+
   render() {
-    const { selectedItemId, editTargetId, items } = this.state;
-    const isRootDraggable = !this.isNestedItemSelected(editTargetId, items);
+    const { selectedItemId, editTargetId, items, selectingMode } = this.state;
+    const isDraggableResizable = this.isDraggableAndResizable();
 
     return (
       <Box
@@ -914,26 +1012,9 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
               <Button
                 variant="outlined"
                 onClick={this.toggleEditTarget}
-                disabled={!editTargetId && (
-                  !selectedItemId || 
-                  this.findItemInTree(items, selectedItemId)?.component.type !== 'gridLayout'
-                )}
-                startIcon={
-                  editTargetId && (
-                    !selectedItemId || 
-                    selectedItemId === editTargetId || 
-                    this.findItemInTree(items, selectedItemId)?.component.type !== 'gridLayout'
-                  ) ? <EditOffIcon /> : <EditIcon />
-                }
+                startIcon={selectingMode || editTargetId ? <EditOffIcon /> : <EditIcon />}
               >
-                {editTargetId && (
-                  !selectedItemId || 
-                  selectedItemId === editTargetId || 
-                  this.findItemInTree(items, selectedItemId)?.component.type !== 'gridLayout'
-                ) 
-                  ? "領域内の編集終了" 
-                  : "領域内を編集"
-                }
+                {selectingMode ? "領域選択をキャンセル" : editTargetId ? "編集を終了" : "編集領域を選択"}
               </Button>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -970,8 +1051,8 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
             }}
           >
             <ResponsiveReactGridLayout
-              isDraggable={isRootDraggable}
-              isResizable
+              isDraggable={isDraggableResizable}
+              isResizable={isDraggableResizable}
               cols={this.props.cols}
               rowHeight={this.props.rowHeight}
               margin={this.props.margin}
