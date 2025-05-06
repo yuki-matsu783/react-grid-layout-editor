@@ -916,24 +916,25 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
         </Box>
       );
     }
+    if (item.component.type === 'gridLayout'){
+      return (
+        <Box {...commonBoxProps}>
+            <NestedGridContainer
+              isDraggable={isEditTarget && !this.state.selectingMode}
+              isResizable={isEditTarget && !this.state.selectingMode}
+              cols={this.props.cols}
+              margin={[0, 0]}
+              defaultRowHeight={this.props.rowHeight}
+              onLayoutChange={this.handleLayoutChange}
+              itemId={item.id}
+            >
+              {item.component.props.children.map(child => this.renderElement(child))}
+            </NestedGridContainer>
+        </Box>
+      );
+    }
 
-    return (
-      <Box {...commonBoxProps}>
-        {item.component.type === 'gridLayout' && item.component.props.children.length > 0 && (
-          <NestedGridContainer
-            isDraggable={isEditTarget && !this.state.selectingMode}
-            isResizable={isEditTarget && !this.state.selectingMode}
-            cols={this.props.cols}
-            margin={[0, 0]}
-            defaultRowHeight={this.props.rowHeight}
-            onLayoutChange={this.handleLayoutChange}
-            itemId={item.id}
-          >
-            {item.component.props.children.map(child => this.renderElement(child))}
-          </NestedGridContainer>
-        )}
-      </Box>
-    );
+    return null
   };
 
   /**
