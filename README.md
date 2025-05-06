@@ -93,13 +93,7 @@ export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'newComponen
 export type ComponentAlignment = 'start' | 'center' | 'end';
 
 // コンポーネントのプロパティ型を定義
-export interface NewComponentProps {
-  // サイズ設定（親要素に対する割合 1-100%）
-  widthPercentage: number;
-  heightPercentage: number;
-  // 配置設定
-  horizontalAlign: ComponentAlignment;
-  verticalAlign: ComponentAlignment;
+export interface NewComponentProps extends BaseLayoutProps {
   // その他の必要なプロパティを追加
 }
 
@@ -111,36 +105,16 @@ export type ComponentConfig =
   | { type: 'newComponent'; props: NewComponentProps };
 ```
 
-2. `src/components/editor/NewComponent.tsx`でコンポーネントを実装
+2. `src/components/editor/NewComponent.tsx`でコンポーネントを実装し、BaseComponentインターフェースを実装する
 
 ```typescript
 import React from 'react';
-import {
-  Box,
-  Typography,
-  Slider,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
+import { Box } from '@mui/material';
 import type { NewComponentProps, BaseComponent } from '../../types';
 
-/**
- * 新しいコンポーネントの実装
- */
-class NewComponent implements BaseComponent<NewComponentProps> {
-  /**
-   * コンポーネントをレンダリングする
-   * @param props コンポーネントのプロパティ
-   */
-  render(props: NewComponentProps): React.ReactNode {
-    const {
-      widthPercentage,
-      heightPercentage,
-      horizontalAlign,
-      verticalAlign,
-    } = props;
+const NewComponent: BaseComponent<NewComponentProps> = {
+  render: (props: NewComponentProps) => {
+    const { widthPercentage, heightPercentage, horizontalAlign, verticalAlign } = props;
 
     // 水平・垂直方向の配置設定をflexboxのalignmentに変換
     const justifyContent = horizontalAlign === 'start' ? 'flex-start'
@@ -162,84 +136,15 @@ class NewComponent implements BaseComponent<NewComponentProps> {
         {/* コンポーネントの実装 */}
       </Box>
     );
+  },
+
+  renderSettings: (props: NewComponentProps, onUpdate: (newProps: Partial<NewComponentProps>) => void) => {
+    // 設定パネルのUI実装
+    return null;
   }
+};
 
-  /**
-   * コンポーネントの設定UIをレンダリングする
-   * @param props 現在のプロパティ
-   * @param onUpdate プロパティ更新時のコールバック
-   */
-  renderSettings(
-    props: NewComponentProps,
-    onUpdate: (newProps: Partial<NewComponentProps>) => void
-  ): React.ReactNode | null {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        {/* サイズ設定 */}
-        <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            幅: {props.widthPercentage}%
-          </Typography>
-          <Slider
-            size="small"
-            value={props.widthPercentage}
-            onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
-            min={10}
-            max={100}
-            step={1}
-            sx={{ py: 0.5 }}
-          />
-          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1 }}>
-            高さ: {props.heightPercentage}%
-          </Typography>
-          <Slider
-            size="small"
-            value={props.heightPercentage}
-            onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
-            min={10}
-            max={100}
-            step={1}
-            sx={{ py: 0.5 }}
-          />
-        </Box>
-
-        {/* 配置設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>配置</Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <FormControl size="small" fullWidth>
-              <InputLabel>水平</InputLabel>
-              <Select
-                value={props.horizontalAlign}
-                label="水平"
-                onChange={(e) => onUpdate({ horizontalAlign: e.target.value as ComponentAlignment })}
-              >
-                <MenuItem value="start">左寄せ</MenuItem>
-                <MenuItem value="center">中央</MenuItem>
-                <MenuItem value="end">右寄せ</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl size="small" fullWidth>
-              <InputLabel>垂直</InputLabel>
-              <Select
-                value={props.verticalAlign}
-                label="垂直"
-                onChange={(e) => onUpdate({ verticalAlign: e.target.value as ComponentAlignment })}
-              >
-                <MenuItem value="start">上寄せ</MenuItem>
-                <MenuItem value="center">中央</MenuItem>
-                <MenuItem value="end">下寄せ</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </Box>
-      </Box>
-    );
-  }
-}
-
-// シングルトンインスタンスをエクスポート
-export default new NewComponent();
+export default NewComponent;
 ```
 
 3. `src/utils/componentRegistry.ts`にコンポーネントを登録
@@ -264,19 +169,20 @@ componentRegistry.registerComponent('newComponent', {
 });
 ```
 
-4. `src/components/editor/ComponentLayout.tsx`のコンポーネントマップに追加
+4. `src/components/editor/ComponentEditor.tsx`のコンポーネントマップに追加
 
 ```typescript
 const componentMap = {
   button: ButtonComponent,
   textField: TextFieldComponent,
+  gridLayout: GridLayoutComponent,
   newComponent: NewComponent,  // 新しいコンポーネントを追加
 };
 
 type ComponentMapType = typeof componentMap;
 ```
 
-5. `ComponentLayout`クラスに新しいコンポーネントの追加ハンドラーを実装
+5. `ComponentEditor`クラスに新しいコンポーネントの追加ハンドラーを実装
 
 ```typescript
 handleAddNewComponent = () => {
@@ -284,7 +190,7 @@ handleAddNewComponent = () => {
 };
 ```
 
-6. `ComponentLayout`クラスのrender関数にボタンを追加
+6. `ComponentEditor`クラスのrender関数のボタン追加セクションに追加
 
 ```typescript
 <Button
