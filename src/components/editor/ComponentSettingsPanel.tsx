@@ -35,15 +35,15 @@ const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
   const settingsComponent = getSettingsComponent();
 
   return (
-    <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Typography variant="h6">コンポーネント設定</Typography>
+    <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'auto', height: '100%' }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>コンポーネント設定</Typography>
       {selectedItem && settingsComponent ? (
         settingsComponent.renderSettings(
           selectedItem.component.props,
           (newProps) => onUpdate(selectedItem.id, newProps)
         )
       ) : (
-        <Typography color="text.secondary">
+        <Typography variant="body2" color="text.secondary">
           設定可能なコンポーネントを選択してください
         </Typography>
       )}

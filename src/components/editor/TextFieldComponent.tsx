@@ -84,18 +84,20 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
     onUpdate: (newProps: Partial<TextFieldProps>) => void
   ): React.ReactNode | null {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* 基本設定 */}
         <Box>
-          <Typography gutterBottom variant="subtitle2">基本設定</Typography>
+          <Typography variant="body2" gutterBottom>基本設定</Typography>
           <TextField
+            size="small"
             fullWidth
             label="ラベル"
             value={props.label}
             onChange={(e) => onUpdate({ label: e.target.value })}
-            sx={{ mb: 2 }}
+            sx={{ mb: 1 }}
           />
           <TextField
+            size="small"
             fullWidth
             label="プレースホルダー"
             value={props.placeholder ?? ''}
@@ -105,8 +107,8 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
 
         {/* スタイル設定 */}
         <Box>
-          <Typography gutterBottom variant="subtitle2">スタイル設定</Typography>
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>スタイル設定</Typography>
+          <FormControl size="small" fullWidth sx={{ mb: 1 }}>
             <InputLabel>スタイル</InputLabel>
             <Select
               value={props.variant}
@@ -119,7 +121,7 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
             </Select>
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl size="small" fullWidth>
             <InputLabel>入力タイプ</InputLabel>
             <Select
               value={props.type}
@@ -136,18 +138,20 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
 
         {/* マルチライン設定 */}
         <Box>
-          <Typography gutterBottom variant="subtitle2">テキストエリア設定</Typography>
+          <Typography variant="body2" gutterBottom>テキストエリア設定</Typography>
           <FormControlLabel
             control={
               <Switch
+                size="small"
                 checked={props.multiline}
                 onChange={(e) => onUpdate({ multiline: e.target.checked })}
               />
             }
-            label="複数行入力を許可"
+            label={<Typography variant="body2">複数行入力を許可</Typography>}
           />
           {props.multiline && (
             <TextField
+              size="small"
               fullWidth
               type="number"
               label="行数"
@@ -160,39 +164,41 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
 
         {/* サイズ設定 */}
         <Box>
-          <Typography gutterBottom variant="subtitle2">サイズ設定</Typography>
-          <Typography variant="caption" color="textSecondary" gutterBottom>
-            幅 ({props.widthPercentage}%)
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            幅: {props.widthPercentage}%
           </Typography>
           <Slider
+            size="small"
             value={props.widthPercentage}
             onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
             min={10}
             max={100}
             step={1}
-            sx={{ mb: 2 }}
+            sx={{ py: 0.5 }}
           />
-          <Typography variant="caption" color="textSecondary" gutterBottom>
-            高さ ({props.heightPercentage}%)
+          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1 }}>
+            高さ: {props.heightPercentage}%
           </Typography>
           <Slider
+            size="small"
             value={props.heightPercentage}
             onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
             min={10}
             max={100}
             step={1}
+            sx={{ py: 0.5 }}
           />
         </Box>
 
         {/* 配置設定 */}
         <Box>
-          <Typography gutterBottom variant="subtitle2">配置設定</Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>水平方向</InputLabel>
+          <Typography variant="body2" gutterBottom>配置</Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <FormControl size="small" fullWidth>
+              <InputLabel>水平</InputLabel>
               <Select
                 value={props.horizontalAlign}
-                label="水平方向"
+                label="水平"
                 onChange={(e) => onUpdate({ horizontalAlign: e.target.value as 'start' | 'center' | 'end' })}
               >
                 <MenuItem value="start">左寄せ</MenuItem>
@@ -200,11 +206,11 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
                 <MenuItem value="end">右寄せ</MenuItem>
               </Select>
             </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>垂直方向</InputLabel>
+            <FormControl size="small" fullWidth>
+              <InputLabel>垂直</InputLabel>
               <Select
                 value={props.verticalAlign}
-                label="垂直方向"
+                label="垂直"
                 onChange={(e) => onUpdate({ verticalAlign: e.target.value as 'start' | 'center' | 'end' })}
               >
                 <MenuItem value="start">上寄せ</MenuItem>
@@ -217,25 +223,26 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
 
         {/* その他の設定 */}
         <Box>
-          <Typography gutterBottom variant="subtitle2">その他の設定</Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
             <FormControlLabel
               control={
                 <Switch
+                  size="small"
                   checked={props.disabled ?? false}
                   onChange={(e) => onUpdate({ disabled: e.target.checked })}
                 />
               }
-              label="入力を無効化"
+              label={<Typography variant="body2">入力を無効化</Typography>}
             />
             <FormControlLabel
               control={
                 <Switch
+                  size="small"
                   checked={props.required ?? false}
                   onChange={(e) => onUpdate({ required: e.target.checked })}
                 />
               }
-              label="必須入力"
+              label={<Typography variant="body2">必須入力</Typography>}
             />
           </Box>
         </Box>

@@ -1,6 +1,6 @@
 import React from "react";
 import { WidthProvider, Responsive } from "react-grid-layout";
-import { Box, Button } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import EditIcon from '@mui/icons-material/Edit';
@@ -865,32 +865,43 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
         }}
         onClick={() => this.setState({ selectedItemId: null })}
       >
+        {/* コンポーネント追加パネル（左側） */}
+        <Box 
+          sx={{ width: 200, flexShrink: 0 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Typography variant="h6" gutterBottom>コンポーネント追加</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={this.handleAddGridLayout}
+              startIcon={<AddBoxIcon />}
+            >
+              領域を追加
+            </Button>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={this.handleAddButton}
+              startIcon={<AddBoxIcon />}
+            >
+              ボタンを追加
+            </Button>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={this.handleAddTextField}
+              startIcon={<AddBoxIcon />}
+            >
+              テキストフィールドを追加
+            </Button>
+          </Box>
+        </Box>
+
         <Box sx={{ flex: 1, overflow: 'auto' }}>
           <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
             <Box sx={{ display: 'flex', gap: 1, flex: 1 }}>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  variant="outlined"
-                  onClick={this.handleAddGridLayout}
-                  startIcon={<AddBoxIcon />}
-                >
-                  領域を追加
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={this.handleAddButton}
-                  startIcon={<AddBoxIcon />}
-                >
-                  ボタンを追加
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={this.handleAddTextField}
-                  startIcon={<AddBoxIcon />}
-                >
-                  テキストフィールドを追加
-                </Button>
-              </Box>
               <Button
                 variant="contained"
                 color="error"
@@ -900,15 +911,6 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
               >
                 選択した領域を削除
               </Button>
-              {/* 「領域内を編集」ボタンの活性・表示制御
-                * 
-                * 編集状態（editTargetId !== null）の場合：
-                * 1. 編集状態の領域以外のgridLayoutが選択されている場合 → 「領域内を編集」表示・有効
-                * 2. それ以外（選択なし・編集中の領域が選択・ボタンが選択等）→ 「領域内の編集終了」表示・有効
-                * 
-                * 非編集状態の場合：
-                * - gridLayout型の領域が選択されている時のみ → 「領域内を編集」表示・有効
-                */}
               <Button
                 variant="outlined"
                 onClick={this.toggleEditTarget}
@@ -981,9 +983,15 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
             </ResponsiveReactGridLayout>
           </Box>
         </Box>
-        {/* ボタン設定パネル（常に表示） */}
+        {/* ボタン設定パネル（右側） */}
         <Box 
-          sx={{ width: 300, flexShrink: 0 }}
+          sx={{ 
+            width: 200, 
+            flexShrink: 0,
+            height: '100%',
+            borderLeft: '1px solid #e0e0e0',
+            bgcolor: '#ffffff'
+          }}
           onClick={(e) => e.stopPropagation()}
         >
             <ComponentSettingsPanel
