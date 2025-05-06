@@ -89,7 +89,7 @@ interface NestedGridContainerState {
 /**
  * メインレイアウトコンポーネントのプロパティ
  */
-interface ComponentLayoutProps {
+interface ComponentEditorProps {
   className?: string;  // CSSクラス名
   cols: { [key: string]: number };  // カラム数の設定
   rowHeight: number;   // 行の高さ
@@ -99,7 +99,7 @@ interface ComponentLayoutProps {
 /**
  * メインレイアウトコンポーネントの状態
  */
-interface ComponentLayoutState {
+interface ComponentEditorState {
   items: GridItem[];           // グリッドアイテムの配列
   selectedItemId: string | null;  // 選択中のアイテムID
   editTargetId: string | null;    // 編集対象のアイテムID
@@ -118,7 +118,7 @@ function generateId(prefix = "grid"): string {
  * 自身の高さを測定し、動的なrowHeight（高さ/12）を提供するグリッドコンテナ
  * 子要素のグリッドレイアウトを管理し、サイズ変更に応じて自動的に調整する
  */
-class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, NestedGridContainerState> {
+class GridLayout extends React.PureComponent<NestedGridContainerProps, NestedGridContainerState> {
   private containerRef = React.createRef<HTMLDivElement>();
   private resizeObserver: ResizeObserver | null;
 
@@ -218,10 +218,10 @@ class NestedGridContainer extends React.PureComponent<NestedGridContainerProps, 
  * ネストされたグリッドレイアウトを管理するメインコンポーネント
  * 複数の入れ子になったグリッドアイテムの配置、サイズ変更、ドラッグ＆ドロップを制御する
  */
-export default class ComponentLayout extends React.PureComponent<ComponentLayoutProps, ComponentLayoutState> {
+export default class ComponentEditor extends React.PureComponent<ComponentEditorProps, ComponentEditorState> {
   private fileInputRef: React.MutableRefObject<HTMLInputElement | null> = React.createRef();
 
-  constructor(props: ComponentLayoutProps) {
+  constructor(props: ComponentEditorProps) {
     super(props);
     const rootId = generateId();
     this.state = {
@@ -949,7 +949,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
             alignItems,
             justifyContent
           }}>
-            <NestedGridContainer
+            <GridLayout
               isDraggable={isEditTarget && !this.state.selectingMode}
               isResizable={isEditTarget && !this.state.selectingMode}
               cols={this.props.cols}
@@ -965,7 +965,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
               }}
             >
               {gridProps.children.map(child => this.renderElement(child))}
-            </NestedGridContainer>
+            </GridLayout>
           </Box>
         </Box>
       );

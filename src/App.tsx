@@ -1,6 +1,6 @@
 import React from 'react';
 import { createTheme, ThemeProvider, CssBaseline, Box } from '@mui/material';
-import ComponentLayout from './components/editor/ComponentLayout';
+import ComponentEditor from './components/editor/ComponentEditor';
 
 const theme = createTheme({
   palette: {
@@ -33,7 +33,7 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <ComponentLayout 
+        <ComponentEditor 
           cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
           rowHeight={120}
           margin={[10, 10]}
