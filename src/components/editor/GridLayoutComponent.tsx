@@ -13,7 +13,6 @@ import type {
   ComponentAlignment,
   BaseComponent 
 } from '../../types';
-import { GridLayout } from './ComponentEditor';  // GridLayoutをインポート
 
 const GridLayoutComponent: BaseComponent<GridLayoutProps> = {
   render: (props: GridLayoutProps) => {
@@ -44,7 +43,13 @@ const GridLayoutComponent: BaseComponent<GridLayoutProps> = {
           }
         }}
       >
-        {children}
+        <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+          {children.length > 0 && children.map(child => (
+            <Box key={child.id} sx={{ position: 'absolute', width: '100%', height: '100%' }}>
+              {/* 実際のレンダリングはComponentEditorのrenderElementメソッドで行われます */}
+            </Box>
+          ))}
+        </Box>
       </Box>
     );
   },

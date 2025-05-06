@@ -1,6 +1,7 @@
 import React from "react";
 import { WidthProvider, Responsive } from "react-grid-layout";
 import { Box, Button, Typography } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import EditIcon from '@mui/icons-material/Edit';
@@ -13,8 +14,8 @@ import type {
   ComponentConfig, 
   ComponentType,
   ButtonProps,
-  GridLayoutProps,
   TextFieldProps,
+  GridLayoutProps,
 } from '../../types';
 import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
@@ -62,11 +63,9 @@ const componentMap = {
 type ComponentMapType = typeof componentMap;
 
 /**
- * ネストされたグリッドコンテナのプロパティ
+ * 内部グリッドコンテナのプロパティ
  */
-import { SxProps, Theme } from '@mui/material';
-
-interface GridLayoutProps {
+interface InternalGridLayoutProps {
   cols: { [key: string]: number };  // カラム数の設定
   margin: [number, number];         // グリッドアイテム間のマージン
   defaultRowHeight: number;         // デフォルトの行の高さ
@@ -79,9 +78,9 @@ interface GridLayoutProps {
 }
 
 /**
- * ネストされたグリッドコンテナの状態
+ * 内部グリッドコンテナの状態
  */
-interface GridLayoutState {
+interface InternalGridLayoutState {
   height: number;      // コンテナの高さ
   layouts?: Layout[];  // レイアウト情報
 }
@@ -119,11 +118,11 @@ function generateId(prefix = "grid"): string {
  * 自身の高さを測定し、動的なrowHeight（高さ/12）を提供するグリッドコンテナ
  * 子要素のグリッドレイアウトを管理し、サイズ変更に応じて自動的に調整する
  */
-export class GridLayout extends React.PureComponent<GridLayoutProps, GridLayoutState> {
+export class GridLayout extends React.PureComponent<InternalGridLayoutProps, InternalGridLayoutState> {
   private containerRef = React.createRef<HTMLDivElement>();
   private resizeObserver: ResizeObserver | null;
 
-  constructor(props: GridLayoutProps) {
+  constructor(props: InternalGridLayoutProps) {
     super(props);
     this.state = { height: 0 };
     this.resizeObserver = null;
@@ -465,11 +464,15 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
     }
     
     // 対象のアイテムを取得
-    const targetItems = editTargetId
-      ? (this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
-        ? (this.findItemInTree(items, editTargetId)?.component.props as GridLayoutProps).children
-        : []) || []
-      : items;
+    let targetItems: GridItem[] = items;
+    if (editTargetId) {
+      const editTarget = this.findItemInTree(items, editTargetId);
+      if (editTarget?.component.type === 'gridLayout') {
+        targetItems = editTarget.component.props.children;
+      } else {
+        targetItems = [];
+      }
+    }
 
     // コンポーネントのメタデータと配置位置を取得
     const defaultGridLayoutMetadata = { 
@@ -481,9 +484,9 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
         children: [] as GridItem[],
         widthPercentage: 100,
         heightPercentage: 100,
-        horizontalAlign: 'center',
-        verticalAlign: 'center'
-      } 
+        horizontalAlign: 'center' as const,
+        verticalAlign: 'center' as const
+      }
     } as ComponentMetadata<GridLayoutProps>;
 
     const metadata = componentType === 'gridLayout' 
