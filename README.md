@@ -87,26 +87,171 @@ pnpm build
 
 ```typescript
 // ComponentTypeに新しいタイプを追加
-export type ComponentType = 'button' | 'gridLayout' | 'newComponent';
+export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'newComponent';
+
+// ComponentAlignmentを使用して配置設定を定義
+export type ComponentAlignment = 'start' | 'center' | 'end';
 
 // コンポーネントのプロパティ型を定義
 export interface NewComponentProps {
-  // プロパティを定義
+  // サイズ設定（親要素に対する割合 1-100%）
+  widthPercentage: number;
+  heightPercentage: number;
+  // 配置設定
+  horizontalAlign: ComponentAlignment;
+  verticalAlign: ComponentAlignment;
+  // その他の必要なプロパティを追加
 }
 
 // ComponentConfigに新しいコンポーネント設定を追加
 export type ComponentConfig =
   | { type: 'button'; props: ButtonProps }
   | { type: 'gridLayout'; props: GridLayoutProps }
+  | { type: 'textField'; props: TextFieldProps }
   | { type: 'newComponent'; props: NewComponentProps };
 ```
 
-2. `src/utils/componentRegistry.ts`にコンポーネントのメタデータを登録
+2. `src/components/editor/NewComponent.tsx`でコンポーネントを実装
+
+```typescript
+import React from 'react';
+import {
+  Box,
+  Typography,
+  Slider,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
+import type { NewComponentProps, BaseComponent } from '../../types';
+
+/**
+ * 新しいコンポーネントの実装
+ */
+class NewComponent implements BaseComponent<NewComponentProps> {
+  /**
+   * コンポーネントをレンダリングする
+   * @param props コンポーネントのプロパティ
+   */
+  render(props: NewComponentProps): React.ReactNode {
+    const {
+      widthPercentage,
+      heightPercentage,
+      horizontalAlign,
+      verticalAlign,
+    } = props;
+
+    // 水平・垂直方向の配置設定をflexboxのalignmentに変換
+    const justifyContent = horizontalAlign === 'start' ? 'flex-start'
+      : horizontalAlign === 'end' ? 'flex-end'
+      : 'center';
+    
+    const alignItems = verticalAlign === 'start' ? 'flex-start'
+      : verticalAlign === 'end' ? 'flex-end'
+      : 'center';
+
+    return (
+      <Box sx={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems,
+        justifyContent
+      }}>
+        {/* コンポーネントの実装 */}
+      </Box>
+    );
+  }
+
+  /**
+   * コンポーネントの設定UIをレンダリングする
+   * @param props 現在のプロパティ
+   * @param onUpdate プロパティ更新時のコールバック
+   */
+  renderSettings(
+    props: NewComponentProps,
+    onUpdate: (newProps: Partial<NewComponentProps>) => void
+  ): React.ReactNode | null {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        {/* サイズ設定 */}
+        <Box>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            幅: {props.widthPercentage}%
+          </Typography>
+          <Slider
+            size="small"
+            value={props.widthPercentage}
+            onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
+            min={10}
+            max={100}
+            step={1}
+            sx={{ py: 0.5 }}
+          />
+          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1 }}>
+            高さ: {props.heightPercentage}%
+          </Typography>
+          <Slider
+            size="small"
+            value={props.heightPercentage}
+            onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
+            min={10}
+            max={100}
+            step={1}
+            sx={{ py: 0.5 }}
+          />
+        </Box>
+
+        {/* 配置設定 */}
+        <Box>
+          <Typography variant="body2" gutterBottom>配置</Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <FormControl size="small" fullWidth>
+              <InputLabel>水平</InputLabel>
+              <Select
+                value={props.horizontalAlign}
+                label="水平"
+                onChange={(e) => onUpdate({ horizontalAlign: e.target.value as ComponentAlignment })}
+              >
+                <MenuItem value="start">左寄せ</MenuItem>
+                <MenuItem value="center">中央</MenuItem>
+                <MenuItem value="end">右寄せ</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControl size="small" fullWidth>
+              <InputLabel>垂直</InputLabel>
+              <Select
+                value={props.verticalAlign}
+                label="垂直"
+                onChange={(e) => onUpdate({ verticalAlign: e.target.value as ComponentAlignment })}
+              >
+                <MenuItem value="start">上寄せ</MenuItem>
+                <MenuItem value="center">中央</MenuItem>
+                <MenuItem value="end">下寄せ</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
+}
+
+// シングルトンインスタンスをエクスポート
+export default new NewComponent();
+```
+
+3. `src/utils/componentRegistry.ts`にコンポーネントを登録
 
 ```typescript
 // デフォルトプロパティを定義
 const defaultNewComponentProps: NewComponentProps = {
-  // デフォルト値を設定
+  widthPercentage: 80,
+  heightPercentage: 50,
+  horizontalAlign: 'center',
+  verticalAlign: 'center',
+  // その他の必要なプロパティのデフォルト値を設定
 };
 
 // コンポーネントを登録
@@ -119,107 +264,32 @@ componentRegistry.registerComponent('newComponent', {
 });
 ```
 
-3. コンポーネントの実装
-
-```typescript
-// src/components/editor/NewComponent.tsx
-export default class NewComponent implements BaseComponent<NewComponentProps> {
-  render(props: NewComponentProps): React.ReactNode {
-    return (
-      // コンポーネントの実装
-    );
-  }
-
-  renderSettings(
-    props: NewComponentProps,
-    onUpdate: (newProps: Partial<NewComponentProps>) => void
-  ): React.ReactNode {
-    return (
-      // 設定UIの実装
-    );
-  }
-}
-```
-
-4. `src/components/editor/ComponentLayout.tsx`にコンポーネントのマッピングを追加
+4. `src/components/editor/ComponentLayout.tsx`のコンポーネントマップに追加
 
 ```typescript
 const componentMap = {
   button: ButtonComponent,
   textField: TextFieldComponent,
-  newComponent: NewComponent  // 新しいコンポーネントを追加
-};
-```
-
-5. `src/components/editor/ComponentSettingsPanel.tsx`に設定パネルの処理を追加
-
-```typescript
-const componentMap = {
-  button: ButtonComponent,
-  textField: TextFieldComponent,
-  newComponent: NewComponent  // 新しいコンポーネントを追加
+  newComponent: NewComponent,  // 新しいコンポーネントを追加
 };
 
-// renderSettings関数内のswitch文に新しいケースを追加
-switch (selectedItem.component.type) {
-  case 'newComponent':
-    return settingsComponent.renderSettings(
-      selectedItem.component.props as NewComponentProps,
-      (newProps: Partial<NewComponentProps>) => onUpdate(selectedItem.id, newProps)
-    );
-  // ...他のケース
-}
+type ComponentMapType = typeof componentMap;
 ```
 
-6. `ComponentLayout`クラスのupdateItemPropsメソッドに新しいコンポーネントの処理を追加
-
-```typescript
-updateItemProps = (
-  nodes: GridItem[],
-  itemId: string,
-  newProps: Partial<ButtonProps | GridLayoutProps | NewComponentProps>  // 型を追加
-): GridItem[] => {
-  return nodes.map(node => {
-    if (node.id === itemId) {
-      switch (node.component.type) {
-        case 'newComponent':  // 新しいケースを追加
-          return {
-            ...node,
-            component: {
-              ...node.component,
-              props: {
-                ...node.component.props,
-                ...newProps as Partial<NewComponentProps>
-              }
-            }
-          };
-        // ...他のケース
-      }
-    }
-    // ...既存のコード
-  });
-};
-```
-
-7. 必要に応じて、新しいコンポーネントを追加するボタンとハンドラーを実装
+5. `ComponentLayout`クラスに新しいコンポーネントの追加ハンドラーを実装
 
 ```typescript
 handleAddNewComponent = () => {
-  const { editTargetId, items } = this.state;
-  
-  // 既存のコンポーネント追加処理と同様の実装
-  const metadata = componentRegistry.getMetadata('newComponent');
-  if (!metadata) {
-    console.error('NewComponent metadata not found');
-    return;
-  }
-
-  // ...コンポーネントの追加処理
+  this.handleAddComponent('newComponent', 'new');
 };
+```
 
-// render関数内のボタン追加
+6. `ComponentLayout`クラスのrender関数にボタンを追加
+
+```typescript
 <Button
   variant="outlined"
+  fullWidth
   onClick={this.handleAddNewComponent}
   startIcon={<AddBoxIcon />}
 >
@@ -227,11 +297,14 @@ handleAddNewComponent = () => {
 </Button>
 ```
 
+この手順で新しいコンポーネントタイプを追加できます。既存のコンポーネント（ButtonComponentやTextFieldComponent）を参考にして、必要な機能やスタイリングを実装してください。
+
 ## 制限事項
 
 - ネストは最大5階層まで
 - グリッドは12x12サイズ
 - コンポーネントは重ならないように配置される
+- 作成したコンポーネントの縦横比は内側の要素の大きさに関わらず固定される
 
 ## 技術スタック
 
