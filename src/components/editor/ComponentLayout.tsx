@@ -33,26 +33,40 @@ interface NestedGridContainerState {
 }
 
 /**
- * コンポーネントの種類を定義
+ * グリッドレイアウトコンポーネントの設定を定義
  */
-type ComponentType = 'gridLayout';
+interface GridLayoutConfig {
+  type: 'gridLayout';
+  props: {
+    children: GridItem[];
+  };
+}
 
 /**
- * コンポーネントのプロパティ構造を定義
+ * ボタンコンポーネントの設定を定義
  */
-interface ComponentProps {
-  gridLayout: {
-    children: GridItem[];
+interface ButtonConfig {
+  type: 'button';
+  props: {
+    variant: 'text' | 'contained' | 'outlined';
+    color?: 'primary' | 'secondary' | 'error';
+    label: string;
   };
 }
 
 /**
  * コンポーネントの設定構造を定義
  */
-interface ComponentConfig {
-  type: ComponentType;
-  props: ComponentProps[ComponentType];
-}
+type ComponentConfig = GridLayoutConfig | ButtonConfig;
+
+/**
+ * ボタンコンポーネントのデフォルトプロパティ
+ */
+const defaultButtonProps: ButtonConfig['props'] = {
+  variant: 'contained',
+  color: 'primary',
+  label: 'ボタン'
+};
 
 /**
  * グリッドアイテムの構造を定義
@@ -85,8 +99,6 @@ interface ComponentLayoutState {
 
 /**
  * ユニークなID文字列を生成する
- * @param prefix - 生成されるIDのプレフィックス
- * @returns プレフィックスとランダムな文字列を組み合わせたユニークID
  */
 function generateId(prefix = "grid"): string {
   return `${prefix}_${Math.random().toString(36).substring(2, 11)}`;
@@ -197,7 +209,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
         id: rootId,
         layout: { i: `layout_${rootId}`, x: 0, y: 0, w: 12, h: 4 },
         component: {
-          type: 'gridLayout' as const,
+          type: 'gridLayout',
           props: {
             children: []
           }
@@ -223,6 +235,8 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
 
   /**
    * ツリー構造内の特定アイテムのレイアウトを再帰的に更新する
+   * 指定されたIDを持つアイテムのレイアウトを更新し、
+   * グリッドレイアウトアイテムの場合は子要素も再帰的に処理する
    * @param nodes - 更新対象のツリー構造
    * @param itemId - 更新対象のアイテムID
    * @param newLayout - 新しいレイアウト設定
@@ -239,7 +253,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
           }
         };
       }
-      if (node.component.props.children.length) {
+      if (node.component.type === 'gridLayout') {
         return {
           ...node,
           component: {
@@ -255,9 +269,10 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   };
 
   /**
-   * アイテムのレイアウトIDを生成する
-   * @param itemId - アイテムのID
-   * @returns レイアウトID
+   * アイテムIDからレイアウトIDを生成する
+   * グリッドレイアウト用の一意の識別子を生成する
+   * @param itemId - 元となるアイテムのID
+   * @returns レイアウト用のID
    */
   generateLayoutId = (itemId: string): string => {
     return `layout_${itemId}`;
@@ -265,8 +280,9 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
 
   /**
    * レイアウトIDからアイテムIDを抽出する
+   * レイアウト用の識別子から元のアイテムIDを取得する
    * @param layoutId - レイアウトID
-   * @returns アイテムID
+   * @returns 元のアイテムID
    */
   extractItemId = (layoutId: string): string => {
     return layoutId.startsWith('layout_') ? layoutId.substring(7) : layoutId;
@@ -274,9 +290,11 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
 
   /**
    * レイアウトの変更を処理し、影響を受けるアイテムを更新する
+   * レイアウトIDの変更を処理し、対応するアイテムのレイアウトを更新する
    * @param layout - 変更後のレイアウト配列
    */
   handleLayoutChange = (layout: Layout[]) => {
+    // レイアウトIDを正規化
     const processedLayout = layout.map(layoutItem => {
       const itemId = this.extractItemId(layoutItem.i);
       return {
@@ -305,7 +323,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       if (node.id === id) {
         return node;
       }
-      if (node.component.props.children.length) {
+      if (node.component.type === 'gridLayout') {
         const found = this.findItemInTree(node.component.props.children, id);
         if (found) {
           return found;
@@ -337,7 +355,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
             }
           }
         }
-        if (item.component.props.children.length > 0) {
+        if (item.component.type === 'gridLayout' && item.component.props.children.length > 0) {
           markOccupiedSpace(item.component.props.children);
         }
       });
@@ -367,18 +385,28 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
 
   /**
    * アイテムの階層の深さを計算する
+   * ルートレベルを0とし、子要素になるごとに深さが1ずつ増加する
    * @param itemId - 計算対象のアイテムID
-   * @returns 階層の深さ（ルートは0）
+   * @returns アイテムの階層の深さ（見つからない場合は-1）
    */
   calculateDepth = (itemId: string): number => {
+    /**
+     * 再帰的に階層を探索する内部関数
+     * @param nodes - 探索対象のノード配列
+     * @param targetId - 探索するアイテムのID
+     * @param currentDepth - 現在の深さ
+     * @returns 見つかった階層の深さ、または-1
+     */
     const calculateDepthRecursive = (nodes: GridItem[], targetId: string, currentDepth: number = 0): number => {
       for (const node of nodes) {
         if (node.id === targetId) {
           return currentDepth;
         }
-        const childDepth = calculateDepthRecursive(node.component.props.children, targetId, currentDepth + 1);
-        if (childDepth !== -1) {
-          return childDepth;
+        if (node.component.type === 'gridLayout') {
+          const childDepth = calculateDepthRecursive(node.component.props.children, targetId, currentDepth + 1);
+          if (childDepth !== -1) {
+            return childDepth;
+          }
         }
       }
       return -1;
@@ -402,8 +430,8 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
       }
     }
     
-    const targetItems = editTargetId 
-      ? this.findItemInTree(items, editTargetId)?.component.props.children || []
+    const targetItems = editTargetId
+      ? (item => item?.component.type === 'gridLayout' ? item.component.props.children : [])(this.findItemInTree(items, editTargetId))
       : items;
 
     const defaultPosition = this.findAvailablePosition(2, 2, targetItems);
@@ -427,7 +455,7 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
         h: defaultPosition.canPlace ? 2 : 1
       },
       component: {
-        type: 'gridLayout' as const,
+        type: 'gridLayout',
         props: {
           children: []
         }
@@ -446,9 +474,58 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     });
   };
 
-  /**
-   * レイアウト設定をJSONファイルとしてエクスポートする
-   */
+  handleAddButton = () => {
+    const { editTargetId, items } = this.state;
+
+    if (editTargetId) {
+      const depth = this.calculateDepth(editTargetId);
+      if (depth >= 4) {
+        alert('これ以上階層を深くすることはできません（最大5階層まで）');
+        return;
+      }
+    }
+    
+    const targetItems = editTargetId 
+      ? this.findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
+        ? this.findItemInTree(items, editTargetId)?.component.props.children || []
+        : []
+      : items;
+
+    const position = this.findAvailablePosition(2, 1, targetItems);
+
+    if (!position.canPlace) {
+      alert('利用可能なスペースがありません。');
+      return;
+    }
+
+    const itemId = generateId('btn');
+    const newItem: GridItem = {
+      id: itemId,
+      layout: {
+        i: `layout_${itemId}`,
+        x: position.x,
+        y: position.y,
+        w: 2,
+        h: 1
+      },
+      component: {
+        type: 'button',
+        props: defaultButtonProps
+      }
+    };
+
+    this.setState(prevState => {
+      const newItems = !prevState.editTargetId
+        ? [...prevState.items, newItem]
+        : this.addChildToTree(prevState.items, prevState.editTargetId, newItem);
+      
+      return {
+        ...prevState,
+        items: newItems
+      };
+    });
+  };
+
   handleExport = () => {
     try {
       const exportData = {
@@ -523,7 +600,8 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
   };
 
   /**
-   * ツリー構造の指定された親ノードに子要素を追加する
+   * 指定された親ノードに子要素を追加する
+   * グリッドレイアウトの場合のみ子要素を追加し、再帰的に処理を行う
    * @param nodes - 更新対象のツリー構造
    * @param parentId - 親ノードのID
    * @param child - 追加する子要素
@@ -531,23 +609,25 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
    */
   addChildToTree = (nodes: GridItem[], parentId: string, child: GridItem): GridItem[] => {
     return nodes.map(node => {
-      if (node.id === parentId) {
+      if (node.id === parentId && node.component.type === 'gridLayout') {
         return {
           ...node,
           component: {
             ...node.component,
             props: {
+              ...node.component.props,
               children: [...node.component.props.children, child]
             }
           }
         };
       }
-      if (node.component.props.children.length) {
+      if (node.component.type === 'gridLayout') {
         return {
           ...node,
           component: {
             ...node.component,
             props: {
+              ...node.component.props,
               children: this.addChildToTree(node.component.props.children, parentId, child)
             }
           }
@@ -559,28 +639,30 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
 
   /**
    * ツリー構造から指定されたIDのノードを削除する
+   * 削除対象のノードを取り除き、グリッドレイアウトの場合は子要素も再帰的に処理する
    * @param nodes - 更新対象のツリー構造
    * @param targetId - 削除対象のID
    * @returns 更新されたツリー構造
    */
-  removeFromTree = (nodes: GridItem[], targetId: string): GridItem[] =>
-    nodes
+  removeFromTree = (nodes: GridItem[], targetId: string): GridItem[] => {
+    return nodes
+      .filter(node => node.id !== targetId)
       .map(node => {
-        if (node.id === targetId) return null;
-        if (node.component.props.children.length) {
+        if (node.component.type === 'gridLayout') {
           return {
             ...node,
             component: {
               ...node.component,
               props: {
+                ...node.component.props,
                 children: this.removeFromTree(node.component.props.children, targetId)
               }
             }
           };
         }
         return node;
-      })
-      .filter((node): node is GridItem => node !== null);
+      });
+  };
 
   /**
    * グリッドアイテムを選択状態にする
@@ -601,11 +683,12 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     }));
 
   /**
-   * 指定されたIDのアイテムまたはその子孫が選択されているかを確認する
-   * @param selectedId - 確認対象の選択ID
-   * @param nodes - 検索対象のツリー構造
-   * @param excludeSelfId - 除外するID（自身のIDを除外する場合に使用）
-   * @returns 選択状態の真偽値
+   * 指定されたアイテムまたはその子孫が選択されているかを判定する
+   * 再帰的にツリー構造を探索し、選択状態を確認する
+   * @param selectedId - 確認する選択アイテムのID
+   * @param nodes - 探索対象のツリー構造
+   * @param excludeSelfId - 除外するアイテムのID（オプション）
+   * @returns 選択されているかどうか
    */
   isNestedItemSelected = (selectedId: string | null, nodes: GridItem[], excludeSelfId: string | null = null): boolean => {
     if (!selectedId) return false;
@@ -614,7 +697,10 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
         if (item.id === selectedId) {
           return excludeSelfId ? item.id !== excludeSelfId : true;
         }
-        return search(item.component.props.children);
+        if (item.component.type === 'gridLayout') {
+          return search(item.component.props.children);
+        }
+        return false;
       });
     return search(nodes);
   };
@@ -630,24 +716,45 @@ export default class ComponentLayout extends React.PureComponent<ComponentLayout
     const isSelected = selectedItemId === item.id;
     const isEditTarget = editTargetId === item.id;
 
+    const commonBoxProps = {
+      key: item.layout.i,
+      'data-grid': item.layout,
+      className: "grid-item",
+      sx: {
+        width: '100%',
+        height: '100%',
+        position: 'relative',
+        bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
+        border: (theme: { palette: { primary: { main: string } } }) => 
+          isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+        borderRadius: '4px',
+        cursor: 'pointer',
+      } as const,
+      onClick: (e: React.MouseEvent) => { e.stopPropagation(); this.handleSelect(item.id); }
+    };
+
+    if (item.component.type === 'button') {
+      return (
+        <Box {...commonBoxProps} sx={{ 
+          ...commonBoxProps.sx, 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 1
+        }}>
+          <Button
+            variant={item.component.props.variant}
+            color={item.component.props.color}
+          >
+            {item.component.props.label}
+          </Button>
+        </Box>
+      );
+    }
+
     return (
-      <Box
-        key={item.layout.i}
-        data-grid={item.layout}
-        className="grid-item"
-        sx={{
-          width: '100%',
-          height: '100%',
-          position: 'relative',
-          bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
-          border: theme => 
-            isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
-          borderRadius: '4px',
-          cursor: 'pointer',
-        }}
-        onClick={e => { e.stopPropagation(); this.handleSelect(item.id); }}
-      >
-        {item.component.props.children.length > 0 && (
+      <Box {...commonBoxProps}>
+        {item.component.type === 'gridLayout' && item.component.props.children.length > 0 && (
           <NestedGridContainer
             isDraggable={isEditTarget}
             isResizable
