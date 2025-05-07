@@ -458,19 +458,36 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         setSelectedItemId(id);
         setEditTargetId(id);
         setSelectingMode(false);
+        console.log('編集対象に設定:', id, selectedItem.component.type);
       }
       return;
     }
 
     // 編集対象が設定されている場合
     if (editTargetId) {
-      if (isItemInEditTarget(items, id, editTargetId)) {
-        setSelectedItemId(id);
+      const editTargetItem = findItemInTree(items, editTargetId);
+      if (editTargetItem) {
+        // Stack系コンポーネントの場合は、子要素の選択を許可
+        if (editTargetItem.component.type === 'rowStack' || editTargetItem.component.type === 'colStack') {
+          // 直接の子要素かどうかをチェック
+          const isDirectChild = editTargetItem.component.props.children.some(child => child.id === id);
+          if (isDirectChild) {
+            console.log('Stack子要素を選択:', id, '親:', editTargetId);
+            setSelectedItemId(id);
+            return;
+          }
+        }
+        // GridLayoutの場合は従来通り
+        if (isItemInEditTarget(items, id, editTargetId)) {
+          setSelectedItemId(id);
+          console.log('編集対象内のアイテムを選択:', id);
+        }
       }
       return;
     }
 
     // 通常の選択
+    console.log('通常選択:', id);
     setSelectedItemId(id);
   };
 
@@ -520,14 +537,22 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         position: 'relative',
         bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
         border: (theme: Theme) => {
-          if (isSelected) {
+          // Stack系コンポーネントの直接の子要素が選択されている場合
+          const editTargetItem = editTargetId ? findItemInTree(items, editTargetId) : null;
+          const isStackChild = editTargetItem && 
+            (editTargetItem.component.type === 'rowStack' || editTargetItem.component.type === 'colStack') &&
+            editTargetItem.component.props.children.some(child => child.id === item.id);
+
+          if (isSelected && isStackChild) {
             return `2px solid ${theme.palette.primary.main}`;
           }
-          if (selectingMode) {
-            if (isLayoutComponent(item.component.type)) {
-              return `2px solid ${theme.palette.info.main}`;
-            }
-            return '1px solid #e0e0e0';
+          // 選択状態を最優先
+          if (isSelected || (selectingMode && isEditTarget)) {
+            return `2px solid ${theme.palette.primary.main}`;
+          }
+          // 選択モード時のレイアウトコンポーネント
+          if (selectingMode && isLayoutComponent(item.component.type)) {
+            return `2px solid ${theme.palette.info.main}`;
           }
           return '1px solid #e0e0e0';
         },
@@ -537,13 +562,39 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         alignItems,
         justifyContent,
         opacity: selectingMode && !isLayoutComponent(item.component.type) ? 0.5 : 1,
-        pointerEvents: selectingMode && !isLayoutComponent(item.component.type) ? 'none' : 'auto',
+        // Stack系コンポーネントの子要素は常にクリック可能に
+        pointerEvents: (() => {
+          if (selectingMode && !isLayoutComponent(item.component.type)) {
+            return 'none';
+          }
+          // 編集対象がある場合
+          if (editTargetId) {
+            const editTargetItem = findItemInTree(items, editTargetId);
+            // Stack系の子要素は常にクリック可能
+            if (editTargetItem && 
+                (editTargetItem.component.type === 'rowStack' || 
+                 editTargetItem.component.type === 'colStack') &&
+                editTargetItem.component.props.children.some(child => child.id === item.id)) {
+              return 'auto';
+            }
+            // それ以外は編集対象の子孫でない場合はクリック不可
+            return isItemInEditTarget(items, item.id, editTargetId) ? 'auto' : 'none';
+          }
+          return 'auto';
+        })(),
         transition: 'all 0.2s ease',
         '&:hover': {
-          borderColor: (theme: Theme) => 
-            selectingMode && isLayoutComponent(item.component.type) 
-              ? theme.palette.info.dark 
-              : theme.palette.grey[300],
+          borderColor: (theme: Theme) => {
+            // 選択状態の場合はホバー効果を適用しない
+            if (isSelected || (selectingMode && isEditTarget)) {
+              return theme.palette.primary.main;
+            }
+            // 選択モード時のレイアウトコンポーネント
+            if (selectingMode && isLayoutComponent(item.component.type)) {
+              return theme.palette.info.dark;
+            }
+            return theme.palette.grey[300];
+          }
         },
       },
       onClick: (e: React.MouseEvent) => { e.stopPropagation(); handleSelect(item.id); }
