@@ -21,17 +21,22 @@ export type ComponentType = 'button' | 'gridLayout' | 'textField';
  */
 export interface BaseLayoutProps {
   // サイズ設定（親要素に対する割合 1-100%）
-  widthPercentage: number;
-  heightPercentage: number;
+  widthPercentage?: number;
+  heightPercentage?: number;
   // 配置設定
-  horizontalAlign: ComponentAlignment;
-  verticalAlign: ComponentAlignment;
+  horizontalAlign?: ComponentAlignment;
+  verticalAlign?: ComponentAlignment;
 }
 
 /**
  * ボタンコンポーネントのプロパティを定義
  */
 export interface ButtonProps extends BaseLayoutProps {
+  // デフォルトのレイアウト設定
+  widthPercentage: number;
+  heightPercentage: number;
+  horizontalAlign: ComponentAlignment;
+  verticalAlign: ComponentAlignment;
   // ボタンの見た目の設定
   variant: 'text' | 'contained' | 'outlined';
   color?: 'primary' | 'secondary' | 'error';

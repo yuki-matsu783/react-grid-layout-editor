@@ -931,12 +931,6 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
         display: 'flex',
         alignItems,
         justifyContent,
-        '& > *': {
-          width: `${widthPercentage}%`,
-          height: `${heightPercentage}%`,
-          maxWidth: '100%',
-          maxHeight: '100%'
-        }
       },
       onClick: (e: React.MouseEvent) => { e.stopPropagation(); this.handleSelect(item.id); }
     };
@@ -970,7 +964,16 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
     // 共通のBoxコンポーネントでラップして返す
     return (
       <Box {...baseBoxProps}>
-        {content}
+        <Box
+          sx={{
+              width: `${widthPercentage}%`,
+              height: `${heightPercentage}%`,
+              maxWidth: '100%',
+              maxHeight: '100%'
+          }}
+        >
+          {content}
+        </Box>
       </Box>
     );
   };

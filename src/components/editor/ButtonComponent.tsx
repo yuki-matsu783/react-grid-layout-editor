@@ -3,15 +3,11 @@ import {
   Box,
   Button,
   Typography,
-  Slider,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   ButtonGroup,
   TextField,
 } from '@mui/material';
 import type { ButtonProps, BaseComponent } from '../../types';
+import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
  * ボタンコンポーネントの実装
@@ -57,6 +53,10 @@ class ButtonComponent implements BaseComponent<ButtonProps> {
   ): React.ReactNode | null {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        {/* 共通レイアウト設定 */}
+        <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+          <Typography variant="body2" gutterBottom>基本設定</Typography>
+
         {/* テキスト設定 */}
         <Box>
           <Typography variant="body2" gutterBottom>テキスト</Typography>
@@ -67,65 +67,6 @@ class ButtonComponent implements BaseComponent<ButtonProps> {
             onChange={(e) => onUpdate({ label: e.target.value })}
             sx={{ mb: 1 }}
           />
-        </Box>
-
-        {/* サイズ設定 */}
-        <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            幅: {props.widthPercentage}%
-          </Typography>
-          <Slider
-            size="small"
-            value={props.widthPercentage}
-            onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
-            min={10}
-            max={100}
-            step={1}
-            sx={{ py: 0.5 }}
-          />
-          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1 }}>
-            高さ: {props.heightPercentage}%
-          </Typography>
-          <Slider
-            size="small"
-            value={props.heightPercentage}
-            onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
-            min={10}
-            max={100}
-            step={1}
-            sx={{ py: 0.5 }}
-          />
-        </Box>
-
-        {/* 配置設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>配置</Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <FormControl size="small" fullWidth>
-              <InputLabel>水平</InputLabel>
-              <Select
-                value={props.horizontalAlign}
-                label="水平"
-                onChange={(e) => onUpdate({ horizontalAlign: e.target.value as 'start' | 'center' | 'end' })}
-              >
-                <MenuItem value="start">左寄せ</MenuItem>
-                <MenuItem value="center">中央</MenuItem>
-                <MenuItem value="end">右寄せ</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl size="small" fullWidth>
-              <InputLabel>垂直</InputLabel>
-              <Select
-                value={props.verticalAlign}
-                label="垂直"
-                onChange={(e) => onUpdate({ verticalAlign: e.target.value as 'start' | 'center' | 'end' })}
-              >
-                <MenuItem value="start">上寄せ</MenuItem>
-                <MenuItem value="center">中央</MenuItem>
-                <MenuItem value="end">下寄せ</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
         </Box>
 
         {/* スタイル設定 */}
