@@ -1,12 +1,12 @@
 import React from 'react';
-import {
-  Box,
+import { 
+  Box, 
   Typography,
   Slider,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  ToggleButton,
+  ToggleButtonGroup,
+  Stack,
+  Paper
 } from '@mui/material';
 import type { BaseLayoutProps, ComponentAlignment } from '../../../types';
 
@@ -21,65 +21,77 @@ interface CommonLayoutSettingsProps {
  */
 export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ props, onUpdate }) => {
   return (
-    <>
-      {/* 配置設定 */}
-      {/* サイズ設定 */}
-      <Typography variant="body2" gutterBottom>配置</Typography>
-      <Box>
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          幅: {props.widthPercentage}%
-        </Typography>
-        <Slider
-          size="small"
-          value={props.widthPercentage}
-          onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
-          min={10}
-          max={100}
-          step={1}
-          sx={{ py: 0.5 }}
-        />
-        <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1 }}>
-          高さ: {props.heightPercentage}%
-        </Typography>
-        <Slider
-          size="small"
-          value={props.heightPercentage}
-          onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
-          min={10}
-          max={100}
-          step={1}
-          sx={{ py: 0.5 }}
-        />
-      </Box>
-
-      <Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <FormControl size="small" fullWidth>
-            <InputLabel>水平</InputLabel>
-            <Select
-              value={props.horizontalAlign}
-              label="水平"
-              onChange={(e) => onUpdate({ horizontalAlign: e.target.value as ComponentAlignment })}
-            >
-              <MenuItem value="start">左寄せ</MenuItem>
-              <MenuItem value="center">中央</MenuItem>
-              <MenuItem value="end">右寄せ</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl size="small" fullWidth>
-            <InputLabel>垂直</InputLabel>
-            <Select
-              value={props.verticalAlign}
-              label="垂直"
-              onChange={(e) => onUpdate({ verticalAlign: e.target.value as ComponentAlignment })}
-            >
-              <MenuItem value="start">上寄せ</MenuItem>
-              <MenuItem value="center">中央</MenuItem>
-              <MenuItem value="end">下寄せ</MenuItem>
-            </Select>
-          </FormControl>
+    <Stack spacing={2}>
+      <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
+        <Box>
+          <Typography variant="subtitle2" gutterBottom>サイズ設定</Typography>
+          <Box sx={{ px: 1 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              幅 ({props.widthPercentage}%)
+            </Typography>
+            <Slider
+              value={props.widthPercentage}
+              min={1}
+              max={100}
+              onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
+              valueLabelDisplay="auto"
+              size="small"
+            />
+          </Box>
+          <Box sx={{ px: 1, mt: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              高さ ({props.heightPercentage}%)
+            </Typography>
+            <Slider
+              value={props.heightPercentage}
+              min={1}
+              max={100}
+              onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
+              valueLabelDisplay="auto"
+              size="small"
+            />
+          </Box>
         </Box>
-      </Box>
-    </>
+      </Paper>
+
+      <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
+        <Box>
+          <Typography variant="subtitle2" gutterBottom>配置設定</Typography>
+          <Box sx={{ px: 1 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              水平方向の配置
+            </Typography>
+            <ToggleButtonGroup
+              value={props.horizontalAlign}
+              exclusive
+              onChange={(_, value) => value && onUpdate({ horizontalAlign: value as ComponentAlignment })}
+              fullWidth
+              size="small"
+            >
+              <ToggleButton value="start">左</ToggleButton>
+              <ToggleButton value="center">中央</ToggleButton>
+              <ToggleButton value="end">右</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+
+          <Box sx={{ px: 1, mt: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              垂直方向の配置
+            </Typography>
+            <ToggleButtonGroup
+              value={props.verticalAlign}
+              exclusive
+              onChange={(_, value) => value && onUpdate({ verticalAlign: value as ComponentAlignment })}
+              fullWidth
+              size="small"
+            >
+              <ToggleButton value="start">上</ToggleButton>
+              <ToggleButton value="center">中央</ToggleButton>
+              <ToggleButton value="end">下</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        </Box>
+      </Paper>
+    </Stack>
   );
 };
