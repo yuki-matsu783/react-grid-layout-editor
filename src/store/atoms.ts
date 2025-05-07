@@ -22,10 +22,10 @@ export const initializeGridItems = (): GridItem[] => [
   {
     id: "grid_initial",
     layout: {
-      i: "layout_grid_9ynv2awrk",
-      x: 3,
+      i: "layout_grid_initial",
+      x: 2,
       y: 1,
-      w: 9,
+      w: 10,
       h: 7,
       moved: false,
       static: false
@@ -45,9 +45,9 @@ export const initializeGridItems = (): GridItem[] => [
     id: "row_initaial",
     layout: {
       i: "layout_row_initaial",
-      x: 3,
+      x: 2,
       y: 0,
-      w: 9,
+      w: 10,
       h: 1,
       moved: false,
       static: false
@@ -69,7 +69,7 @@ export const initializeGridItems = (): GridItem[] => [
       i: "layout_col_initial",
       x: 0,
       y: 0,
-      w: 3,
+      w: 2,
       h: 8,
       moved: false,
       static: false

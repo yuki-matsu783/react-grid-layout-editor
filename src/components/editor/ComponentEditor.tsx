@@ -102,6 +102,15 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   const [fileInputKey, setFileInputKey] = useState(0);
   const [selectingMode, setSelectingMode] = useState(false);
 
+  /**
+   * コンポーネントがレイアウト系かどうかを判定する
+   * @param type - 判定するコンポーネントのタイプ
+   * @returns レイアウト系コンポーネントの場合はtrue
+   */
+  const isLayoutComponent = (type: ComponentType): boolean => {
+    return ['gridLayout', 'rowStack', 'colStack'].includes(type);
+  };
+
   // refs
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -508,16 +517,34 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       'data-grid': item.layout,
       className: "grid-item",
       sx: {
-        width: '100%',
-        height: '100%',
         position: 'relative',
         bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
-        border: (theme: Theme) => isSelected ? `2px solid ${theme.palette.primary.main}` : '1px solid #e0e0e0',
+        border: (theme: Theme) => {
+          if (isSelected) {
+            return `2px solid ${theme.palette.primary.main}`;
+          }
+          if (selectingMode) {
+            if (isLayoutComponent(item.component.type)) {
+              return `2px solid ${theme.palette.info.main}`;
+            }
+            return '1px solid #e0e0e0';
+          }
+          return '1px solid #e0e0e0';
+        },
         borderRadius: '4px',
-        cursor: 'pointer',
+        cursor: selectingMode && !isLayoutComponent(item.component.type) ? 'not-allowed' : 'pointer',
         display: 'flex',
         alignItems,
         justifyContent,
+        opacity: selectingMode && !isLayoutComponent(item.component.type) ? 0.5 : 1,
+        pointerEvents: selectingMode && !isLayoutComponent(item.component.type) ? 'none' : 'auto',
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          borderColor: (theme: Theme) => 
+            selectingMode && isLayoutComponent(item.component.type) 
+              ? theme.palette.info.dark 
+              : theme.palette.grey[300],
+        },
       },
       onClick: (e: React.MouseEvent) => { e.stopPropagation(); handleSelect(item.id); }
     };
@@ -530,7 +557,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       content = ComponentRenderer.render(item.component.props as any);
     } else if (item.component.type === 'gridLayout') {
       content = (
-        <GridLayout
+          <GridLayout
           isDraggable={isEditTarget && !selectingMode}
           isResizable={isEditTarget && !selectingMode}
           cols={cols}
@@ -538,6 +565,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           defaultRowHeight={rowHeight}
           onLayoutChange={handleLayoutChange}
           itemId={item.id}
+          sx={{
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            backgroundImage: `
+              repeating-linear-gradient(0deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px),
+              repeating-linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px)
+            `,
+          }}
         >
           {item.component.props.children.map(child => renderElement(child))}
         </GridLayout>
@@ -549,6 +584,12 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           spacing={0}
           sx={{
             height: '100%',
+            width: '100%',
+            overflow: 'auto',
+            justifyContent: 'center',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            backgroundImage: 'repeating-linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px)',
           }}
         >
           {item.component.props.children.map(child => renderElement(child))}
@@ -561,6 +602,12 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           spacing={0}
           sx={{
             width: '100%',
+            height: '100%',
+            overflow: 'auto',
+            justifyContent: 'center',
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            backgroundImage: 'repeating-linear-gradient(0deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px)',
           }}
         >
           {item.component.props.children.map(child => renderElement(child))}
@@ -642,58 +689,75 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           p: 2,
           display: 'flex',
           flexDirection: 'column',
-          gap: 1.5,
+          gap: 2,
           overflow: 'auto',
           flex: 1,
         }}>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleAddGridLayout}
-            startIcon={<AddBoxIcon />}
-          >
-            グリッドレイアウト
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleAddButton}
-            startIcon={<AddBoxIcon />}
-          >
-            ボタン
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleAddTextField}
-            startIcon={<AddBoxIcon />}
-          >
-            テキストフィールド
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={handleAddRadioGroup}
-            startIcon={<AddBoxIcon />}
-          >
-            ラジオグループ
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={() => handleAddComponent('rowStack', 'row')}
-            startIcon={<AddBoxIcon />}
-          >
-            RowStack
-          </Button>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={() => handleAddComponent('colStack', 'col')}
-            startIcon={<AddBoxIcon />}
-          >
-            ColStack
-          </Button>
+          {/* レイアウトコンポーネントセクション */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+              レイアウト
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={handleAddGridLayout}
+                startIcon={<AddBoxIcon />}
+              >
+                グリッドレイアウト
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => handleAddComponent('rowStack', 'row')}
+                startIcon={<AddBoxIcon />}
+              >
+                RowStack
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => handleAddComponent('colStack', 'col')}
+                startIcon={<AddBoxIcon />}
+              >
+                ColStack
+              </Button>
+            </Box>
+          </Box>
+
+          {/* その他のコンポーネントセクション */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+              コンポーネント
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={handleAddButton}
+                startIcon={<AddBoxIcon />}
+              >
+                ボタン
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={handleAddTextField}
+                startIcon={<AddBoxIcon />}
+              >
+                テキストフィールド
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={handleAddRadioGroup}
+                startIcon={<AddBoxIcon />}
+              >
+                ラジオグループ
+              </Button>
+            </Box>
+          </Box>
         </Box>
       </Box>
 
@@ -730,7 +794,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
               onClick={toggleEditTarget}
               startIcon={selectingMode || editTargetId ? <EditOffIcon /> : <EditIcon />}
             >
-              {selectingMode ? "領域選択をキャンセル" : editTargetId ? "編集を終了" : "編集領域を選択"}
+              {selectingMode ? "領域選択をキャンセル" : editTargetId ? "編集を終了" : "レイアウト領域を選択"}
             </Button>
           </Box>
           <Box sx={{ display: 'flex', gap: 1 }}>
