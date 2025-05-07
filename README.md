@@ -12,21 +12,9 @@
 - サイズ変更可能なグリッドアイテム
 - 最大5階層までのネスト構造
 - レイアウト設定のインポート/エクスポート
-- ボタンコンポーネントの追加と設定
-  - テキスト、アウトライン、塗りつぶしスタイル
-  - プライマリ、セカンダリ、エラーカラー
-  - サイズ（小、中、大）
-- テキストフィールドコンポーネントの追加と設定
-  - 単一行/複数行入力
-  - パスワード、数値、メールアドレスなど各種入力タイプ
-  - バリデーション（必須入力）
-  - 3種類の表示スタイル（標準、枠線付き、塗りつぶし）
-- ラジオグループコンポーネントの追加と設定
-  - 動的なラジオオプションの追加/削除/編集
-  - 縦/横レイアウトの切り替え
-  - プライマリ、セカンダリ、エラーカラー
-  - 必須入力の設定
-  - 有効/無効状態の切り替え
+- 各種コンポーネントの追加と設定
+  - コンポーネントの新規配置
+  - サイズや表示内容の設定
 
 ## 必要要件
 
@@ -70,11 +58,11 @@ pnpm build
      - コンポーネントごとに特有のpropsの調整
 
 
-5. **編集モード**
+3. **編集モード**
    - 領域を選択して「領域内を編集」ボタンをクリックすると、その領域内のみを編集可能
    - 「領域内の編集終了」で編集モードを終了
 
-5. **削除**
+4. **削除**
    - 要素を選択して「選択した領域を削除」ボタンをクリック
 
 ### インポート/エクスポート
@@ -84,7 +72,8 @@ pnpm build
 
 ## このプロジェクトに新しいコンポーネントを追加する方法
 
-新しいコンポーネントをプロジェクトに追加するには、以下の手順を実行してください：
+新しいコンポーネントをプロジェクトに追加するには、以下の手順を順番に実行してください。
+各ステップは前のステップに依存するため、この順序で実装することが推奨されます：
 
 1. **型定義の追加**
    - `src/types/index.ts` に新しいコンポーネントの型定義を追加します。
@@ -178,21 +167,42 @@ pnpm build
    ```
 
 5. **エディタへの追加**
-   - `src/components/editor/ComponentEditor.tsx` に新しいコンポーネントを追加するボタンを実装します。
-   ```tsx
-   const handleAddNewComponent = () => handleAddComponent('newComponent', 'new');
+   - `src/components/editor/ComponentEditor.tsx` で以下の3つの実装を行います。
 
-   <Box>
+   ```tsx
+   // 1. コンポーネント追加ボタンの実装
+   const AddComponentButton: React.FC<{
+     icon: ReactNode;
+     label: string;
+     onClick: () => void;
+   }> = ({ icon, label, onClick }) => (
      <Button
        variant="outlined"
        fullWidth
-       onClick={handleAddNewComponent}
-       startIcon={<AddBoxIcon />}
+       onClick={onClick}
+       startIcon={icon}
      >
-       XXXを追加
+       {label}を追加
      </Button>
+   );
+
+   // 2. ハンドラー関数の実装
+   const handleAddNewComponent = () => {
+     handleAddComponent('newComponent');
+   };
+
+   // 3. ツールバーへの追加（Toolbarコンポーネント内）
+   <Box sx={{ display: 'flex', gap: 1, p: 1 }}>
+     <AddComponentButton
+       icon={<AddBoxIcon />}
+       label="新しいコンポーネント"
+       onClick={handleAddNewComponent}
+     />
+     {/* 他のボタンコンポーネント */}
    </Box>
    ```
+
+   これにより、エディタのツールバーに新しいコンポーネントを追加するボタンが表示され、クリック時にコンポーネントが追加されます。handleAddComponentはグリッドレイアウトにコンポーネントを配置するための内部関数です。
 
 6. **プロパティ更新ロジックの追加**
    - `src/hooks/useLayoutOperations.ts` に新しいコンポーネントのプロパティ更新ロジックを追加します。
