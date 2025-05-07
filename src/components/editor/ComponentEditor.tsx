@@ -103,13 +103,24 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   // refs
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // 初期化
+  /**
+   * レイアウトの初期化
+   * コンポーネントマウント時に一度だけ実行され、ルートとなるグリッドアイテムを生成する
+   */
   useEffect(() => {
     const rootId = generateId();
     setItems(initializeGridItems(rootId));
   }, [setItems]);
 
   // カスタムフックを使用
+  /**
+   * レイアウト操作に関する機能を提供するカスタムフック
+   * @property findAvailablePosition - 指定されたサイズのコンポーネントを配置可能な位置を探す
+   * @property updateLayoutInTree - ツリー内の特定アイテムのレイアウトを更新
+   * @property addChildToTree - 指定された親アイテムの子として新しいアイテムを追加
+   * @property removeFromTree - ツリーから特定のアイテムを削除
+   * @property updateItemProps - 特定アイテムのプロパティを更新
+   */
   const {
     findAvailablePosition,
     updateLayoutInTree,
@@ -118,6 +129,13 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     updateItemProps,
   } = useLayoutOperations();
 
+  /**
+   * ツリー構造の操作に関する機能を提供するカスタムフック
+   * @property findItemInTree - ツリー内から特定のIDを持つアイテムを検索
+   * @property calculateDepth - 指定されたアイテムのツリー内での深さを計算
+   * @property isItemInEditTarget - アイテムが現在の編集対象の子孫かどうかを判定
+   * @property isNestedItemSelected - 選択されたアイテムが編集対象の子孫かどうかを判定
+   */
   const {
     findItemInTree,
     calculateDepth,

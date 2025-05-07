@@ -21,12 +21,10 @@ type ComponentMapType = typeof componentMap;
 
 /**
  * コンポーネントの設定パネル
- * 選択されたコンポーネントの各種設定を編集するためのパネル
- * - 各コンポーネントタイプに応じた設定UIを表示
- * - プロパティの更新をメインエディタに通知
+ * 選択されたコンポーネントの設定UIを表示し、プロパティの編集を可能にする
  * 
- * @param selectedItem - 現在選択されているコンポーネント
- * @param onUpdate - コンポーネントのプロパティが更新された時のコールバック
+ * @param selectedItem - 現在選択されているグリッドアイテム
+ * @param onUpdate - プロパティが更新された時のコールバック関数
  */
 const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
   selectedItem,

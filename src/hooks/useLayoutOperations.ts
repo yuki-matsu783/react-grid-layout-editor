@@ -19,10 +19,10 @@ export const useLayoutOperations = () => {
     const grid = Array(12).fill(null).map(() => Array(12).fill(false));
 
     // 既存のアイテムが占有しているスペースを再帰的にマークする関数
-    
     const markOccupiedSpace = (nodes: GridItem[]) => {
       nodes.forEach(item => {
         const { x, y, w: itemW, h: itemH } = item.layout;
+        // 既存アイテムの占有スペースをマーク
         for (let i = x; i < x + itemW && i < 12; i++) {
           for (let j = y; j < y + itemH && j < 12; j++) {
             if (i >= 0 && j >= 0) {
@@ -30,6 +30,7 @@ export const useLayoutOperations = () => {
             }
           }
         }
+        // グリッドレイアウトの場合は子要素も処理
         if (item.component.type === 'gridLayout' && item.component.props.children.length > 0) {
           markOccupiedSpace(item.component.props.children);
         }

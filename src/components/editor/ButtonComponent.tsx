@@ -11,8 +11,14 @@ import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
  * ボタンコンポーネントの実装
+ * グリッドレイアウト内で使用できるボタンコンポーネントを提供する
  */
 const ButtonComponent: BaseComponent<ButtonProps> = {
+  /**
+   * ボタンコンポーネントをレンダリングする
+   * @param props - ボタンのプロパティ（スタイル、テキスト、状態など）
+   * @returns レンダリングされたボタンコンポーネント
+   */
   render: (props: ButtonProps) => {
     const {
       variant,
@@ -38,6 +44,12 @@ const ButtonComponent: BaseComponent<ButtonProps> = {
     );
   },
 
+  /**
+   * ボタンコンポーネントの設定UIをレンダリングする
+   * @param props - 現在のボタンのプロパティ
+   * @param onUpdate - プロパティ更新時のコールバック関数
+   * @returns レンダリングされた設定UI
+   */
   renderSettings: (
     props: ButtonProps,
     onUpdate: (newProps: Partial<ButtonProps>) => void
@@ -63,6 +75,7 @@ const ButtonComponent: BaseComponent<ButtonProps> = {
         {/* スタイル設定 */}
         <Box>
           <Typography variant="body2" gutterBottom>スタイル</Typography>
+          {/* ボタンの種類（variant）設定 */}
           <ButtonGroup size="small" variant="outlined" fullWidth sx={{ mb: 1 }}>
             {(['contained', 'outlined', 'text'] as const).map((v) => (
               <Button
@@ -76,6 +89,7 @@ const ButtonComponent: BaseComponent<ButtonProps> = {
             ))}
           </ButtonGroup>
 
+          {/* 色（color）設定 */}
           <ButtonGroup size="small" variant="outlined" fullWidth sx={{ mb: 1 }}>
             {(['primary', 'secondary', 'error'] as const).map((c) => (
               <Button
@@ -89,6 +103,7 @@ const ButtonComponent: BaseComponent<ButtonProps> = {
             ))}
           </ButtonGroup>
 
+          {/* サイズ（size）設定 */}
           <ButtonGroup size="small" variant="outlined" fullWidth>
             {(['small', 'medium', 'large'] as const).map((s) => (
               <Button

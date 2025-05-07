@@ -27,6 +27,7 @@ interface CommonLayoutSettingsProps {
  * 提供する設定:
  * - サイズ設定: コンポーネントの幅と高さをパーセンテージで指定
  * - 配置設定: 水平・垂直方向の配置位置を指定
+ * - パディング設定: コンポーネント内部の余白をパーセンテージで指定
  * 
  * @param props - 現在の設定値
  * @param onUpdate - 設定値が更新された時のコールバック
@@ -53,6 +54,7 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               size="small"
             />
           </Box>
+          {/* 高さ設定スライダー */}
           <Box sx={{ px: 1, mt: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               高さ ({props.heightPercentage}%)
@@ -66,6 +68,7 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               size="small"
             />
           </Box>
+          {/* パディング設定スライダー */}
           <Box sx={{ px: 1, mt: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               パディング ({props.paddingPercentage ?? 0}%)

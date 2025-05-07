@@ -15,8 +15,14 @@ import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
  * テキストフィールドコンポーネントの実装
+ * グリッドレイアウト内で使用できる入力フィールドコンポーネントを提供する
  */
 const TextFieldComponent: BaseComponent<TextFieldProps> = {
+  /**
+   * テキストフィールドコンポーネントをレンダリングする
+   * @param props - テキストフィールドのプロパティ（ラベル、プレースホルダー、入力タイプなど）
+   * @returns レンダリングされたテキストフィールドコンポーネント
+   */
   render: (props: TextFieldProps) => {
     const {
       label,
@@ -47,6 +53,12 @@ const TextFieldComponent: BaseComponent<TextFieldProps> = {
     );
   },
 
+  /**
+   * テキストフィールドコンポーネントの設定UIをレンダリングする
+   * @param props - 現在のテキストフィールドのプロパティ
+   * @param onUpdate - プロパティ更新時のコールバック関数
+   * @returns レンダリングされた設定UI
+   */
   renderSettings: (
     props: TextFieldProps,
     onUpdate: (newProps: Partial<TextFieldProps>) => void

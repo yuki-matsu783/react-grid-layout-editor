@@ -14,10 +14,13 @@ export const useTreeOperations = () => {
    * @returns 見つかったアイテム、見つからない場合はnull
    */
   const findItemInTree = (nodes: GridItem[], id: string): GridItem | null => {
+    // ノードを逐次探索
     for (const node of nodes) {
+      // IDが一致した場合はそのノードを返す
       if (node.id === id) {
         return node;
       }
+      // グリッドレイアウトの場合は子要素も再帰的に探索
       if (node.component.type === 'gridLayout') {
         const found = findItemInTree(node.component.props.children, id);
         if (found) {
@@ -39,9 +42,11 @@ export const useTreeOperations = () => {
     // 再帰的に深さを計算する内部関数
     const calculateDepthRecursive = (nodes: GridItem[], targetId: string, currentDepth: number = 0): number => {
       for (const node of nodes) {
+        // 対象のアイテムが見つかった場合は現在の深さを返す
         if (node.id === targetId) {
           return currentDepth;
         }
+        // グリッドレイアウトの場合は子要素も再帰的に探索（深さを1増やす）
         if (node.component.type === 'gridLayout') {
           const childDepth = calculateDepthRecursive(node.component.props.children, targetId, currentDepth + 1);
           if (childDepth !== -1) {
@@ -86,26 +91,13 @@ export const useTreeOperations = () => {
 
   /**
    * 選択されたアイテムが指定されたノード配列内にネストされているかどうかを確認する
-   * 特定のアイテムを除外して検索することも可能
    * @param selectedId - 検索する選択アイテムのID
    * @param nodes - 検査対象のノード配列
-   * @param excludeSelfId - 検索から除外するアイテムのID（オプション）
    * @returns ネストされている場合はtrue、そうでない場合はfalse
    */
-  const isNestedItemSelected = (selectedId: string | null, nodes: GridItem[], excludeSelfId: string | null = null): boolean => {
+  const isNestedItemSelected = (selectedId: string | null, nodes: GridItem[]): boolean => {
     if (!selectedId) return false;
-    // 再帰的に選択アイテムを検索する内部関数
-    const search = (items: GridItem[]): boolean =>
-      items.some(item => {
-        if (item.id === selectedId) {
-          return excludeSelfId ? item.id !== excludeSelfId : true;
-        }
-        if (item.component.type === 'gridLayout') {
-          return search(item.component.props.children);
-        }
-        return false;
-      });
-    return search(nodes);
+    return findItemInTree(nodes, selectedId) !== null;
   };
 
   return {
