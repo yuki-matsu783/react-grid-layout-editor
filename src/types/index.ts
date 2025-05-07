@@ -33,6 +33,8 @@ export interface BaseLayoutProps {
   // サイズ設定（親要素に対する割合 1-100%）
   widthPercentage: number;
   heightPercentage: number;
+  // パディング設定（親要素に対する割合 0-100%）
+  paddingPercentage?: number;
   // 配置設定
   horizontalAlign: ComponentAlignment;
   verticalAlign: ComponentAlignment;
@@ -42,11 +44,6 @@ export interface BaseLayoutProps {
  * ボタンコンポーネントのプロパティを定義
  */
 export interface ButtonProps extends BaseLayoutProps {
-  // デフォルトのレイアウト設定
-  widthPercentage: number;
-  heightPercentage: number;
-  horizontalAlign: ComponentAlignment;
-  verticalAlign: ComponentAlignment;
   // ボタンの見た目の設定
   variant: 'text' | 'contained' | 'outlined';
   color?: 'primary' | 'secondary' | 'error';

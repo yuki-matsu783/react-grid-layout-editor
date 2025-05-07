@@ -436,8 +436,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             height: `${heightPercentage}%`,
             overflow: 'auto',
             display: 'flex',
-            alignItems: 'inherit',
-            justifyContent: 'inherit',
+            padding: `${item.component.props.paddingPercentage ?? 0}%`,
           }}
         >
           {content}

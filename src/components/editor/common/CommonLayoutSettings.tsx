@@ -66,6 +66,20 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               size="small"
             />
           </Box>
+          <Box sx={{ px: 1, mt: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              パディング ({props.paddingPercentage ?? 0}%)
+            </Typography>
+            <Slider
+              value={props.paddingPercentage ?? 0}
+              min={0}
+              max={10}
+              step={0.1}
+              onChange={(_, value) => onUpdate({ paddingPercentage: value as number })}
+              valueLabelDisplay="auto"
+              size="small"
+            />
+          </Box>
         </Box>
       </Paper>
 
