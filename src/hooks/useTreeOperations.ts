@@ -1,4 +1,22 @@
-import { GridItem } from '../types';
+import { GridItem, ComponentType, HasChildrenProps } from '../types';
+
+/**
+ * コンポーネントのpropsがHasChildrenPropsを実装しているかどうかを型チェックする
+ * @param props - チェックするコンポーネントのプロパティ
+ * @returns HasChildrenPropsを実装している場合はtrue
+ */
+const hasChildren = (props: any): props is HasChildrenProps => {
+  return 'children' in props;
+};
+
+/**
+ * 指定されたコンポーネントタイプがレイアウト系コンポーネントかどうかを判定する
+ * @param type - 判定するコンポーネントのタイプ
+ * @returns レイアウト系コンポーネントの場合はtrue
+ */
+const isLayoutComponent = (type: ComponentType): boolean => {
+  return ['gridLayout', 'rowStack', 'colStack'].includes(type);
+};
 
 /**
  * ツリー構造の操作に関する共通ロジックを提供するカスタムフック
@@ -20,8 +38,8 @@ export const useTreeOperations = () => {
       if (node.id === id) {
         return node;
       }
-      // グリッドレイアウトの場合は子要素も再帰的に探索
-      if (node.component.type === 'gridLayout') {
+      // レイアウト系コンポーネントの場合は子要素も再帰的に探索
+      if (isLayoutComponent(node.component.type) && hasChildren(node.component.props)) {
         const found = findItemInTree(node.component.props.children, id);
         if (found) {
           return found;
@@ -46,8 +64,8 @@ export const useTreeOperations = () => {
         if (node.id === targetId) {
           return currentDepth;
         }
-        // グリッドレイアウトの場合は子要素も再帰的に探索（深さを1増やす）
-        if (node.component.type === 'gridLayout') {
+        // レイアウト系コンポーネントの場合は子要素も再帰的に探索（深さを1増やす）
+        if (isLayoutComponent(node.component.type) && hasChildren(node.component.props)) {
           const childDepth = calculateDepthRecursive(node.component.props.children, targetId, currentDepth + 1);
           if (childDepth !== -1) {
             return childDepth;
@@ -69,9 +87,9 @@ export const useTreeOperations = () => {
    * @returns 子孫である場合はtrue、そうでない場合はfalse
    */
   const isItemInEditTarget = (nodes: GridItem[], itemId: string, targetEditId: string): boolean => {
-    // 編集対象のグリッドレイアウトを検索
+    // 編集対象のコンポーネントを検索
     const editTarget = findItemInTree(nodes, targetEditId);
-    if (!editTarget || editTarget.component.type !== 'gridLayout') return false;
+    if (!editTarget || !isLayoutComponent(editTarget.component.type)) return false;
 
     if (itemId === targetEditId) return true;
 
@@ -79,14 +97,18 @@ export const useTreeOperations = () => {
     const searchInChildren = (nodes: GridItem[]): boolean => {
       return nodes.some(node => {
         if (node.id === itemId) return true;
-        if (node.component.type === 'gridLayout') {
+        if (isLayoutComponent(node.component.type) && hasChildren(node.component.props)) {
           return searchInChildren(node.component.props.children);
         }
         return false;
       });
     };
 
-    return searchInChildren(editTarget.component.props.children);
+    // 編集対象がレイアウト系コンポーネントで、かつchildrenを持っていることを確認
+    if (hasChildren(editTarget.component.props)) {
+      return searchInChildren(editTarget.component.props.children);
+    }
+    return false;
   };
 
   /**
@@ -109,8 +131,8 @@ export const useTreeOperations = () => {
   const findParentItem = (nodes: GridItem[], id: string): GridItem | null => {
     // すべてのノードをチェック
     for (const node of nodes) {
-      // グリッドレイアウトまたはスタックコンポーネントの場合
-      if ('children' in node.component.props) {
+      // レイアウト系コンポーネントの場合
+      if (isLayoutComponent(node.component.type) && hasChildren(node.component.props)) {
         // 直接の子要素に対象がある場合
         if (node.component.props.children.some(child => child.id === id)) {
           return node;

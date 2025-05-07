@@ -467,20 +467,12 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     if (editTargetId) {
       const editTargetItem = findItemInTree(items, editTargetId);
       if (editTargetItem) {
-        // Stack系コンポーネントの場合は、子要素の選択を許可
-        if (editTargetItem.component.type === 'rowStack' || editTargetItem.component.type === 'colStack') {
-          // 直接の子要素かどうかをチェック
-          const isDirectChild = editTargetItem.component.props.children.some(child => child.id === id);
-          if (isDirectChild) {
-            console.log('Stack子要素を選択:', id, '親:', editTargetId);
+        // レイアウト系コンポーネントの場合は、その子孫要素の選択を許可
+        if (isLayoutComponent(editTargetItem.component.type)) {
+          if (isItemInEditTarget(items, id, editTargetId)) {
             setSelectedItemId(id);
-            return;
+            console.log('編集対象内のアイテムを選択:', id);
           }
-        }
-        // GridLayoutの場合は従来通り
-        if (isItemInEditTarget(items, id, editTargetId)) {
-          setSelectedItemId(id);
-          console.log('編集対象内のアイテムを選択:', id);
         }
       }
       return;
@@ -562,22 +554,12 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         opacity: selectingMode && !isLayoutComponent(item.component.type) ? 0.5 : 1,
-        // Stack系コンポーネントの子要素は常にクリック可能に
         pointerEvents: (() => {
           if (selectingMode && !isLayoutComponent(item.component.type)) {
             return 'none';
           }
-          // 編集対象がある場合
+          // 編集対象がある場合、その子孫要素のみクリック可能
           if (editTargetId) {
-            const editTargetItem = findItemInTree(items, editTargetId);
-            // Stack系の子要素は常にクリック可能
-            if (editTargetItem && 
-                (editTargetItem.component.type === 'rowStack' || 
-                 editTargetItem.component.type === 'colStack') &&
-                editTargetItem.component.props.children.some(child => child.id === item.id)) {
-              return 'auto';
-            }
-            // それ以外は編集対象の子孫でない場合はクリック不可
             return isItemInEditTarget(items, item.id, editTargetId) ? 'auto' : 'none';
           }
           return 'auto';
