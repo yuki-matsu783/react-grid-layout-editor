@@ -964,14 +964,16 @@ export default class ComponentEditor extends React.PureComponent<ComponentEditor
     // 共通のBoxコンポーネントでラップして返す
     return (
       <Box {...baseBoxProps}>
-        <Box
-          sx={{
-              width: `${widthPercentage}%`,
-              height: `${heightPercentage}%`,
-              maxWidth: '100%',
-              maxHeight: '100%'
-          }}
-        >
+          <Box
+            sx={{
+                width: `${widthPercentage}%`,
+                height: `${heightPercentage}%`,
+                overflow: 'auto',
+                display: 'flex',
+                alignItems: 'inherit',
+                justifyContent: 'inherit',
+            }}
+          >
           {content}
         </Box>
       </Box>
