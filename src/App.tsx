@@ -35,7 +35,7 @@ const App: React.FC = () => {
       <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
         <ComponentEditor 
           cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
-          rowHeight={120}
+          rowHeight={180}
           margin={[10, 10]}
         />
       </Box>

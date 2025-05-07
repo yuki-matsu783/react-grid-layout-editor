@@ -145,7 +145,7 @@ componentRegistry.registerComponent('textField', {
   displayName: 'テキストフィールド',
   icon: createElement(TextFieldsIcon),
   defaultWidth: 2,
-  defaultHeight: 1,
+  defaultHeight: 2,
   defaultProps: defaultTextFieldProps
 });
 
