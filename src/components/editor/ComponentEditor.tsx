@@ -559,8 +559,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         borderRadius: '4px',
         cursor: selectingMode && !isLayoutComponent(item.component.type) ? 'not-allowed' : 'pointer',
         display: 'flex',
-        alignItems,
-        justifyContent,
+        alignItems: 'center',
+        justifyContent: 'center',
         opacity: selectingMode && !isLayoutComponent(item.component.type) ? 0.5 : 1,
         // Stack系コンポーネントの子要素は常にクリック可能に
         pointerEvents: (() => {
@@ -672,11 +672,15 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       <Box {...baseBoxProps}>
         <Box
           sx={{
+            border: '0.5px dotted #e0e0e0',
+            borderRadius: '4px',
             width: `${widthPercentage}%`,
             height: `${heightPercentage}%`,
+            padding: `${item.component.props.paddingPercentage ?? 0}%`,
             overflow: 'auto',
             display: 'flex',
-            padding: `${item.component.props.paddingPercentage ?? 0}%`,
+            alignItems,
+            justifyContent,
           }}
         >
           {content}

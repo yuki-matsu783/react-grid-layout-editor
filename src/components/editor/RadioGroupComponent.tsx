@@ -47,8 +47,6 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
         required={required}
         disabled={disabled}
         sx={{
-          width: '100%',
-          height: '100%',
           display: 'flex',
           p: 1
         }}
@@ -61,7 +59,6 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
               console.log('ラジオグループの選択値:', e.target.value);
             }}
             sx={{
-              height: '100%',
               alignItems: row ? 'center' : 'flex-start',
               justifyContent: 'flex-start'
             }}

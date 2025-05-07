@@ -47,7 +47,6 @@ const TextFieldComponent: BaseComponent<TextFieldProps> = {
         required={required}
         sx={{
           width: '100%',
-          height: '100%',
         }}
       />
     );

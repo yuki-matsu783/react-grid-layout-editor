@@ -118,8 +118,8 @@ const defaultButtonProps: ButtonProps = {
   color: 'primary',
   label: 'ボタン',
   size: 'medium',
-  widthPercentage: 80,
-  heightPercentage: 50,
+  widthPercentage: 90,
+  heightPercentage: 90,
   horizontalAlign: 'center',
   verticalAlign: 'center',
 };
@@ -135,8 +135,8 @@ componentRegistry.registerComponent('button', {
 // デフォルトのグリッドレイアウトコンポーネントを登録
 const defaultGridLayoutProps: GridLayoutProps = {
   children: [],
-  widthPercentage: 100,
-  heightPercentage: 100,
+  widthPercentage: 95,
+  heightPercentage: 95,
   horizontalAlign: 'center',
   verticalAlign: 'center'
 };
@@ -158,8 +158,8 @@ const defaultTextFieldProps: TextFieldProps = {
   multiline: false,
   disabled: false,
   required: false,
-  widthPercentage: 80,
-  heightPercentage: 50,
+  widthPercentage: 90,
+  heightPercentage: 90,
   horizontalAlign: 'center',
   verticalAlign: 'center',
 };
@@ -182,17 +182,17 @@ const defaultRadioGroupProps: RadioGroupProps = {
   value: 'option1',
   row: false,
   color: 'primary',
-  widthPercentage: 80,
-  heightPercentage: 50,
-  horizontalAlign: 'start',
+  widthPercentage: 90,
+  heightPercentage: 90,
+  horizontalAlign: 'center',
   verticalAlign: 'center'
 };
 
 componentRegistry.registerComponent('radioGroup', {
   displayName: 'ラジオグループ',
   icon: createElement(RadioButtonCheckedIcon),
-  defaultWidth: 3,
-  defaultHeight: 2,
+  defaultWidth: 4,
+  defaultHeight: 4,
   defaultProps: defaultRadioGroupProps
 });
 

@@ -105,8 +105,6 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         width: '100%',
         height: '100%',
         position: 'relative',
-        border: '1px solid #e0e0e0',
-        borderRadius: '4px',
         ...(sx || {})
       }}
     >

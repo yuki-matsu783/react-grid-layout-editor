@@ -35,8 +35,7 @@ const ButtonComponent: BaseComponent<ButtonProps> = {
         size={size}
         disabled={disabled}
         sx={{
-          width: '100%',
-          height: '100%'
+          height: '2rem'
         }}
       >
         {label}
