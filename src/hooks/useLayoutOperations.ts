@@ -1,4 +1,4 @@
-import { GridItem, Layout, ButtonProps, GridLayoutProps, TextFieldProps } from '../types';
+import { GridItem, Layout, ButtonProps, GridLayoutProps, TextFieldProps, RadioGroupProps } from '../types';
 
 /**
  * レイアウト操作に関する共通ロジックを提供するカスタムフック
@@ -170,7 +170,7 @@ export const useLayoutOperations = () => {
   const updateItemProps = (
     nodes: GridItem[],
     itemId: string,
-    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps>
+    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps | RadioGroupProps>
   ): GridItem[] => {
     return nodes.map(node => {
       if (node.id === itemId) {
@@ -197,6 +197,12 @@ export const useLayoutOperations = () => {
               ...updatedComponent.props,
               ...(newProps as Partial<GridLayoutProps>)
             } as GridLayoutProps;
+            break;
+          case 'radioGroup':
+            updatedComponent.props = {
+              ...updatedComponent.props,
+              ...(newProps as Partial<RadioGroupProps>)
+            } as RadioGroupProps;
             break;
           default:
             console.warn(`Unsupported component type: ${componentType}`);

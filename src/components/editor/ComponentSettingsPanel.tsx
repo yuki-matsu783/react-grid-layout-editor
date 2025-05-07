@@ -4,6 +4,7 @@ import type { ComponentSettingsPanelProps } from '../../types';
 import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
 import GridLayoutComponent from './GridLayoutComponent';
+import RadioGroupComponent from './RadioGroupComponent';
 
 /**
  * コンポーネントタイプごとの設定コンポーネントマッピング
@@ -14,6 +15,7 @@ const componentMap = {
   button: ButtonComponent,
   textField: TextFieldComponent,
   gridLayout: GridLayoutComponent,
+  radioGroup: RadioGroupComponent,
   // 新しいコンポーネントタイプはここに追加
 };
 

@@ -31,7 +31,7 @@ export type ComponentAlignment = 'start' | 'center' | 'end';
 /**
  * 利用可能なコンポーネントタイプを定義
  */
-export type ComponentType = 'button' | 'gridLayout' | 'textField';
+export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'radioGroup';
 
 /**
  * コンポーネントの基本レイアウトプロパティを定義
@@ -99,10 +99,34 @@ export interface GridLayoutProps extends BaseLayoutProps {
  * コンポーネントの設定を定義
  * 各コンポーネントタイプに対応するプロパティを持つユニオン型
  */
+/**
+ * ラジオグループコンポーネントのプロパティを定義
+ */
+export interface RadioGroupProps extends BaseLayoutProps {
+  /** ラジオグループのラベル */
+  label: string;
+  /** ラジオオプションの配列 */
+  options: Array<{
+    value: string;
+    label: string;
+  }>;
+  /** 選択値 */
+  value: string;
+  /** 水平配置（true）か垂直配置（false）か */
+  row: boolean;
+  /** 無効化状態 */
+  disabled?: boolean;
+  /** 必須入力 */
+  required?: boolean;
+  /** カラーテーマ */
+  color: 'primary' | 'secondary' | 'error';
+}
+
 export type ComponentConfig =
   | { type: 'button'; props: ButtonProps }
   | { type: 'gridLayout'; props: GridLayoutProps }
-  | { type: 'textField'; props: TextFieldProps };
+  | { type: 'textField'; props: TextFieldProps }
+  | { type: 'radioGroup'; props: RadioGroupProps };
 
 /**
  * グリッドアイテムの構造を定義
@@ -147,6 +171,8 @@ export type ComponentProps<T extends ComponentConfig> =
   ? ButtonProps
   : T extends { type: 'textField' }
   ? TextFieldProps
+  : T extends { type: 'radioGroup' }
+  ? RadioGroupProps
   : never;
 
 /**

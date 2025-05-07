@@ -1,7 +1,15 @@
 import { ReactNode, createElement } from 'react';
-import type { ComponentType, ComponentConfig, ButtonProps, GridLayoutProps, TextFieldProps } from '../types';
+import type {
+  ComponentType,
+  ComponentConfig,
+  ButtonProps,
+  GridLayoutProps,
+  TextFieldProps,
+  RadioGroupProps
+} from '../types';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
+import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 
 /**
  * コンポーネントのメタデータを定義するインターフェース
@@ -27,6 +35,7 @@ type ComponentMetadataMap = {
   button: ComponentMetadata<ButtonProps>;
   gridLayout: ComponentMetadata<GridLayoutProps>;
   textField: ComponentMetadata<TextFieldProps>;
+  radioGroup: ComponentMetadata<RadioGroupProps>;
 };
 
 /**
@@ -157,6 +166,30 @@ componentRegistry.registerComponent('textField', {
   defaultWidth: 2,
   defaultHeight: 2,
   defaultProps: defaultTextFieldProps
+});
+
+// デフォルトのラジオグループコンポーネントを登録
+const defaultRadioGroupProps: RadioGroupProps = {
+  label: 'ラジオグループ',
+  options: [
+    { value: 'option1', label: 'オプション1' },
+    { value: 'option2', label: 'オプション2' }
+  ],
+  value: 'option1',
+  row: false,
+  color: 'primary',
+  widthPercentage: 80,
+  heightPercentage: 50,
+  horizontalAlign: 'start',
+  verticalAlign: 'center'
+};
+
+componentRegistry.registerComponent('radioGroup', {
+  displayName: 'ラジオグループ',
+  icon: createElement(RadioButtonCheckedIcon),
+  defaultWidth: 3,
+  defaultHeight: 2,
+  defaultProps: defaultRadioGroupProps
 });
 
 export default componentRegistry;

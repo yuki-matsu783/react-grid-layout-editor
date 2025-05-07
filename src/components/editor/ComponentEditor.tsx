@@ -24,6 +24,7 @@ import { gridItemsAtom, selectedItemIdAtom, initializeGridItems } from '../../st
 import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
+import RadioGroupComponent from './RadioGroupComponent';
 import componentRegistry, { ComponentMetadata } from '../../utils/componentRegistry';
 import GridLayout from './layout/GridLayout';
 
@@ -32,6 +33,7 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const componentMap = {
   button: ButtonComponent,
   textField: TextFieldComponent,
+  radioGroup: RadioGroupComponent,
 };
 
 type ComponentMapType = typeof componentMap;
@@ -285,6 +287,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   const handleAddGridLayout = () => handleAddComponent('gridLayout', 'grid');
   const handleAddButton = () => handleAddComponent('button', 'btn');
   const handleAddTextField = () => handleAddComponent('textField', 'txt');
+  const handleAddRadioGroup = () => handleAddComponent('radioGroup', 'radio');
 
   const handleExport = () => {
     try {
@@ -545,6 +548,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             startIcon={<AddBoxIcon />}
           >
             テキストフィールドを追加
+          </Button>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={handleAddRadioGroup}
+            startIcon={<AddBoxIcon />}
+          >
+            ラジオグループを追加
           </Button>
         </Box>
       </Box>

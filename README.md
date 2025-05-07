@@ -21,6 +21,12 @@
   - パスワード、数値、メールアドレスなど各種入力タイプ
   - バリデーション（必須入力）
   - 3種類の表示スタイル（標準、枠線付き、塗りつぶし）
+- ラジオグループコンポーネントの追加と設定
+  - 動的なラジオオプションの追加/削除/編集
+  - 縦/横レイアウトの切り替え
+  - プライマリ、セカンダリ、エラーカラー
+  - 必須入力の設定
+  - 有効/無効状態の切り替え
 
 ## 必要要件
 
@@ -57,27 +63,14 @@ pnpm build
    - ドラッグで位置を移動可能
    - 右下のハンドルでサイズを変更可能
 
-2. **ボタンの追加**
-   - 「ボタンを追加」ボタンをクリックしてボタンコンポーネントを追加
+2. **各種コンポーネントの追加**
+   - 「XXXを追加」ボタンをクリックしてXXXコンポーネントを追加
    - 右側のパネルで以下の設定を編集可能：
-     - ラベルテキスト
-     - スタイル（テキスト、アウトライン、塗りつぶし）
-     - カラー（プライマリ、セカンダリ、エラー）
-     - サイズ（小、中、大）
-     - 有効/無効状態
      - サイズと配置の調整
+     - コンポーネントごとに特有のpropsの調整
 
-3. **テキストフィールドの追加**
-   - 「テキストフィールドを追加」ボタンをクリックしてテキストフィールドコンポーネントを追加
-   - 右側のパネルで以下の設定を編集可能：
-     - ラベルとプレースホルダー
-     - 入力タイプ（テキスト、パスワード、数値、メール）
-     - スタイル（枠線付き、塗りつぶし、標準）
-     - 複数行入力の有効化と行数設定
-     - 必須入力の設定
-     - サイズと配置の調整
 
-4. **編集モード**
+5. **編集モード**
    - 領域を選択して「領域内を編集」ボタンをクリックすると、その領域内のみを編集可能
    - 「領域内の編集終了」で編集モードを終了
 
@@ -89,161 +82,134 @@ pnpm build
 - 「エクスポート」ボタンでレイアウト設定をJSONファイルとして保存
 - 「インポート」ボタンで保存したレイアウト設定を読み込み
 
-## コンポーネントの追加方法
+## このプロジェクトに新しいコンポーネントを追加する方法
 
-新しいコンポーネントタイプを追加する場合は、以下の手順で実装します：
+新しいコンポーネントをプロジェクトに追加するには、以下の手順を実行してください：
 
-1. `src/types/index.ts`にコンポーネントの型定義を追加
+1. **型定義の追加**
+   - `src/types/index.ts` に新しいコンポーネントの型定義を追加します。
+   ```typescript
+   export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'radioGroup' | 'newComponent';
 
-```typescript
-// ComponentTypeに新しいタイプを追加
-export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'newComponent';
-
-// コンポーネントのプロパティ型を定義（BaseLayoutPropsを継承）
-export interface NewComponentProps extends BaseLayoutProps {
-  // BaseLayoutPropsで継承される共通プロパティ
-  // - widthPercentage: 親要素に対する幅の割合（1-100%）
-  // - heightPercentage: 親要素に対する高さの割合（1-100%）
-  // - horizontalAlign: 水平方向の配置（'start' | 'center' | 'end'）
-  // - verticalAlign: 垂直方向の配置（'start' | 'center' | 'end'）
-
+   export interface NewComponentProps extends BaseLayoutProps {
   // コンポーネント固有のプロパティを追加
-  label: string;
-  variant: 'outlined' | 'contained';
-  // その他必要なプロパティ
-}
+     label: string;
+     variant: 'outlined' | 'contained';
+   }
+   ```
 
-// ComponentConfigに新しいコンポーネント設定を追加
-export type ComponentConfig =
-  | { type: 'button'; props: ButtonProps }
-  | { type: 'gridLayout'; props: GridLayoutProps }
-  | { type: 'textField'; props: TextFieldProps }
-  | { type: 'newComponent'; props: NewComponentProps };
-```
+2. **コンポーネントの実装**
+   - `src/components/editor/NewComponent.tsx` に新しいコンポーネントを実装します。
+   ```tsx
+   import React from 'react';
+   import { Box, Button } from '@mui/material';
+   import type { NewComponentProps, BaseComponent } from '../../types';
+   import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
-2. `src/components/editor/NewComponent.tsx`でコンポーネントを実装
+   const NewComponent: BaseComponent<NewComponentProps> = {
+     render: (props: NewComponentProps) => {
+       const { label, variant } = props;
+       return (
+         <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+           <Button variant={variant}>{label}</Button>
+         </Box>
+       );
+     },
 
-```typescript
-import React from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  ButtonGroup
-} from '@mui/material';
-import type { NewComponentProps, BaseComponent } from '../../types';
-import { CommonLayoutSettings } from './common/CommonLayoutSettings';
+     renderSettings: (props: NewComponentProps, onUpdate: (newProps: Partial<NewComponentProps>) => void) => {
+       return (
+         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+           <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+           <input
+             type="text"
+             value={props.label}
+             onChange={(e) => onUpdate({ label: e.target.value })}
+           />
+           <select
+             value={props.variant}
+             onChange={(e) => onUpdate({ variant: e.target.value as 'outlined' | 'contained' })}
+           >
+             <option value="outlined">枠線付き</option>
+             <option value="contained">塗りつぶし</option>
+           </select>
+         </Box>
+       );
+     },
+   };
 
-/**
- * 新しいコンポーネントの実装
- */
-const NewComponent: BaseComponent<NewComponentProps> = {
-  /**
-   * コンポーネントをレンダリングする
-   * @param props コンポーネントのプロパティ
-   */
-  render: (props: NewComponentProps) => {
-    const {
-      label,
-      variant
-    } = props;
+   export default NewComponent;
+   ```
 
-    return (
-      <Box sx={{
-        width: '100%',
-        height: '100%'
-      }}>
-        {/* コンポーネントの実装 */}
-        <Box sx={{
-          p: 1,
-          border: variant === 'outlined' ? '1px solid' : 'none'
-        }}>
-          {label}
-        </Box>
-      </Box>
-    );
-  },
+3. **コンポーネントの登録**
+   - `src/utils/componentRegistry.ts` に新しいコンポーネントを登録します。
+   ```typescript
+   import NewComponent from '../components/editor/NewComponent';
 
-  /**
-   * コンポーネントの設定UIをレンダリングする
-   * @param props 現在のプロパティ
-   * @param onUpdate プロパティ更新時のコールバック
-   */
-  renderSettings: (
-    props: NewComponentProps,
-    onUpdate: (newProps: Partial<NewComponentProps>) => void
-  ) => {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        {/* 共通レイアウト設定 */}
-        <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+   const defaultNewComponentProps: NewComponentProps = {
+     label: '新しいコンポーネント',
+     variant: 'outlined',
+     widthPercentage: 80,
+     heightPercentage: 50,
+     horizontalAlign: 'center',
+     verticalAlign: 'center',
+   };
 
-        <Typography variant="body2" gutterBottom>基本設定</Typography>
+   componentRegistry.registerComponent('newComponent', {
+     displayName: '新しいコンポーネント',
+     icon: createElement(AddBoxIcon),
+     defaultWidth: 2,
+     defaultHeight: 1,
+     defaultProps: defaultNewComponentProps,
+   });
+   ```
 
-        {/* テキスト設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>テキスト</Typography>
-          <TextField
-            size="small"
-            fullWidth
-            value={props.label}
-            onChange={(e) => onUpdate({ label: e.target.value })}
-          />
-        </Box>
+4. **設定パネルへの追加**
+   - `src/components/editor/ComponentSettingsPanel.tsx` に新しいコンポーネントを設定パネルに追加します。
+   ```tsx
+   import NewComponent from './NewComponent';
 
-        {/* スタイル設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>スタイル</Typography>
-          <ButtonGroup size="small" variant="outlined" fullWidth>
-            {(['outlined', 'contained'] as const).map((v) => (
-              <Button
-                key={v}
-                onClick={() => onUpdate({ variant: v })}
-                color={props.variant === v ? 'primary' : 'inherit'}
-              >
-                {v}
-              </Button>
-            ))}
-          </ButtonGroup>
-        </Box>
-      </Box>
-    );
-  }
-};
+   const componentMap = {
+     button: ButtonComponent,
+     textField: TextFieldComponent,
+     gridLayout: GridLayoutComponent,
+     radioGroup: RadioGroupComponent,
+     newComponent: NewComponent, // 新しいコンポーネントを追加
+   };
+   ```
 
-export default NewComponent;
-```
+5. **エディタへの追加**
+   - `src/components/editor/ComponentEditor.tsx` に新しいコンポーネントを追加するボタンを実装します。
+   ```tsx
+   const handleAddNewComponent = () => handleAddComponent('newComponent', 'new');
 
-3. `src/utils/componentRegistry.ts`にコンポーネントを登録
+   <Box>
+     <Button
+       variant="outlined"
+       fullWidth
+       onClick={handleAddNewComponent}
+       startIcon={<AddBoxIcon />}
+     >
+       XXXを追加
+     </Button>
+   </Box>
+   ```
 
-```typescript
-// デフォルトプロパティを定義
-const defaultNewComponentProps: NewComponentProps = {
-  widthPercentage: 80,
-  heightPercentage: 50,
-  horizontalAlign: 'center',
-  verticalAlign: 'center',
-  label: '新しいコンポーネント',
-  variant: 'outlined'
-};
+6. **プロパティ更新ロジックの追加**
+   - `src/hooks/useLayoutOperations.ts` に新しいコンポーネントのプロパティ更新ロジックを追加します。
+   ```typescript
+   case 'newComponent':
+     updatedComponent.props = {
+       ...updatedComponent.props,
+       ...(newProps as Partial<NewComponentProps>),
+     } as NewComponentProps;
+     break;
+   ```
 
-// コンポーネントを登録
-componentRegistry.registerComponent('newComponent', {
-  displayName: '新しいコンポーネント',
-  icon: createElement(NewComponentIcon),
-  defaultWidth: 2,
-  defaultHeight: 1,
-  defaultProps: defaultNewComponentProps
-});
-```
+7. **動作確認**
+   - プロジェクトを起動し、エディタ画面で「XXXを追加」ボタンをクリック。
+   - グリッドに `NewComponent` が追加され、設定パネルでプロパティを編集できることを確認します。
 
-上記の手順で新しいコンポーネントタイプを追加できます。実装の際は以下の点に注意してください：
-
-- BaseLayoutPropsを継承して、サイズと配置の共通設定を活用
-- renderメソッドでは、親要素に対する相対サイズ（widthPercentage, heightPercentage）を適切に反映
-- renderSettingsメソッドで、直感的な設定UIを提供
-- コンポーネントレジストリに適切なデフォルト値を設定
+これで、新しいコンポーネントが他のコンポーネントと同様に扱えるようになります。
 
 ## 制限事項
 
