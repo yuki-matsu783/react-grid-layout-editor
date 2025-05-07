@@ -1,6 +1,9 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import type { ComponentSettingsPanelProps } from '../../types';
+import { useAtomValue } from 'jotai';
+import type { ComponentSettingsPanelProps, ParentType } from '../../types';
+import { gridItemsAtom } from '../../store/atoms';
+import { useTreeOperations } from '../../hooks/useTreeOperations';
 import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
 import GridLayoutComponent from './GridLayoutComponent';
@@ -35,6 +38,23 @@ const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
   selectedItem,
   onUpdate
 }) => {
+  const items = useAtomValue(gridItemsAtom);
+  const { findParentItem } = useTreeOperations();
+
+  /**
+   * 親要素のタイプを判定
+   * @returns 'grid' または 'stack'
+   */
+  const getParentType = (): ParentType => {
+    if (!selectedItem) return 'grid';
+    
+    const parentItem = findParentItem(items, selectedItem.id);
+    if (!parentItem) return 'grid';
+
+    return parentItem.component.type === 'gridLayout' ? 'grid' : 'stack';
+  };
+
+  const parentType = getParentType();
   /**
    * 選択されたコンポーネントに対応する設定コンポーネントを取得
    * @returns 設定コンポーネントのインスタンス、未選択または未対応の場合はnull
@@ -80,7 +100,8 @@ const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
         {selectedItem && settingsComponent ? (
           settingsComponent.renderSettings(
             selectedItem.component.props as any,
-            (newProps: Partial<typeof selectedItem.component.props>) => onUpdate(selectedItem.id, newProps)
+            (newProps: Partial<typeof selectedItem.component.props>) => onUpdate(selectedItem.id, newProps),
+            parentType
           )
         ) : (
           <Typography variant="body2" color="text.secondary">

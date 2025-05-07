@@ -10,7 +10,7 @@ import {
   Switch,
   FormControlLabel,
 } from '@mui/material';
-import type { TextFieldProps, BaseComponent } from '../../types';
+import type { TextFieldProps, BaseComponent, ParentType } from '../../types';
 import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
@@ -60,12 +60,13 @@ const TextFieldComponent: BaseComponent<TextFieldProps> = {
    */
   renderSettings: (
     props: TextFieldProps,
-    onUpdate: (newProps: Partial<TextFieldProps>) => void
+    onUpdate: (newProps: Partial<TextFieldProps>) => void,
+    parentType: ParentType
   ) => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* 共通レイアウト設定 */}
-        <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+        <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
         <Typography variant="body2" gutterBottom>基本設定</Typography>
 
         {/* 基本設定 */}

@@ -100,10 +100,36 @@ export const useTreeOperations = () => {
     return findItemInTree(nodes, selectedId) !== null;
   };
 
+  /**
+   * 指定されたIDを持つアイテムの親アイテムを検索する
+   * @param nodes - 検索対象のノード配列
+   * @param id - 親を検索するアイテムのID
+   * @returns 親アイテム、見つからない場合はnull
+   */
+  const findParentItem = (nodes: GridItem[], id: string): GridItem | null => {
+    // すべてのノードをチェック
+    for (const node of nodes) {
+      // グリッドレイアウトまたはスタックコンポーネントの場合
+      if ('children' in node.component.props) {
+        // 直接の子要素に対象がある場合
+        if (node.component.props.children.some(child => child.id === id)) {
+          return node;
+        }
+        // 子要素を再帰的に探索
+        const found = findParentItem(node.component.props.children, id);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  };
+
   return {
     findItemInTree,
     calculateDepth,
     isItemInEditTarget,
     isNestedItemSelected,
+    findParentItem,
   };
 };

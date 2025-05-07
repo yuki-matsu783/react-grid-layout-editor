@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BaseComponent, ColStackProps } from '../../types';
+import type { BaseComponent, ColStackProps, ParentType } from '../../types';
 import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
@@ -12,9 +12,9 @@ const ColStackComponent: BaseComponent<ColStackProps> = {
     return null; // 実際のレンダリングはComponentEditorで行われる
   },
 
-  renderSettings: (props: ColStackProps, onUpdate: (newProps: Partial<ColStackProps>) => void) => {
+  renderSettings: (props: ColStackProps, onUpdate: (newProps: Partial<ColStackProps>) => void, parentType: ParentType) => {
     return (
-      <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+      <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
     );
   }
 };

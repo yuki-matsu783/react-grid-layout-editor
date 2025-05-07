@@ -1,7 +1,8 @@
 import React from 'react';
 import type { 
   GridLayoutProps,
-  BaseComponent 
+  BaseComponent,
+  ParentType
 } from '../../types';
 import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
@@ -14,9 +15,9 @@ const GridLayoutComponent: BaseComponent<GridLayoutProps> = {
     return null; // レンダリングは不要（GridLayoutは独自にレンダリング）
   },
 
-  renderSettings: (props: GridLayoutProps, onUpdate: (newProps: Partial<GridLayoutProps>) => void) => {
+  renderSettings: (props: GridLayoutProps, onUpdate: (newProps: Partial<GridLayoutProps>) => void, parentType: ParentType) => {
     return (
-      <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+      <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
     );
   }
 };

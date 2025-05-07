@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import type { RadioGroupProps, BaseComponent } from '../../types';
+import type { RadioGroupProps, BaseComponent, ParentType } from '../../types';
 import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
@@ -84,7 +84,8 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
    */
   renderSettings: (
     props: RadioGroupProps,
-    onUpdate: (newProps: Partial<RadioGroupProps>) => void
+    onUpdate: (newProps: Partial<RadioGroupProps>) => void,
+    parentType: ParentType
   ) => {
     /**
      * オプションを追加する
@@ -137,7 +138,7 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* 共通レイアウト設定 */}
-        <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+        <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
 
         <Typography variant="body2" gutterBottom>基本設定</Typography>
 

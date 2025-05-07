@@ -168,6 +168,11 @@ export interface GridItem {
  * コンポーネントの基本インターフェース
  * すべてのコンポーネントが実装する必要がある機能を定義
  */
+/**
+ * コンポーネントの親要素のタイプを定義
+ */
+export type ParentType = 'grid' | 'stack';
+
 export interface BaseComponent<T = any> {
   /**
    * コンポーネントをレンダリングする
@@ -180,9 +185,10 @@ export interface BaseComponent<T = any> {
    * コンポーネントの設定UIをレンダリングする
    * @param props 現在のプロパティ
    * @param onUpdate プロパティ更新時のコールバック
+   * @param parentType 親要素のタイプ（grid または stack）
    * @returns 設定UI
    */
-  renderSettings(props: T, onUpdate: (newProps: Partial<T>) => void): ReactNode;
+  renderSettings(props: T, onUpdate: (newProps: Partial<T>) => void, parentType: ParentType): ReactNode;
 }
 
 /**

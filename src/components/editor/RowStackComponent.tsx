@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BaseComponent, RowStackProps } from '../../types';
+import type { BaseComponent, RowStackProps, ParentType } from '../../types';
 import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
@@ -12,9 +12,9 @@ const RowStackComponent: BaseComponent<RowStackProps> = {
     return null; // 実際のレンダリングはComponentEditorで行われる
   },
 
-  renderSettings: (props: RowStackProps, onUpdate: (newProps: Partial<RowStackProps>) => void) => {
+  renderSettings: (props: RowStackProps, onUpdate: (newProps: Partial<RowStackProps>) => void, parentType: ParentType) => {
     return (
-      <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+      <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
     );
   }
 };

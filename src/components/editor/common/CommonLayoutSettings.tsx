@@ -3,12 +3,13 @@ import {
   Box, 
   Typography,
   Slider,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Stack,
   Paper
 } from '@mui/material';
-import type { BaseLayoutProps, ComponentAlignment } from '../../../types';
+import type { BaseLayoutProps, ComponentAlignment, ParentType } from '../../../types';
 
 /**
  * 共通レイアウト設定のプロパティ
@@ -18,6 +19,7 @@ import type { BaseLayoutProps, ComponentAlignment } from '../../../types';
 interface CommonLayoutSettingsProps {
   props: BaseLayoutProps;
   onUpdate: (newProps: Partial<BaseLayoutProps>) => void;
+  parentType: ParentType;
 }
 
 /**
@@ -32,7 +34,7 @@ interface CommonLayoutSettingsProps {
  * @param props - 現在の設定値
  * @param onUpdate - 設定値が更新された時のコールバック
  */
-export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ props, onUpdate }) => {
+export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ props, onUpdate, parentType }) => {
   return (
     <Stack spacing={2}>
       {/* サイズ設定セクション */}
@@ -40,8 +42,10 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
         <Box>
           {/* セクションタイトル */}
           <Typography variant="subtitle2" gutterBottom>サイズ設定</Typography>
-          {/* 幅設定スライダー */}
-          <Box sx={{ px: 1 }}>
+          {parentType === 'grid' ? (
+            <>
+              {/* 幅設定スライダー */}
+              <Box sx={{ px: 1 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               幅 ({props.widthPercentage}%)
             </Typography>
@@ -53,21 +57,60 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               valueLabelDisplay="auto"
               size="small"
             />
-          </Box>
-          {/* 高さ設定スライダー */}
-          <Box sx={{ px: 1, mt: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              高さ ({props.heightPercentage}%)
-            </Typography>
-            <Slider
-              value={props.heightPercentage}
-              min={1}
-              max={100}
-              onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
-              valueLabelDisplay="auto"
-              size="small"
-            />
-          </Box>
+              </Box>
+              {/* 高さ設定スライダー */}
+              <Box sx={{ px: 1, mt: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  高さ ({props.heightPercentage}%)
+                </Typography>
+                <Slider
+                  value={props.heightPercentage}
+                  min={1}
+                  max={100}
+                  onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
+                  valueLabelDisplay="auto"
+                  size="small"
+                />
+              </Box>
+            </>
+          ) : (
+            <>
+              {/* Stack用のサイズ設定（ピクセル単位） */}
+              <Box sx={{ px: 1 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  幅 (px)
+                </Typography>
+                <TextField
+                  type="number"
+                  value={props.widthPercentage}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = Math.max(1, parseInt(e.target.value) || 1);
+                    onUpdate({ widthPercentage: value });
+                  }}
+                  size="small"
+                  fullWidth
+                  inputProps={{ min: 1 }}
+                />
+              </Box>
+              {/* 高さ設定 */}
+              <Box sx={{ px: 1, mt: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  高さ (px)
+                </Typography>
+                <TextField
+                  type="number"
+                  value={props.heightPercentage}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = Math.max(1, parseInt(e.target.value) || 1);
+                    onUpdate({ heightPercentage: value });
+                  }}
+                  size="small"
+                  fullWidth
+                  inputProps={{ min: 1 }}
+                />
+              </Box>
+            </>
+          )}
           {/* パディング設定スライダー */}
           <Box sx={{ px: 1, mt: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
