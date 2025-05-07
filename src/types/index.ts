@@ -144,13 +144,19 @@ export interface ColStackProps extends BaseLayoutProps {
   children: GridItem[];
 }
 
+/**
+ * レイアウト系コンポーネントであることを示すタイプ
+ */
+export type LayoutComponentType = 'gridLayout' | 'rowStack' | 'colStack';
+
+/**
+ * コンポーネントの設定を定義
+ */
 export type ComponentConfig =
   | { type: 'button'; props: ButtonProps }
-  | { type: 'gridLayout'; props: GridLayoutProps }
   | { type: 'textField'; props: TextFieldProps }
   | { type: 'radioGroup'; props: RadioGroupProps }
-  | { type: 'rowStack'; props: RowStackProps }
-  | { type: 'colStack'; props: ColStackProps };
+  | { type: LayoutComponentType; props: HasChildrenProps & BaseLayoutProps };
 
 /**
  * グリッドアイテムの構造を定義

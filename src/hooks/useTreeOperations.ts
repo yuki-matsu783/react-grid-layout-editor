@@ -153,5 +153,7 @@ export const useTreeOperations = () => {
     isItemInEditTarget,
     isNestedItemSelected,
     findParentItem,
+    isLayoutComponent,
+    hasChildren,
   };
 };

@@ -18,8 +18,7 @@ import type {
   ComponentType,
   GridLayoutProps,
   ComponentEditorProps,
-  ComponentAlignment
-} from '../../types';
+  ComponentAlignment} from '../../types';
 import { gridItemsAtom, selectedItemIdAtom, initializeGridItems } from '../../store/atoms';
 import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
@@ -102,14 +101,6 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   const [fileInputKey, setFileInputKey] = useState(0);
   const [selectingMode, setSelectingMode] = useState(false);
 
-  /**
-   * コンポーネントがレイアウト系かどうかを判定する
-   * @param type - 判定するコンポーネントのタイプ
-   * @returns レイアウト系コンポーネントの場合はtrue
-   */
-  const isLayoutComponent = (type: ComponentType): boolean => {
-    return ['gridLayout', 'rowStack', 'colStack'].includes(type);
-  };
 
   // refs
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -151,6 +142,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     calculateDepth,
     isItemInEditTarget,
     isNestedItemSelected,
+    isLayoutComponent,
+    hasChildren,
   } = useTreeOperations();
 
   /**
@@ -223,10 +216,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           const targetItem = findItemInTree(items, editTargetId);
           if (!targetItem) return [];
           
-          // GridLayoutとRowStackの子要素として追加可能
-          if (targetItem.component.type === 'gridLayout' || 
-              targetItem.component.type === 'rowStack' || 
-              targetItem.component.type === 'colStack') {
+          // レイアウト系コンポーネントかつ子要素を持てる場合のみ追加可能
+          if (isLayoutComponent(targetItem.component.type) && hasChildren(targetItem.component.props)) {
             console.log(`Adding to ${targetItem.component.type}, current children:`, targetItem.component.props.children);
             return targetItem.component.props.children || [];
           }
@@ -236,8 +227,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
     // 子要素を持つコンポーネントへの追加かどうかを判定
     const isAddingToParent = editTargetId && (() => {
-      const targetType = findItemInTree(items, editTargetId)?.component.type;
-      return targetType === 'rowStack' || targetType === 'colStack';
+      const targetItem = findItemInTree(items, editTargetId);
+      return targetItem && isLayoutComponent(targetItem.component.type);
     })();
 
     // グリッドレイアウト用のデフォルトメタデータを定義
@@ -305,7 +296,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     const itemId = generateId(idPrefix);
     let newItem: GridItem;
 
-    if (componentType === 'gridLayout' || componentType === 'rowStack' || componentType === 'colStack') {
+    if (isLayoutComponent(componentType)) {
       newItem = {
         id: itemId,
         layout: {
@@ -452,9 +443,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
     // 編集対象選択モードの場合
     if (selectingMode) {
-      if (selectedItem.component.type === 'gridLayout' || 
-          selectedItem.component.type === 'rowStack' || 
-          selectedItem.component.type === 'colStack') {
+      if (isLayoutComponent(selectedItem.component.type)) {
         setSelectedItemId(id);
         setEditTargetId(id);
         setSelectingMode(false);
@@ -532,7 +521,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           // Stack系コンポーネントの直接の子要素が選択されている場合
           const editTargetItem = editTargetId ? findItemInTree(items, editTargetId) : null;
           const isStackChild = editTargetItem && 
-            (editTargetItem.component.type === 'rowStack' || editTargetItem.component.type === 'colStack') &&
+            isLayoutComponent(editTargetItem.component.type) &&
+            hasChildren(editTargetItem.component.props) &&
             editTargetItem.component.props.children.some(child => child.id === item.id);
 
           if (isSelected && isStackChild) {
@@ -555,7 +545,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         justifyContent: 'center',
         opacity: selectingMode && !isLayoutComponent(item.component.type) ? 0.5 : 1,
         pointerEvents: (() => {
-          if (selectingMode && !isLayoutComponent(item.component.type)) {
+          if (selectingMode && !isLayoutComponent(item.component.type) && !hasChildren(item.component.props)) {
             return 'none';
           }
           // 編集対象がある場合、その子孫要素のみクリック可能
