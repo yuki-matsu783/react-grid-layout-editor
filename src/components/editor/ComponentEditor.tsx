@@ -200,6 +200,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     componentType: ComponentType,
     idPrefix: string
   ): boolean => {
+    // 編集対象が選択されている場合、ネストの深さをチェック（最大5階層まで）
     if (editTargetId) {
       const depth = calculateDepth(items, editTargetId);
       if (depth >= 4) {
@@ -208,12 +209,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       }
     }
     
+    // 新しいコンポーネントを追加する対象のアイテム配列を決定
     const targetItems = editTargetId 
       ? findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
         ? (findItemInTree(items, editTargetId)?.component.props as GridLayoutProps).children || []
         : []
       : items;
 
+    // グリッドレイアウト用のデフォルトメタデータを定義
     const defaultGridLayoutMetadata = { 
       displayName: 'Grid Layout',
       icon: 'grid_view',
@@ -228,6 +231,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       } 
     } as ComponentMetadata<GridLayoutProps>;
 
+    // コンポーネントのメタデータを取得
     const metadata = componentType === 'gridLayout' 
       ? defaultGridLayoutMetadata
       : componentRegistry.getMetadata(componentType);
@@ -237,12 +241,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       return false;
     }
 
+    // コンポーネントを配置可能な位置を探す
     const defaultPosition = findAvailablePosition(
       metadata.defaultWidth,
       metadata.defaultHeight,
       targetItems
     );
 
+    // グリッドレイアウトの場合、1x1でも配置を試みる
     const position = !defaultPosition.canPlace && componentType === 'gridLayout'
       ? findAvailablePosition(1, 1, targetItems)
       : defaultPosition;
@@ -252,6 +258,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       return false;
     }
 
+    // 新しいアイテムの作成
     const itemId = generateId(idPrefix);
     const newItem = componentType === 'gridLayout'
       ? {
@@ -276,6 +283,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         } as GridItem
       : createNewComponent(componentType, itemId, position, metadata);
 
+    // アイテムを追加（編集対象があれば子要素として、なければルートレベルに）
     setItems(prevItems => !editTargetId
       ? [...prevItems, newItem]
       : addChildToTree(prevItems, editTargetId, newItem)
@@ -284,13 +292,32 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     return true;
   };
 
+  /**
+   * 新しいグリッドレイアウトコンポーネントを追加する
+   */
   const handleAddGridLayout = () => handleAddComponent('gridLayout', 'grid');
+
+  /**
+   * 新しいボタンコンポーネントを追加する
+   */
   const handleAddButton = () => handleAddComponent('button', 'btn');
+
+  /**
+   * 新しいテキストフィールドコンポーネントを追加する
+   */
   const handleAddTextField = () => handleAddComponent('textField', 'txt');
+
+  /**
+   * 新しいラジオグループコンポーネントを追加する
+   */
   const handleAddRadioGroup = () => handleAddComponent('radioGroup', 'radio');
 
+  /**
+   * 現在のレイアウトをJSONファイルとしてエクスポートする
+   */
   const handleExport = () => {
     try {
+      // バージョン情報とアイテムデータを含むエクスポートデータを作成
       const exportData = {
         version: '1.0',
         items,
@@ -298,6 +325,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       const jsonString = JSON.stringify(exportData, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
+      
+      // ダウンロードリンクを作成して自動クリック
       const a = document.createElement('a');
       a.href = url;
       a.download = 'layout-export.json';
@@ -310,6 +339,10 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     }
   };
 
+  /**
+   * JSONファイルからレイアウトをインポートする
+   * @param event - ファイル選択イベント
+   */
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
@@ -321,14 +354,17 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           const content = e.target?.result as string;
           const importData = JSON.parse(content);
           
+          // バージョンチェック
           if (importData.version !== '1.0') {
             throw new Error('Unsupported version');
           }
 
+          // データ形式チェック
           if (!Array.isArray(importData.items)) {
             throw new Error('Invalid layout data');
           }
 
+          // インポートデータを適用し、選択状態をリセット
           setItems(importData.items);
           setSelectedItemId(null);
           setEditTargetId(null);
@@ -338,12 +374,18 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       };
       reader.readAsText(file);
     } finally {
+      // ファイル入力をリセット（同じファイルを再度選択可能にする）
       setFileInputKey(prev => prev + 1);
     }
   };
 
+  /**
+   * 選択中のアイテムを削除する
+   */
   const handleRemoveItem = () => {
     if (!selectedItemId) return;
+    
+    // アイテムを削除し、選択状態をリセット
     setItems(prev => removeFromTree(prev, selectedItemId));
     setSelectedItemId(null);
     if (editTargetId === selectedItemId) {
@@ -351,10 +393,15 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     }
   };
 
+  /**
+   * グリッドアイテムを選択する
+   * @param id - 選択するアイテムのID
+   */
   const handleSelect = (id: string): void => {
     const selectedItem = findItemInTree(items, id);
     if (!selectedItem) return;
 
+    // 編集対象選択モードの場合
     if (selectingMode) {
       if (selectedItem.component.type === 'gridLayout') {
         setSelectedItemId(id);
@@ -364,6 +411,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       return;
     }
 
+    // 編集対象が設定されている場合
     if (editTargetId) {
       if (isItemInEditTarget(items, id, editTargetId)) {
         setSelectedItemId(id);
@@ -371,16 +419,23 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       return;
     }
 
+    // 通常の選択
     setSelectedItemId(id);
   };
 
+  /**
+   * 編集対象の選択モードを切り替える
+   */
   const toggleEditTarget = () => {
     if (editTargetId) {
+      // 編集モードを終了
       setEditTargetId(null);
       setSelectingMode(false);
     } else if (selectingMode) {
+      // 選択モードをキャンセル
       setSelectingMode(false);
     } else {
+      // 選択モードを開始
       setSelectingMode(true);
     }
   };
