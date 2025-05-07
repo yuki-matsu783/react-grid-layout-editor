@@ -110,8 +110,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
    * コンポーネントマウント時に一度だけ実行され、ルートとなるグリッドアイテムを生成する
    */
   useEffect(() => {
-    const rootId = generateId();
-    setItems(initializeGridItems(rootId));
+    setItems(initializeGridItems());
   }, [setItems]);
 
   // カスタムフックを使用

@@ -15,21 +15,74 @@ export const selectedItemIdAtom = atom<string | null>(null);
 
 /**
  * 初期グリッドアイテムを生成する関数
- * アプリケーション起動時に呼び出され、ルートとなるグリッドレイアウトを生成する
- * @param rootId - ルートアイテムのID
+ * アプリケーション起動時に呼び出され、指定されたレイアウトを生成する
  * @returns 初期化されたグリッドアイテムの配列
  */
-export const initializeGridItems = (rootId: string): GridItem[] => [{
-  id: rootId,
-  layout: { i: `layout_${rootId}`, x: 0, y: 2, w: 12, h: 6 },
-  component: {
-    type: 'gridLayout',
-    props: {
-      children: [],
-      widthPercentage: 100,
-      heightPercentage: 100,
-      horizontalAlign: 'center',
-      verticalAlign: 'center'
+export const initializeGridItems = (): GridItem[] => [
+  {
+    id: "grid_initial",
+    layout: {
+      i: "layout_grid_9ynv2awrk",
+      x: 3,
+      y: 1,
+      w: 9,
+      h: 7,
+      moved: false,
+      static: false
+    },
+    component: {
+      type: "gridLayout",
+      props: {
+        children: [],
+        widthPercentage: 100,
+        heightPercentage: 100,
+        horizontalAlign: "center",
+        verticalAlign: "center"
+      }
+    }
+  },
+  {
+    id: "row_initaial",
+    layout: {
+      i: "layout_row_initaial",
+      x: 3,
+      y: 0,
+      w: 9,
+      h: 1,
+      moved: false,
+      static: false
+    },
+    component: {
+      type: "rowStack",
+      props: {
+        children: [],
+        widthPercentage: 100,
+        heightPercentage: 100,
+        horizontalAlign: "center",
+        verticalAlign: "center"
+      }
+    }
+  },
+  {
+    id: "col_initial",
+    layout: {
+      i: "layout_col_initial",
+      x: 0,
+      y: 0,
+      w: 3,
+      h: 8,
+      moved: false,
+      static: false
+    },
+    component: {
+      type: "colStack",
+      props: {
+        children: [],
+        widthPercentage: 100,
+        heightPercentage: 100,
+        horizontalAlign: "center",
+        verticalAlign: "center"
+      }
     }
   }
-}];
+];
