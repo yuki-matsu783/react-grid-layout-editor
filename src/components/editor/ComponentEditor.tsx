@@ -18,7 +18,8 @@ import type {
   ComponentType,
   GridLayoutProps,
   ComponentEditorProps,
-  ComponentAlignment} from '../../types';
+  ComponentAlignment,
+  ParentType} from '../../types';
 import { gridItemsAtom, selectedItemIdAtom, initializeGridItems } from '../../store/atoms';
 import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
@@ -144,6 +145,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     isNestedItemSelected,
     isLayoutComponent,
     hasChildren,
+    findParentItem,
   } = useTreeOperations();
 
   /**
@@ -490,6 +492,17 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   };
 
   /**
+   * アイテムの親要素の種類（grid/stack）を判定する
+   * @param item - 判定対象のグリッドアイテム
+   * @returns 親要素の種類（'grid'または'stack'）
+   */
+  const getParentType = (item: GridItem): ParentType => {
+    const parent = findParentItem(items, item.id);
+    if (!parent) return 'grid';
+    return ['rowStack', 'colStack'].includes(parent.component.type) ? 'stack' : 'grid';
+  };
+
+  /**
    * グリッドアイテムをレンダリングする
    * アイテムの種類に応じて適切なコンポーネントを生成し、スタイルと配置を設定する
    * @param item - レンダリングするグリッドアイテム
@@ -610,6 +623,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             width: '100%',
             overflow: 'auto',
             justifyContent: 'center',
+            minHeight: 'fit-content',
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
             backgroundImage: 'repeating-linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px)',
@@ -628,6 +642,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             height: '100%',
             overflow: 'auto',
             justifyContent: 'center',
+            minWidth: 'fit-content',
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
             backgroundImage: 'repeating-linear-gradient(0deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px)',
@@ -646,8 +661,13 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           sx={{
             border: '0.5px dotted #e0e0e0',
             borderRadius: '4px',
-            width: `${widthPercentage}%`,
-            height: `${heightPercentage}%`,
+            ...(getParentType(item) === 'grid' ? {
+              width: `${widthPercentage}%`,
+              height: `${heightPercentage}%`,
+            } : {
+              width: 'auto',
+              height: 'auto',
+            }),
             padding: `${item.component.props.paddingPercentage ?? 0}%`,
             overflow: 'auto',
             display: 'flex',
