@@ -21,7 +21,7 @@ export const selectedItemIdAtom = atom<string | null>(null);
  */
 export const initializeGridItems = (rootId: string): GridItem[] => [{
   id: rootId,
-  layout: { i: `layout_${rootId}`, x: 0, y: 0, w: 12, h: 8 },
+  layout: { i: `layout_${rootId}`, x: 0, y: 2, w: 12, h: 6 },
   component: {
     type: 'gridLayout',
     props: {

@@ -531,7 +531,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             onClick={handleAddGridLayout}
             startIcon={<AddBoxIcon />}
           >
-            領域を追加
+            グリッドレイアウト
           </Button>
           <Button
             variant="outlined"
@@ -539,7 +539,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             onClick={handleAddButton}
             startIcon={<AddBoxIcon />}
           >
-            ボタンを追加
+            ボタン
           </Button>
           <Button
             variant="outlined"
@@ -547,7 +547,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             onClick={handleAddTextField}
             startIcon={<AddBoxIcon />}
           >
-            テキストフィールドを追加
+            テキストフィールド
           </Button>
           <Button
             variant="outlined"
@@ -555,7 +555,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             onClick={handleAddRadioGroup}
             startIcon={<AddBoxIcon />}
           >
-            ラジオグループを追加
+            ラジオグループ
           </Button>
         </Box>
       </Box>
