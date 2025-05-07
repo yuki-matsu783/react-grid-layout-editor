@@ -20,11 +20,24 @@ import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
 import componentRegistry, { ComponentMetadata } from '../../utils/componentRegistry';
+import GridLayout from './layout/GridLayout';
 
+const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 /**
- * 新しいコンポーネントを作成する
+ * コンポーネントタイプごとの設定コンポーネントマッピング
  */
+const componentMap = {
+  button: ButtonComponent,
+  textField: TextFieldComponent,
+};
+
+type ComponentMapType = typeof componentMap;
+
+function generateId(prefix = "grid"): string {
+  return `${prefix}_${Math.random().toString(36).substring(2, 11)}`;
+}
+
 function createNewComponent(
   type: ComponentType,
   itemId: string,
@@ -45,174 +58,6 @@ function createNewComponent(
       props: metadata.defaultProps
     } as ComponentConfig
   };
-}
-
-const ResponsiveReactGridLayout = WidthProvider(Responsive);
-
-/**
- * コンポーネントのレンダリングマッピング
- */
-const componentMap = {
-  button: ButtonComponent,
-  textField: TextFieldComponent,
-  // 新しいコンポーネントタイプはここに追加
-};
-
-type ComponentMapType = typeof componentMap;
-
-/**
- * ネストされたグリッドコンテナのプロパティ
- */
-import { SxProps, Theme } from '@mui/material';
-
-interface NestGridLayoutProps {
-  cols: { [key: string]: number };  // カラム数の設定
-  margin: [number, number];         // グリッドアイテム間のマージン
-  defaultRowHeight: number;         // デフォルトの行の高さ
-  children: React.ReactNode;        // 子要素
-  isDraggable?: boolean;           // ドラッグ可能かどうか
-  isResizable?: boolean;           // サイズ変更可能かどうか
-  onLayoutChange?: (layout: Layout[]) => void;  // レイアウト変更時のコールバック
-  itemId?: string;                 // コンテナのID
-  sx?: SxProps<Theme>;             // スタイルプロパティ
-}
-
-/**
- * ネストされたグリッドコンテナの状態
- */
-interface GridLayoutState {
-  height: number;      // コンテナの高さ
-  layouts?: Layout[];  // レイアウト情報
-}
-
-
-/**
- * メインレイアウトコンポーネントのプロパティ
- */
-interface ComponentEditorProps {
-  className?: string;  // CSSクラス名
-  cols: { [key: string]: number };  // カラム数の設定
-  rowHeight: number;   // 行の高さ
-  margin: [number, number];  // グリッドアイテム間のマージン
-}
-
-/**
- * メインレイアウトコンポーネントの状態
- */
-interface ComponentEditorState {
-  items: GridItem[];           // グリッドアイテムの配列
-  selectedItemId: string | null;  // 選択中のアイテムID
-  editTargetId: string | null;    // 編集対象のアイテムID
-  fileInputKey: number;           // ファイル入力のキー
-  selectingMode: boolean;         // 領域選択モードの状態
-}
-
-/**
- * ユニークなID文字列を生成する
- */
-function generateId(prefix = "grid"): string {
-  return `${prefix}_${Math.random().toString(36).substring(2, 11)}`;
-}
-
-/**
- * 自身の高さを測定し、動的なrowHeight（高さ/12）を提供するグリッドコンテナ
- * 子要素のグリッドレイアウトを管理し、サイズ変更に応じて自動的に調整する
- */
-class GridLayout extends React.PureComponent<NestGridLayoutProps, GridLayoutState> {
-  private containerRef = React.createRef<HTMLDivElement>();
-  private resizeObserver: ResizeObserver | null;
-
-  constructor(props: NestGridLayoutProps) {
-    super(props);
-    this.state = { height: 0 };
-    this.resizeObserver = null;
-  }
-
-  /**
-   * コンポーネントがマウントされた際の処理
-   * 高さの初期測定を行い、ResizeObserverを設定してサイズ変更を監視する
-   */
-  componentDidMount() {
-    this.updateHeight();
-    this.resizeObserver = new ResizeObserver(() => this.updateHeight());
-    if (this.containerRef.current) {
-      this.resizeObserver.observe(this.containerRef.current);
-    }
-  }
-
-  /**
-   * コンポーネントがアンマウントされる際の処理
-   * ResizeObserverを解除してメモリリークを防止する
-   */
-  componentWillUnmount() {
-    if (this.resizeObserver && this.containerRef.current) {
-      this.resizeObserver.unobserve(this.containerRef.current);
-    }
-  }
-
-  /**
-   * コンテナの高さを測定し、必要に応じてstateを更新する
-   * 高さが変更された場合のみstateを更新することで、不要な再レンダリングを防止する
-   */
-  updateHeight() {
-    const el = this.containerRef.current;
-    if (el) {
-      const h = el.clientHeight;
-      if (h !== this.state.height) {
-        this.setState({ height: h });
-      }
-    }
-  }
-
-  /**
-   * 子要素のレイアウトが変更された際のハンドラー
-   * 親コンポーネントに変更を通知し、内部のレイアウト状態も更新する
-   * @param layout - 新しいレイアウト配列
-   */
-  handleNestedLayoutChange = (layout: Layout[]) => {
-    const { onLayoutChange } = this.props;
-    if (onLayoutChange) {
-      const updatedLayout = layout.map(item => ({
-        ...item,
-        i: item.i.startsWith('layout_') ? item.i : `layout_${item.i}`
-      }));
-      onLayoutChange(updatedLayout);
-    }
-    this.setState({ layouts: layout });
-  };
-
-  render() {
-    const { defaultRowHeight, children, ...rest } = this.props;
-    const { height } = this.state;
-    const rowHeight = height > 0 ? height / 12 : defaultRowHeight;
-    const fixedCols = { lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 };
-
-    return (
-      <Box 
-        ref={this.containerRef}
-        sx={{
-          width: '100%',
-          height: '100%',
-          position: 'relative',
-          border: '1px solid #e0e0e0',
-          borderRadius: '4px',
-          ...(this.props.sx || {})
-        }}
-      >
-        <ResponsiveReactGridLayout
-          {...rest}
-          cols={fixedCols}
-          rowHeight={rowHeight}
-          onLayoutChange={this.handleNestedLayoutChange}
-          compactType={null}
-          preventCollision
-          resizeHandles={rest.isResizable? ['se']:[]}
-        >
-          {children}
-        </ResponsiveReactGridLayout>
-      </Box>
-    );
-  }
 }
 
 /**
