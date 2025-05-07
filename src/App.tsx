@@ -32,10 +32,10 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ height: '125vh', display: 'flex', flexDirection: 'column' }}>
         <ComponentEditor 
           cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
-          rowHeight={180}
+          rowHeight={80}
           margin={[10, 10]}
         />
       </Box>

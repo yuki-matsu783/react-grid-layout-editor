@@ -1,10 +1,20 @@
 import type { Layout as RGLLayout } from 'react-grid-layout';
 import type { ReactNode } from 'react';
+import type { Theme } from '@mui/material';
 
 /**
  * Layout構造の型
  */
 export type Layout = RGLLayout;
+
+/**
+ * レイアウトエディタのプロパティを定義
+ */
+export interface ComponentEditorProps {
+  cols: { [key: string]: number };
+  rowHeight: number;
+  margin: [number, number];
+}
 
 /**
  * コンポーネントの配置位置を定義
@@ -21,11 +31,11 @@ export type ComponentType = 'button' | 'gridLayout' | 'textField';
  */
 export interface BaseLayoutProps {
   // サイズ設定（親要素に対する割合 1-100%）
-  widthPercentage?: number;
-  heightPercentage?: number;
+  widthPercentage: number;
+  heightPercentage: number;
   // 配置設定
-  horizontalAlign?: ComponentAlignment;
-  verticalAlign?: ComponentAlignment;
+  horizontalAlign: ComponentAlignment;
+  verticalAlign: ComponentAlignment;
 }
 
 /**
