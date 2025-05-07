@@ -233,6 +233,18 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       return targetItem && isLayoutComponent(targetItem.component.type);
     })();
 
+    // 親コンポーネントのタイプを取得
+    const parentType = (() => {
+      if (!editTargetId) return 'grid' as ParentType;
+      const targetItem = findItemInTree(items, editTargetId);
+      if (!targetItem) return 'grid' as ParentType;
+      
+      if (targetItem.component.type === 'rowStack' || targetItem.component.type === 'colStack') {
+        return 'stack' as ParentType;
+      }
+      return 'grid' as ParentType;
+    })();
+
     // グリッドレイアウト用のデフォルトメタデータを定義
     const defaultGridLayoutMetadata = { 
       displayName: 'Grid Layout',
@@ -320,7 +332,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         }
       } as GridItem;
     } else {
+      // 基本的なコンポーネント作成
       newItem = createNewComponent(componentType, itemId, position, metadata);
+      
+      // Stack内のコンポーネントの場合、初期設定を追加
+      if (parentType === 'stack') {
+        newItem.component.props.stackWidth = 'auto';
+        newItem.component.props.stackHeight = 'auto';
+      }
     }
 
     // アイテムを追加（編集対象があれば子要素として、なければルートレベルに）
@@ -523,7 +542,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       : 'center';
 
     // グリッドアイテムの基本スタイルとイベントハンドラを設定
-    const baseBoxProps = {
+    const sectionProps = {
       key: item.layout.i,
       'data-grid': item.layout,
       className: "grid-item",
@@ -585,6 +604,26 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       onClick: (e: React.MouseEvent) => { e.stopPropagation(); handleSelect(item.id); }
     };
 
+    // コンポーネント内部のBoxスタイルを設定
+    const wrapperProps = {
+      sx: {
+        border: '0.5px dotted #e0e0e0',
+        borderRadius: '4px',
+        ...(getParentType(item) === 'grid' ? {
+          width: `${widthPercentage}%`,
+          height: `${heightPercentage}%`,
+        } : {
+          width: item.component.props.stackWidth !== undefined ? item.component.props.stackWidth : 'auto',
+          height: item.component.props.stackHeight !== undefined ? item.component.props.stackHeight : 'auto',
+        }),
+        padding: `${item.component.props.paddingPercentage ?? 0}%`,
+        overflow: 'auto',
+        display: 'flex',
+        alignItems,
+        justifyContent,
+      }
+    };
+
     // コンポーネントの種類に応じてコンテンツをレンダリング（button, textField, gridLayout）
     let content: React.ReactNode = null;
 
@@ -623,6 +662,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             width: '100%',
             overflow: 'auto',
             justifyContent: 'center',
+            alignItems: 'center',
             minHeight: 'fit-content',
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
@@ -642,6 +682,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             height: '100%',
             overflow: 'auto',
             justifyContent: 'center',
+            alignItems: 'center',
             minWidth: 'fit-content',
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
@@ -656,25 +697,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     if (!content) return null;
 
     return (
-      <Box {...baseBoxProps}>
-        <Box
-          sx={{
-            border: '0.5px dotted #e0e0e0',
-            borderRadius: '4px',
-            ...(getParentType(item) === 'grid' ? {
-              width: `${widthPercentage}%`,
-              height: `${heightPercentage}%`,
-            } : {
-              width: 'auto',
-              height: 'auto',
-            }),
-            padding: `${item.component.props.paddingPercentage ?? 0}%`,
-            overflow: 'auto',
-            display: 'flex',
-            alignItems,
-            justifyContent,
-          }}
-        >
+      <Box {...sectionProps}>
+        <Box {...wrapperProps}>
           {content}
         </Box>
       </Box>

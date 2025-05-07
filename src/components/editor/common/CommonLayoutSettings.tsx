@@ -35,6 +35,56 @@ interface CommonLayoutSettingsProps {
  * @param onUpdate - 設定値が更新された時のコールバック
  */
 export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ props, onUpdate, parentType }) => {
+  // ローカルの状態を追加して値の変更をトラッキング
+  const [stackWidthValue, setStackWidthValue] = React.useState<string>(
+    props.stackWidth !== undefined ? props.stackWidth.toString() : 'auto'
+  );
+  const [stackHeightValue, setStackHeightValue] = React.useState<string>(
+    props.stackHeight !== undefined ? props.stackHeight.toString() : 'auto'
+  );
+
+  // 親プロパティが変化したらローカル状態を更新
+  React.useEffect(() => {
+    setStackWidthValue(props.stackWidth !== undefined ? props.stackWidth.toString() : 'auto');
+    setStackHeightValue(props.stackHeight !== undefined ? props.stackHeight.toString() : 'auto');
+  }, [props.stackWidth, props.stackHeight]);
+
+  // Stack内のサイズ設定を処理する関数
+  const handleStackSizeChange = (
+    type: 'width' | 'height',
+    value: string
+  ) => {
+    const prop = type === 'width' ? 'stackWidth' : 'stackHeight';
+    
+    console.log(`Updating ${prop} to:`, value);
+    
+    // ローカル状態を更新
+    if (type === 'width') {
+      setStackWidthValue(value);
+    } else {
+      setStackHeightValue(value);
+    }
+    
+    // 空またはautoの場合は'auto'に設定
+    if (!value || value === 'auto') {
+      onUpdate({ [prop]: 'auto' });
+      return;
+    }
+    
+    // 数値の場合はrem単位として処理
+    // 数値だけ入力された場合は、自動的にrem単位を付与
+    if (/^\d*\.?\d+$/.test(value)) {
+      const remValue = `${value}rem`;
+      onUpdate({ [prop]: remValue });
+      return;
+    }
+    
+    // すでに単位がついている場合（rem, px, em, %など）はそのまま渡す
+    if (/^\d*\.?\d+(rem|px|em|%|vh|vw)$/.test(value)) {
+      onUpdate({ [prop]: value });
+    }
+  };
+
   return (
     <Stack spacing={2}>
       {/* サイズ設定セクション */}
@@ -46,17 +96,17 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
             <>
               {/* 幅設定スライダー */}
               <Box sx={{ px: 1 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              幅 ({props.widthPercentage}%)
-            </Typography>
-            <Slider
-              value={props.widthPercentage}
-              min={1}
-              max={100}
-              onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
-              valueLabelDisplay="auto"
-              size="small"
-            />
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  幅 ({props.widthPercentage}%)
+                </Typography>
+                <Slider
+                  value={props.widthPercentage}
+                  min={1}
+                  max={100}
+                  onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
+                  valueLabelDisplay="auto"
+                  size="small"
+                />
               </Box>
               {/* 高さ設定スライダー */}
               <Box sx={{ px: 1, mt: 2 }}>
@@ -75,38 +125,66 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
             </>
           ) : (
             <>
-              {/* Stack用のサイズ設定（ピクセル単位） */}
+              {/* Stack用のサイズ設定（rem単位またはauto） */}
               <Box sx={{ px: 1 }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  幅 (px)
+                  幅（rem または "auto"）
                 </Typography>
                 <TextField
-                  type="number"
-                  value={props.widthPercentage}
+                  value={stackWidthValue}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const value = Math.max(1, parseInt(e.target.value) || 1);
-                    onUpdate({ widthPercentage: value });
+                    console.log('前: stackWidth =', props.stackWidth);
+                    handleStackSizeChange('width', e.target.value);
+                    // 遅延してログを出力して値の変更を確認
+                    setTimeout(() => {
+                      console.log('後: stackWidth =', props.stackWidth);
+                    }, 100);
                   }}
                   size="small"
                   fullWidth
-                  inputProps={{ min: 1 }}
+                  placeholder="auto"
+                  helperText="「auto」または数値（単位: rem）を入力"
                 />
               </Box>
               {/* 高さ設定 */}
               <Box sx={{ px: 1, mt: 2 }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  高さ (px)
+                  高さ（rem または "auto"）
                 </Typography>
                 <TextField
-                  type="number"
+                  value={stackHeightValue}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    console.log('前: stackHeight =', props.stackHeight);
+                    handleStackSizeChange('height', e.target.value);
+                    // 遅延してログを出力して値の変更を確認
+                    setTimeout(() => {
+                      console.log('後: stackHeight =', props.stackHeight);
+                    }, 100);
+                  }}
+                  size="small"
+                  fullWidth
+                  placeholder="auto"
+                  helperText="「auto」または数値（単位: rem）を入力"
+                />
+              </Box>
+              
+              {/* 従来のパーセンテージの幅高さも保持（内部用） */}
+              <Box sx={{ px: 1, mt: 2, display: 'none' }}>
+                <TextField
+                  type="hidden"
+                  value={props.widthPercentage}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = Math.max(1, parseInt(e.target.value) || 1);
+                    onUpdate({ widthPercentage: value });
+                  }}
+                />
+                <TextField
+                  type="hidden"
                   value={props.heightPercentage}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     const value = Math.max(1, parseInt(e.target.value) || 1);
                     onUpdate({ heightPercentage: value });
                   }}
-                  size="small"
-                  fullWidth
-                  inputProps={{ min: 1 }}
                 />
               </Box>
             </>

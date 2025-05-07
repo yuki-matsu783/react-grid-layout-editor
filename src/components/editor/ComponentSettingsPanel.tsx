@@ -55,6 +55,21 @@ const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
   };
 
   const parentType = getParentType();
+  
+  /**
+   * プロパティの更新をハンドルする関数
+   * @param newProps - 更新するプロパティ
+   */
+  const handleUpdateProps = (newProps: Partial<any>) => {
+    if (!selectedItem) return;
+    
+    console.log('更新前のプロパティ:', selectedItem.component.props);
+    console.log('更新するプロパティ:', newProps);
+    
+    // 親コンポーネントへの更新を通知
+    onUpdate(selectedItem.id, newProps);
+  };
+
   /**
    * 選択されたコンポーネントに対応する設定コンポーネントを取得
    * @returns 設定コンポーネントのインスタンス、未選択または未対応の場合はnull
@@ -100,7 +115,7 @@ const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
         {selectedItem && settingsComponent ? (
           settingsComponent.renderSettings(
             selectedItem.component.props as any,
-            (newProps: Partial<typeof selectedItem.component.props>) => onUpdate(selectedItem.id, newProps),
+            (newProps: Partial<typeof selectedItem.component.props>) => handleUpdateProps(newProps),
             parentType
           )
         ) : (
