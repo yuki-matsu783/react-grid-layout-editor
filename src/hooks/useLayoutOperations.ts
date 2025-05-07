@@ -1,4 +1,4 @@
-import { GridItem, Layout, ButtonProps, GridLayoutProps, TextFieldProps, RadioGroupProps } from '../types';
+import { GridItem, Layout, ButtonProps, GridLayoutProps, TextFieldProps, RadioGroupProps, RowStackProps } from '../types';
 
 /**
  * レイアウト操作に関する共通ロジックを提供するカスタムフック
@@ -104,7 +104,8 @@ export const useLayoutOperations = () => {
    */
   const addChildToTree = (nodes: GridItem[], parentId: string, child: GridItem): GridItem[] => {
     return nodes.map(node => {
-      if (node.id === parentId && node.component.type === 'gridLayout') {
+      if (node.id === parentId && 
+          (node.component.type === 'gridLayout' || node.component.type === 'rowStack')) {
         return {
           ...node,
           component: {
@@ -116,7 +117,7 @@ export const useLayoutOperations = () => {
           }
         };
       }
-      if (node.component.type === 'gridLayout') {
+      if (node.component.type === 'gridLayout' || node.component.type === 'rowStack') {
         return {
           ...node,
           component: {
@@ -143,7 +144,7 @@ export const useLayoutOperations = () => {
     return nodes
       .filter(node => node.id !== targetId)
       .map(node => {
-        if (node.component.type === 'gridLayout') {
+          if (node.component.type === 'gridLayout' || node.component.type === 'rowStack') {
           return {
             ...node,
             component: {
@@ -170,7 +171,7 @@ export const useLayoutOperations = () => {
   const updateItemProps = (
     nodes: GridItem[],
     itemId: string,
-    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps | RadioGroupProps>
+    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps | RadioGroupProps | RowStackProps>
   ): GridItem[] => {
     return nodes.map(node => {
       if (node.id === itemId) {
@@ -203,6 +204,12 @@ export const useLayoutOperations = () => {
               ...updatedComponent.props,
               ...(newProps as Partial<RadioGroupProps>)
             } as RadioGroupProps;
+            break;
+          case 'rowStack':
+            updatedComponent.props = {
+              ...updatedComponent.props,
+              ...(newProps as Partial<RowStackProps>)
+            } as RowStackProps;
             break;
           default:
             console.warn(`Unsupported component type: ${componentType}`);

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { WidthProvider, Responsive } from "react-grid-layout";
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import type { Theme } from '@mui/material';
 import { useAtom } from 'jotai';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -210,11 +210,22 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     }
     
     // 新しいコンポーネントを追加する対象のアイテム配列を決定
-    const targetItems = editTargetId 
-      ? findItemInTree(items, editTargetId)?.component.type === 'gridLayout'
-        ? (findItemInTree(items, editTargetId)?.component.props as GridLayoutProps).children || []
-        : []
+    const targetItems = editTargetId
+      ? (() => {
+          const targetItem = findItemInTree(items, editTargetId);
+          if (!targetItem) return [];
+          
+          // GridLayoutとRowStackの子要素として追加可能
+          if (targetItem.component.type === 'gridLayout' || targetItem.component.type === 'rowStack') {
+            console.log(`Adding to ${targetItem.component.type}, current children:`, targetItem.component.props.children);
+            return targetItem.component.props.children || [];
+          }
+          return [];
+        })()
       : items;
+
+    // 子要素を持つコンポーネントへの追加かどうかを判定
+    const isAddingToParent = editTargetId && findItemInTree(items, editTargetId)?.component.type === 'rowStack';
 
     // グリッドレイアウト用のデフォルトメタデータを定義
     const defaultGridLayoutMetadata = { 
@@ -241,17 +252,31 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       return false;
     }
 
-    // コンポーネントを配置可能な位置を探す
-    const defaultPosition = findAvailablePosition(
-      metadata.defaultWidth,
-      metadata.defaultHeight,
-      targetItems
-    );
+    // 位置を決定
+    const position = (() => {
+      // RowStackの子要素として追加する場合
+      if (isAddingToParent) {
+        const targetItem = findItemInTree(items, editTargetId);
+        if (targetItem && 'children' in targetItem.component.props) {
+          const currentChildren = targetItem.component.props.children;
+          return { x: currentChildren.length, y: 0, canPlace: true };
+        }
+      }
 
-    // グリッドレイアウトの場合、1x1でも配置を試みる
-    const position = !defaultPosition.canPlace && componentType === 'gridLayout'
-      ? findAvailablePosition(1, 1, targetItems)
-      : defaultPosition;
+      // グリッドレイアウトの場合
+      const findResult = findAvailablePosition(
+        metadata.defaultWidth,
+        metadata.defaultHeight,
+        targetItems
+      );
+
+      // グリッドレイアウトの場合、1x1でも配置を試みる
+      if (!findResult.canPlace && componentType === 'gridLayout') {
+        return findAvailablePosition(1, 1, targetItems);
+      }
+
+      return findResult;
+    })();
 
     if (!position.canPlace) {
       alert('利用可能なスペースがありません。');
@@ -260,34 +285,40 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
     // 新しいアイテムの作成
     const itemId = generateId(idPrefix);
-    const newItem = componentType === 'gridLayout'
-      ? {
-          id: itemId,
-          layout: {
-            i: `layout_${itemId}`,
-            x: position.x,
-            y: position.y,
-            w: defaultPosition.canPlace ? 2 : 1,
-            h: defaultPosition.canPlace ? 2 : 1
-          },
-          component: {
-            type: 'gridLayout' as const,
-            props: {
-              children: [],
-              widthPercentage: 100,
-              heightPercentage: 100,
-              horizontalAlign: 'center' as ComponentAlignment,
-              verticalAlign: 'center' as ComponentAlignment
-            }
+    let newItem: GridItem;
+
+    if (componentType === 'gridLayout' || componentType === 'rowStack') {
+      newItem = {
+        id: itemId,
+        layout: {
+          i: `layout_${itemId}`,
+          x: position.x,
+          y: position.y,
+          w: metadata.defaultWidth,
+          h: metadata.defaultHeight
+        },
+        component: {
+          type: componentType,
+          props: {
+            children: [],
+            widthPercentage: 100,
+            heightPercentage: 100,
+            horizontalAlign: 'center' as ComponentAlignment,
+            verticalAlign: 'center' as ComponentAlignment
           }
-        } as GridItem
-      : createNewComponent(componentType, itemId, position, metadata);
+        }
+      } as GridItem;
+    } else {
+      newItem = createNewComponent(componentType, itemId, position, metadata);
+    }
 
     // アイテムを追加（編集対象があれば子要素として、なければルートレベルに）
-    setItems(prevItems => !editTargetId
-      ? [...prevItems, newItem]
-      : addChildToTree(prevItems, editTargetId, newItem)
-    );
+    setItems(prevItems => {
+      console.log('Adding new item:', newItem, 'to parent:', editTargetId);
+      return !editTargetId
+        ? [...prevItems, newItem]
+        : addChildToTree(prevItems, editTargetId, newItem);
+    });
 
     return true;
   };
@@ -403,7 +434,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
     // 編集対象選択モードの場合
     if (selectingMode) {
-      if (selectedItem.component.type === 'gridLayout') {
+      if (selectedItem.component.type === 'gridLayout' || selectedItem.component.type === 'rowStack') {
         setSelectedItemId(id);
         setEditTargetId(id);
         setSelectingMode(false);
@@ -499,6 +530,15 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         >
           {item.component.props.children.map(child => renderElement(child))}
         </GridLayout>
+      );
+    } else if (item.component.type === 'rowStack') {
+      content = (
+        <Stack
+          direction="row"
+          spacing={0}
+        >
+          {item.component.props.children.map(child => renderElement(child))}
+        </Stack>
       );
     }
 
@@ -611,6 +651,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             startIcon={<AddBoxIcon />}
           >
             ラジオグループ
+          </Button>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={() => handleAddComponent('rowStack', 'row')}
+            startIcon={<AddBoxIcon />}
+          >
+            RowStack
           </Button>
         </Box>
       </Box>

@@ -5,7 +5,8 @@ import type {
   ButtonProps,
   GridLayoutProps,
   TextFieldProps,
-  RadioGroupProps
+  RadioGroupProps,
+  RowStackProps
 } from '../types';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
@@ -36,6 +37,7 @@ type ComponentMetadataMap = {
   gridLayout: ComponentMetadata<GridLayoutProps>;
   textField: ComponentMetadata<TextFieldProps>;
   radioGroup: ComponentMetadata<RadioGroupProps>;
+  rowStack: ComponentMetadata<RowStackProps>;
 };
 
 /**
@@ -190,6 +192,23 @@ componentRegistry.registerComponent('radioGroup', {
   defaultWidth: 3,
   defaultHeight: 2,
   defaultProps: defaultRadioGroupProps
+});
+
+// デフォルトのRowStackコンポーネントを登録
+const defaultRowStackProps: RowStackProps = {
+  children: [],
+  widthPercentage: 100,
+  heightPercentage: 100,
+  horizontalAlign: 'center',
+  verticalAlign: 'center'
+};
+
+componentRegistry.registerComponent('rowStack', {
+  displayName: 'RowStack',
+  icon: createElement(AddBoxIcon),
+  defaultWidth: 3,
+  defaultHeight: 1,
+  defaultProps: defaultRowStackProps
 });
 
 export default componentRegistry;

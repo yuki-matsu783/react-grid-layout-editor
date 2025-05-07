@@ -1,6 +1,5 @@
 import type { Layout as RGLLayout } from 'react-grid-layout';
 import type { ReactNode } from 'react';
-import type { Theme } from '@mui/material';
 
 /**
  * Layout構造の型定義
@@ -31,7 +30,7 @@ export type ComponentAlignment = 'start' | 'center' | 'end';
 /**
  * 利用可能なコンポーネントタイプを定義
  */
-export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'radioGroup';
+export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'radioGroup' | 'rowStack';
 
 /**
  * コンポーネントの基本レイアウトプロパティを定義
@@ -96,6 +95,13 @@ export interface GridLayoutProps extends BaseLayoutProps {
 }
 
 /**
+ * 子要素を持つコンポーネントのプロパティインターフェース
+ */
+export interface HasChildrenProps {
+  children: GridItem[];
+}
+
+/**
  * コンポーネントの設定を定義
  * 各コンポーネントタイプに対応するプロパティを持つユニオン型
  */
@@ -122,11 +128,20 @@ export interface RadioGroupProps extends BaseLayoutProps {
   color: 'primary' | 'secondary' | 'error';
 }
 
+/**
+ * RowStackコンポーネントのプロパティを定義
+ */
+export interface RowStackProps extends BaseLayoutProps {
+  /** RowStack内の子アイテム */
+  children: GridItem[];
+}
+
 export type ComponentConfig =
   | { type: 'button'; props: ButtonProps }
   | { type: 'gridLayout'; props: GridLayoutProps }
   | { type: 'textField'; props: TextFieldProps }
-  | { type: 'radioGroup'; props: RadioGroupProps };
+  | { type: 'radioGroup'; props: RadioGroupProps }
+  | { type: 'rowStack'; props: RowStackProps };
 
 /**
  * グリッドアイテムの構造を定義
@@ -173,6 +188,8 @@ export type ComponentProps<T extends ComponentConfig> =
   ? TextFieldProps
   : T extends { type: 'radioGroup' }
   ? RadioGroupProps
+  : T extends { type: 'rowStack' }
+  ? RowStackProps
   : never;
 
 /**

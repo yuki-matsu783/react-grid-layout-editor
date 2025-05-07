@@ -5,6 +5,7 @@ import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
 import GridLayoutComponent from './GridLayoutComponent';
 import RadioGroupComponent from './RadioGroupComponent';
+import RowStackComponent from './RowStackComponent';
 
 /**
  * コンポーネントタイプごとの設定コンポーネントマッピング
@@ -16,7 +17,7 @@ const componentMap = {
   textField: TextFieldComponent,
   gridLayout: GridLayoutComponent,
   radioGroup: RadioGroupComponent,
-  // 新しいコンポーネントタイプはここに追加
+  rowStack: RowStackComponent
 };
 
 type ComponentMapType = typeof componentMap;
