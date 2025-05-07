@@ -16,12 +16,8 @@ import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 /**
  * テキストフィールドコンポーネントの実装
  */
-class TextFieldComponent implements BaseComponent<TextFieldProps> {
-  /**
-   * テキストフィールドをレンダリングする
-   * @param props テキストフィールドのプロパティ
-   */
-  render(props: TextFieldProps): React.ReactNode {
+const TextFieldComponent: BaseComponent<TextFieldProps> = {
+  render: (props: TextFieldProps) => {
     const {
       label,
       placeholder,
@@ -49,17 +45,12 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
         }}
       />
     );
-  }
+  },
 
-  /**
-   * テキストフィールドの設定UIをレンダリングする
-   * @param props 現在のプロパティ
-   * @param onUpdate プロパティ更新時のコールバック
-   */
-  renderSettings(
+  renderSettings: (
     props: TextFieldProps,
     onUpdate: (newProps: Partial<TextFieldProps>) => void
-  ): React.ReactNode | null {
+  ) => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* 共通レイアウト設定 */}
@@ -170,7 +161,6 @@ class TextFieldComponent implements BaseComponent<TextFieldProps> {
       </Box>
     );
   }
-}
+};
 
-// シングルトンインスタンスをエクスポート
-export default new TextFieldComponent();
+export default TextFieldComponent;

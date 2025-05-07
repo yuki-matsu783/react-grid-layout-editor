@@ -7,10 +7,10 @@ import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
  * グリッドレイアウトコンポーネント
- * レイアウトの配置とサイズを制御するための特別なコンポーネント
+ * レイアウトの配置とサイズを制御するためのコンポーネント
  */
 const GridLayoutComponent: BaseComponent<GridLayoutProps> = {
-  render: (props: GridLayoutProps) => {
+  render: (_props: GridLayoutProps) => {
     return null; // レンダリングは不要（GridLayoutは独自にレンダリング）
   },
 

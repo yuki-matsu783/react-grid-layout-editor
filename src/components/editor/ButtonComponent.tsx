@@ -12,12 +12,8 @@ import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 /**
  * ボタンコンポーネントの実装
  */
-class ButtonComponent implements BaseComponent<ButtonProps> {
-  /**
-   * ボタンをレンダリングする
-   * @param props ボタンのプロパティ
-   */
-  render(props: ButtonProps): React.ReactNode {
+const ButtonComponent: BaseComponent<ButtonProps> = {
+  render: (props: ButtonProps) => {
     const {
       variant,
       color,
@@ -40,22 +36,17 @@ class ButtonComponent implements BaseComponent<ButtonProps> {
         {label}
       </Button>
     );
-  }
+  },
 
-  /**
-   * ボタンの設定UIをレンダリングする
-   * @param props 現在のプロパティ
-   * @param onUpdate プロパティ更新時のコールバック
-   */
-  renderSettings(
+  renderSettings: (
     props: ButtonProps,
     onUpdate: (newProps: Partial<ButtonProps>) => void
-  ): React.ReactNode | null {
+  ) => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* 共通レイアウト設定 */}
         <CommonLayoutSettings props={props} onUpdate={onUpdate} />
-          <Typography variant="body2" gutterBottom>基本設定</Typography>
+        <Typography variant="body2" gutterBottom>基本設定</Typography>
 
         {/* テキスト設定 */}
         <Box>
@@ -127,7 +118,6 @@ class ButtonComponent implements BaseComponent<ButtonProps> {
       </Box>
     );
   }
-}
+};
 
-// シングルトンインスタンスをエクスポート
-export default new ButtonComponent();
+export default ButtonComponent;
