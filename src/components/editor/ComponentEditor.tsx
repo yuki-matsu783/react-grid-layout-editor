@@ -16,8 +16,6 @@ import type {
   GridItem, 
   ComponentConfig, 
   ComponentType,
-  ButtonProps,
-  TextFieldProps,
   GridLayoutProps,
   ComponentEditorProps,
   ComponentAlignment
@@ -38,10 +36,23 @@ const componentMap = {
 
 type ComponentMapType = typeof componentMap;
 
+/**
+ * ユニークなIDを生成する
+ * @param prefix - IDのプレフィックス（デフォルト: "grid"）
+ * @returns プレフィックスと乱数を組み合わせたユニークなID
+ */
 function generateId(prefix = "grid"): string {
   return `${prefix}_${Math.random().toString(36).substring(2, 11)}`;
 }
 
+/**
+ * 新しいコンポーネントのGridItem設定を生成する
+ * @param type - 作成するコンポーネントのタイプ
+ * @param itemId - コンポーネントのID
+ * @param position - グリッド上の配置位置
+ * @param metadata - コンポーネントのメタデータ
+ * @returns 新しいGridItem設定
+ */
 function createNewComponent(
   type: ComponentType,
   itemId: string,
@@ -66,7 +77,14 @@ function createNewComponent(
 
 /**
  * ネストされたグリッドレイアウトを管理するメインコンポーネント
- * 複数の入れ子になったグリッドアイテムの配置、サイズ変更、ドラッグ＆ドロップを制御する
+ * - グリッドアイテムの配置、サイズ変更、ドラッグ＆ドロップを制御
+ * - 最大5階層までのネストに対応
+ * - コンポーネントの追加、削除、プロパティ編集機能を提供
+ * - レイアウトのインポート/エクスポート機能を提供
+ * 
+ * @param cols - グリッドの列数
+ * @param rowHeight - グリッドの行の高さ（ピクセル）
+ * @param margin - グリッドアイテム間のマージン
  */
 const ComponentEditor: React.FC<ComponentEditorProps> = ({ 
   cols, 
@@ -107,10 +125,20 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     isNestedItemSelected,
   } = useTreeOperations();
 
+  /**
+   * アイテムIDからレイアウトIDを生成する
+   * @param itemId - 元となるアイテムID
+   * @returns レイアウトID（'layout_'プレフィックス付き）
+   */
   const generateLayoutId = (itemId: string): string => {
     return `layout_${itemId}`;
   };
 
+  /**
+   * レイアウトIDからアイテムIDを抽出する
+   * @param layoutId - レイアウトID
+   * @returns アイテムID（'layout_'プレフィックスを除去）
+   */
   const extractItemId = (layoutId: string): string => {
     return layoutId.startsWith('layout_') ? layoutId.substring(7) : layoutId;
   };
@@ -119,6 +147,11 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     setItems(prevItems => updateLayoutInTree(prevItems, itemId, newLayout));
   };
 
+  /**
+   * グリッドレイアウトの変更を処理する
+   * アイテムの移動やサイズ変更時に呼び出され、新しいレイアウトを状態に反映する
+   * @param layout - 更新されたレイアウト情報の配列
+   */
   const handleLayoutChange = (layout: Layout[]) => {
     const processedLayout = layout.map(layoutItem => {
       const itemId = extractItemId(layoutItem.i);
@@ -137,6 +170,12 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     });
   };
 
+  /**
+   * 新しいコンポーネントをグリッドに追加する
+   * @param componentType - 追加するコンポーネントの種類
+   * @param idPrefix - 生成するIDのプレフィックス
+   * @returns 追加に成功した場合はtrue、失敗した場合はfalse
+   */
   const handleAddComponent = (
     componentType: ComponentType,
     idPrefix: string
@@ -325,11 +364,17 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     }
   };
 
+  /**
+   * グリッドアイテムをレンダリングする
+   * アイテムの種類に応じて適切なコンポーネントを生成し、スタイルと配置を設定する
+   * @param item - レンダリングするグリッドアイテム
+   * @returns レンダリングされたReactノード
+   */
   const renderElement = (item: GridItem): React.ReactNode => {
     const isSelected = selectedItemId === item.id;
     const isEditTarget = editTargetId === item.id;
 
-    // レイアウトロジック
+    // 水平・垂直方向の配置設定を計算
     const { horizontalAlign, verticalAlign, widthPercentage, heightPercentage } = item.component.props;
     const justifyContent = horizontalAlign === 'start' ? 'flex-start'
       : horizontalAlign === 'end' ? 'flex-end'
@@ -339,7 +384,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       : verticalAlign === 'end' ? 'flex-end'
       : 'center';
 
-    // 共通のスタイルとプロパティを持つBoxコンポーネント
+    // グリッドアイテムの基本スタイルとイベントハンドラを設定
     const baseBoxProps = {
       key: item.layout.i,
       'data-grid': item.layout,
@@ -359,7 +404,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       onClick: (e: React.MouseEvent) => { e.stopPropagation(); handleSelect(item.id); }
     };
 
-    // コンポーネントタイプに応じたコンテンツのレンダリング
+    // コンポーネントの種類に応じてコンテンツをレンダリング（button, textField, gridLayout）
     let content: React.ReactNode = null;
 
     if (item.component.type in componentMap) {
@@ -409,6 +454,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   const isDraggableResizable = isDraggableAndResizable();
 
   return (
+    /* メインエディタコンテナ */
     <Box
       sx={{
         height: '100%',
@@ -420,7 +466,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       }}
       onClick={() => setSelectedItemId(null)}
     >
-      {/* コンポーネント追加パネル（左側） */}
+      {/* 左サイドパネル - コンポーネント追加ツールバー */}
       <Box 
         sx={{ width: 200, flexShrink: 0 }}
         onClick={(e) => e.stopPropagation()}
@@ -454,7 +500,9 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         </Box>
       </Box>
 
+      {/* メインコンテンツエリア - グリッドレイアウトエディタ */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
+        {/* ツールバー - 操作ボタン群 */}
         <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
           <Box sx={{ display: 'flex', gap: 1, flex: 1 }}>
             <Button
@@ -523,7 +571,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         </Box>
       </Box>
 
-      {/* コンポーネント設定パネル（右側） */}
+      {/* 右サイドパネル - 選択したコンポーネントの設定パネル */}
       <Box 
         sx={{ 
           width: 200, 

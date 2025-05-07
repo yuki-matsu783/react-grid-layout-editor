@@ -7,6 +7,8 @@ import GridLayoutComponent from './GridLayoutComponent';
 
 /**
  * コンポーネントタイプごとの設定コンポーネントマッピング
+ * 各コンポーネントタイプに対応する設定用コンポーネントを定義
+ * 新しいコンポーネントタイプを追加する際は、ここにマッピングを追加する
  */
 const componentMap = {
   button: ButtonComponent,
@@ -19,11 +21,21 @@ type ComponentMapType = typeof componentMap;
 
 /**
  * コンポーネントの設定パネル
+ * 選択されたコンポーネントの各種設定を編集するためのパネル
+ * - 各コンポーネントタイプに応じた設定UIを表示
+ * - プロパティの更新をメインエディタに通知
+ * 
+ * @param selectedItem - 現在選択されているコンポーネント
+ * @param onUpdate - コンポーネントのプロパティが更新された時のコールバック
  */
 const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
   selectedItem,
   onUpdate
 }) => {
+  /**
+   * 選択されたコンポーネントに対応する設定コンポーネントを取得
+   * @returns 設定コンポーネントのインスタンス、未選択または未対応の場合はnull
+   */
   const getSettingsComponent = () => {
     if (!selectedItem) return null;
     const component = componentMap[selectedItem.component.type as keyof ComponentMapType];
