@@ -13,10 +13,14 @@
 - 最大5階層までのネスト構造
 - レイアウト設定のインポート/エクスポート
 - ボタンコンポーネントの追加と設定
+  - テキスト、アウトライン、塗りつぶしスタイル
+  - プライマリ、セカンダリ、エラーカラー
+  - サイズ（小、中、大）
 - テキストフィールドコンポーネントの追加と設定
   - 単一行/複数行入力
   - パスワード、数値、メールアドレスなど各種入力タイプ
   - バリデーション（必須入力）
+  - 3種類の表示スタイル（標準、枠線付き、塗りつぶし）
 
 ## 必要要件
 
@@ -55,7 +59,13 @@ pnpm build
 
 2. **ボタンの追加**
    - 「ボタンを追加」ボタンをクリックしてボタンコンポーネントを追加
-   - 右側のパネルでボタンの設定を編集可能
+   - 右側のパネルで以下の設定を編集可能：
+     - ラベルテキスト
+     - スタイル（テキスト、アウトライン、塗りつぶし）
+     - カラー（プライマリ、セカンダリ、エラー）
+     - サイズ（小、中、大）
+     - 有効/無効状態
+     - サイズと配置の調整
 
 3. **テキストフィールドの追加**
    - 「テキストフィールドを追加」ボタンをクリックしてテキストフィールドコンポーネントを追加
@@ -89,18 +99,18 @@ pnpm build
 // ComponentTypeに新しいタイプを追加
 export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'newComponent';
 
-// ComponentAlignmentを使用して配置設定を定義
-export type ComponentAlignment = 'start' | 'center' | 'end';
+// コンポーネントのプロパティ型を定義（BaseLayoutPropsを継承）
+export interface NewComponentProps extends BaseLayoutProps {
+  // BaseLayoutPropsで継承される共通プロパティ
+  // - widthPercentage: 親要素に対する幅の割合（1-100%）
+  // - heightPercentage: 親要素に対する高さの割合（1-100%）
+  // - horizontalAlign: 水平方向の配置（'start' | 'center' | 'end'）
+  // - verticalAlign: 垂直方向の配置（'start' | 'center' | 'end'）
 
-// コンポーネントのプロパティ型を定義
-export interface NewComponentProps {
-  // サイズ設定（親要素に対する割合 1-100%）
-  widthPercentage: number;
-  heightPercentage: number;
-  // 配置設定
-  horizontalAlign: ComponentAlignment;
-  verticalAlign: ComponentAlignment;
-  // その他の必要なプロパティを追加
+  // コンポーネント固有のプロパティを追加
+  label: string;
+  variant: 'outlined' | 'contained';
+  // その他必要なプロパティ
 }
 
 // ComponentConfigに新しいコンポーネント設定を追加
@@ -118,128 +128,91 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Slider,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  TextField,
+  Button,
+  ButtonGroup
 } from '@mui/material';
 import type { NewComponentProps, BaseComponent } from '../../types';
+import { CommonLayoutSettings } from './common/CommonLayoutSettings';
 
 /**
  * 新しいコンポーネントの実装
  */
-class NewComponent implements BaseComponent<NewComponentProps> {
+const NewComponent: BaseComponent<NewComponentProps> = {
   /**
    * コンポーネントをレンダリングする
    * @param props コンポーネントのプロパティ
    */
-  render(props: NewComponentProps): React.ReactNode {
+  render: (props: NewComponentProps) => {
     const {
-      widthPercentage,
-      heightPercentage,
-      horizontalAlign,
-      verticalAlign,
+      label,
+      variant
     } = props;
-
-    // 水平・垂直方向の配置設定をflexboxのalignmentに変換
-    const justifyContent = horizontalAlign === 'start' ? 'flex-start'
-      : horizontalAlign === 'end' ? 'flex-end'
-      : 'center';
-    
-    const alignItems = verticalAlign === 'start' ? 'flex-start'
-      : verticalAlign === 'end' ? 'flex-end'
-      : 'center';
 
     return (
       <Box sx={{
         width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems,
-        justifyContent
+        height: '100%'
       }}>
         {/* コンポーネントの実装 */}
+        <Box sx={{
+          p: 1,
+          border: variant === 'outlined' ? '1px solid' : 'none'
+        }}>
+          {label}
+        </Box>
       </Box>
     );
-  }
+  },
 
   /**
    * コンポーネントの設定UIをレンダリングする
    * @param props 現在のプロパティ
    * @param onUpdate プロパティ更新時のコールバック
    */
-  renderSettings(
+  renderSettings: (
     props: NewComponentProps,
     onUpdate: (newProps: Partial<NewComponentProps>) => void
-  ): React.ReactNode | null {
+  ) => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        {/* サイズ設定 */}
+        {/* 共通レイアウト設定 */}
+        <CommonLayoutSettings props={props} onUpdate={onUpdate} />
+
+        <Typography variant="body2" gutterBottom>基本設定</Typography>
+
+        {/* テキスト設定 */}
         <Box>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            幅: {props.widthPercentage}%
-          </Typography>
-          <Slider
+          <Typography variant="body2" gutterBottom>テキスト</Typography>
+          <TextField
             size="small"
-            value={props.widthPercentage}
-            onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
-            min={10}
-            max={100}
-            step={1}
-            sx={{ py: 0.5 }}
-          />
-          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ mt: 1 }}>
-            高さ: {props.heightPercentage}%
-          </Typography>
-          <Slider
-            size="small"
-            value={props.heightPercentage}
-            onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
-            min={10}
-            max={100}
-            step={1}
-            sx={{ py: 0.5 }}
+            fullWidth
+            value={props.label}
+            onChange={(e) => onUpdate({ label: e.target.value })}
           />
         </Box>
 
-        {/* 配置設定 */}
+        {/* スタイル設定 */}
         <Box>
-          <Typography variant="body2" gutterBottom>配置</Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <FormControl size="small" fullWidth>
-              <InputLabel>水平</InputLabel>
-              <Select
-                value={props.horizontalAlign}
-                label="水平"
-                onChange={(e) => onUpdate({ horizontalAlign: e.target.value as ComponentAlignment })}
+          <Typography variant="body2" gutterBottom>スタイル</Typography>
+          <ButtonGroup size="small" variant="outlined" fullWidth>
+            {(['outlined', 'contained'] as const).map((v) => (
+              <Button
+                key={v}
+                onClick={() => onUpdate({ variant: v })}
+                color={props.variant === v ? 'primary' : 'inherit'}
               >
-                <MenuItem value="start">左寄せ</MenuItem>
-                <MenuItem value="center">中央</MenuItem>
-                <MenuItem value="end">右寄せ</MenuItem>
-              </Select>
-            </FormControl>
-            <FormControl size="small" fullWidth>
-              <InputLabel>垂直</InputLabel>
-              <Select
-                value={props.verticalAlign}
-                label="垂直"
-                onChange={(e) => onUpdate({ verticalAlign: e.target.value as ComponentAlignment })}
-              >
-                <MenuItem value="start">上寄せ</MenuItem>
-                <MenuItem value="center">中央</MenuItem>
-                <MenuItem value="end">下寄せ</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+                {v}
+              </Button>
+            ))}
+          </ButtonGroup>
         </Box>
       </Box>
     );
   }
-}
+};
 
-// シングルトンインスタンスをエクスポート
-export default new NewComponent();
+export default NewComponent;
 ```
 
 3. `src/utils/componentRegistry.ts`にコンポーネントを登録
@@ -251,7 +224,8 @@ const defaultNewComponentProps: NewComponentProps = {
   heightPercentage: 50,
   horizontalAlign: 'center',
   verticalAlign: 'center',
-  // その他の必要なプロパティのデフォルト値を設定
+  label: '新しいコンポーネント',
+  variant: 'outlined'
 };
 
 // コンポーネントを登録
@@ -264,40 +238,12 @@ componentRegistry.registerComponent('newComponent', {
 });
 ```
 
-4. `src/components/editor/ComponentLayout.tsx`のコンポーネントマップに追加
+上記の手順で新しいコンポーネントタイプを追加できます。実装の際は以下の点に注意してください：
 
-```typescript
-const componentMap = {
-  button: ButtonComponent,
-  textField: TextFieldComponent,
-  newComponent: NewComponent,  // 新しいコンポーネントを追加
-};
-
-type ComponentMapType = typeof componentMap;
-```
-
-5. `ComponentLayout`クラスに新しいコンポーネントの追加ハンドラーを実装
-
-```typescript
-handleAddNewComponent = () => {
-  this.handleAddComponent('newComponent', 'new');
-};
-```
-
-6. `ComponentLayout`クラスのrender関数にボタンを追加
-
-```typescript
-<Button
-  variant="outlined"
-  fullWidth
-  onClick={this.handleAddNewComponent}
-  startIcon={<AddBoxIcon />}
->
-  新しいコンポーネントを追加
-</Button>
-```
-
-この手順で新しいコンポーネントタイプを追加できます。既存のコンポーネント（ButtonComponentやTextFieldComponent）を参考にして、必要な機能やスタイリングを実装してください。
+- BaseLayoutPropsを継承して、サイズと配置の共通設定を活用
+- renderメソッドでは、親要素に対する相対サイズ（widthPercentage, heightPercentage）を適切に反映
+- renderSettingsメソッドで、直感的な設定UIを提供
+- コンポーネントレジストリに適切なデフォルト値を設定
 
 ## 制限事項
 
@@ -305,6 +251,7 @@ handleAddNewComponent = () => {
 - グリッドは12x12サイズ
 - コンポーネントは重ならないように配置される
 - 作成したコンポーネントの縦横比は内側の要素の大きさに関わらず固定される
+- コンポーネントのサイズは親要素に対する相対値（パーセンテージ）で指定
 
 ## 技術スタック
 
