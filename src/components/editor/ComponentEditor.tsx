@@ -474,22 +474,54 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     /* メインエディタコンテナ */
     <Box
       sx={{
-        height: '100%',
+        height: '100vh',
         bgcolor: 'background.default',
         p: 2,
-        overflow: 'hidden',
         display: 'flex',
         gap: 2,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden'
       }}
       onClick={() => setSelectedItemId(null)}
     >
       {/* 左サイドパネル - コンポーネント追加ツールバー */}
       <Box 
-        sx={{ width: 200, flexShrink: 0 }}
+        sx={{
+          width: 240,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: '#ffffff',
+          borderRadius: 1,
+          overflow: 'hidden',
+          boxShadow: 1,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <Typography variant="h6" gutterBottom>コンポーネント追加</Typography>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {/* ヘッダー部分 */}
+        <Box sx={{ 
+          p: 2, 
+          bgcolor: 'grey.50',
+          borderBottom: '1px solid',
+          borderColor: 'grey.200'
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+            コンポーネント追加
+          </Typography>
+        </Box>
+        {/* コンテンツ部分 */}
+        <Box sx={{ 
+          p: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1.5,
+          overflow: 'auto',
+          flex: 1,
+        }}>
           <Button
             variant="outlined"
             fullWidth
@@ -518,9 +550,23 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       </Box>
 
       {/* メインコンテンツエリア - グリッドレイアウトエディタ */}
-      <Box sx={{ flex: 1, overflow: 'auto' }}>
+      <Box sx={{ 
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        overflow: 'hidden',
+      }}>
         {/* ツールバー - 操作ボタン群 */}
-        <Box sx={{ mb: 2, display: 'flex', gap: 1 }}>
+        <Box sx={{ 
+          mb: 2,
+          display: 'flex',
+          gap: 1,
+          p: 2,
+          bgcolor: '#ffffff',
+          borderRadius: 1,
+          boxShadow: 1
+        }}>
           <Box sx={{ display: 'flex', gap: 1, flex: 1 }}>
             <Button
               variant="contained"
@@ -566,13 +612,24 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         </Box>
         <Box
           sx={{
+            position: 'relative',
+            flex: 1,
             border: '1px dashed #ccc',
             borderRadius: 1,
             bgcolor: 'rgba(0, 0, 0, 0.02)',
-            p: 1,
+            overflow: 'hidden',
           }}
         >
-          <ResponsiveReactGridLayout
+          <Box sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            p: 1,
+            overflow: 'auto'
+          }}>
+            <ResponsiveReactGridLayout
             isDraggable={isDraggableResizable}
             isResizable={isDraggableResizable}
             cols={cols}
@@ -584,18 +641,22 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             resizeHandles={isDraggableResizable? ['se']:[]}
           >
             {items.map(item => renderElement(item))}
-          </ResponsiveReactGridLayout>
+            </ResponsiveReactGridLayout>
+          </Box>
         </Box>
       </Box>
 
       {/* 右サイドパネル - 選択したコンポーネントの設定パネル */}
       <Box 
         sx={{ 
-          width: 200, 
+          width: 240,
           flexShrink: 0,
-          height: '100%',
-          borderLeft: '1px solid #e0e0e0',
-          bgcolor: '#ffffff'
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: '#ffffff',
+          borderRadius: 1,
+          overflow: 'hidden',
+          boxShadow: 1,
         }}
         onClick={(e) => e.stopPropagation()}
       >

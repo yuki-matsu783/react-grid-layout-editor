@@ -47,18 +47,42 @@ const ComponentSettingsPanel: React.FC<ComponentSettingsPanelProps> = ({
   const settingsComponent = getSettingsComponent();
 
   return (
-    <Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'auto', height: '100%' }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>コンポーネント設定</Typography>
-      {selectedItem && settingsComponent ? (
-        settingsComponent.renderSettings(
-          selectedItem.component.props as any,
-          (newProps: Partial<typeof selectedItem.component.props>) => onUpdate(selectedItem.id, newProps)
-        )
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          設定可能なコンポーネントを選択してください
+    <Box sx={{ 
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+    }}>
+      {/* ヘッダー部分 */}
+      <Box sx={{ 
+        p: 2,
+        bgcolor: 'grey.50',
+        borderBottom: '1px solid',
+        borderColor: 'grey.200'
+      }}>
+        <Typography variant="h6" sx={{ fontWeight: 'medium' }}>
+          コンポーネント設定
         </Typography>
-      )}
+      </Box>
+      {/* コンテンツ部分 */}
+      <Box sx={{ 
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        overflow: 'auto',
+        flex: 1
+      }}>
+        {selectedItem && settingsComponent ? (
+          settingsComponent.renderSettings(
+            selectedItem.component.props as any,
+            (newProps: Partial<typeof selectedItem.component.props>) => onUpdate(selectedItem.id, newProps)
+          )
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            設定可能なコンポーネントを選択してください
+          </Typography>
+        )}
+      </Box>
     </Box>
   );
 };
