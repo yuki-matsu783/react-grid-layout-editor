@@ -216,7 +216,9 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           if (!targetItem) return [];
           
           // GridLayoutとRowStackの子要素として追加可能
-          if (targetItem.component.type === 'gridLayout' || targetItem.component.type === 'rowStack') {
+          if (targetItem.component.type === 'gridLayout' || 
+              targetItem.component.type === 'rowStack' || 
+              targetItem.component.type === 'colStack') {
             console.log(`Adding to ${targetItem.component.type}, current children:`, targetItem.component.props.children);
             return targetItem.component.props.children || [];
           }
@@ -225,7 +227,10 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       : items;
 
     // 子要素を持つコンポーネントへの追加かどうかを判定
-    const isAddingToParent = editTargetId && findItemInTree(items, editTargetId)?.component.type === 'rowStack';
+    const isAddingToParent = editTargetId && (() => {
+      const targetType = findItemInTree(items, editTargetId)?.component.type;
+      return targetType === 'rowStack' || targetType === 'colStack';
+    })();
 
     // グリッドレイアウト用のデフォルトメタデータを定義
     const defaultGridLayoutMetadata = { 
@@ -259,7 +264,12 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         const targetItem = findItemInTree(items, editTargetId);
         if (targetItem && 'children' in targetItem.component.props) {
           const currentChildren = targetItem.component.props.children;
-          return { x: currentChildren.length, y: 0, canPlace: true };
+          // RowStackの場合は横方向、ColStackの場合は縦方向に配置
+          if (targetItem.component.type === 'rowStack') {
+            return { x: currentChildren.length, y: 0, canPlace: true };
+          } else if (targetItem.component.type === 'colStack') {
+            return { x: 0, y: currentChildren.length, canPlace: true };
+          }
         }
       }
 
@@ -287,7 +297,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     const itemId = generateId(idPrefix);
     let newItem: GridItem;
 
-    if (componentType === 'gridLayout' || componentType === 'rowStack') {
+    if (componentType === 'gridLayout' || componentType === 'rowStack' || componentType === 'colStack') {
       newItem = {
         id: itemId,
         layout: {
@@ -434,7 +444,9 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
     // 編集対象選択モードの場合
     if (selectingMode) {
-      if (selectedItem.component.type === 'gridLayout' || selectedItem.component.type === 'rowStack') {
+      if (selectedItem.component.type === 'gridLayout' || 
+          selectedItem.component.type === 'rowStack' || 
+          selectedItem.component.type === 'colStack') {
         setSelectedItemId(id);
         setEditTargetId(id);
         setSelectingMode(false);
@@ -536,6 +548,21 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         <Stack
           direction="row"
           spacing={0}
+          sx={{
+            height: '100%',
+          }}
+        >
+          {item.component.props.children.map(child => renderElement(child))}
+        </Stack>
+      );
+    } else if (item.component.type === 'colStack') {
+      content = (
+        <Stack
+          direction="column"
+          spacing={0}
+          sx={{
+            width: '100%',
+          }}
         >
           {item.component.props.children.map(child => renderElement(child))}
         </Stack>
@@ -659,6 +686,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             startIcon={<AddBoxIcon />}
           >
             RowStack
+          </Button>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={() => handleAddComponent('colStack', 'col')}
+            startIcon={<AddBoxIcon />}
+          >
+            ColStack
           </Button>
         </Box>
       </Box>

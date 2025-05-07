@@ -1,4 +1,4 @@
-import { GridItem, Layout, ButtonProps, GridLayoutProps, TextFieldProps, RadioGroupProps, RowStackProps } from '../types';
+import { GridItem, Layout, ButtonProps, GridLayoutProps, TextFieldProps, RadioGroupProps, RowStackProps, ColStackProps } from '../types';
 
 /**
  * レイアウト操作に関する共通ロジックを提供するカスタムフック
@@ -30,8 +30,11 @@ export const useLayoutOperations = () => {
             }
           }
         }
-        // グリッドレイアウトの場合は子要素も処理
-        if (item.component.type === 'gridLayout' && item.component.props.children.length > 0) {
+        // レイアウトコンポーネントの場合は子要素も処理
+        if ((item.component.type === 'gridLayout' || 
+             item.component.type === 'rowStack' || 
+             item.component.type === 'colStack') && 
+            item.component.props.children.length > 0) {
           markOccupiedSpace(item.component.props.children);
         }
       });
@@ -78,7 +81,9 @@ export const useLayoutOperations = () => {
           }
         };
       }
-      if (node.component.type === 'gridLayout') {
+      if (node.component.type === 'gridLayout' || 
+          node.component.type === 'rowStack' || 
+          node.component.type === 'colStack') {
         return {
           ...node,
           component: {
@@ -105,7 +110,9 @@ export const useLayoutOperations = () => {
   const addChildToTree = (nodes: GridItem[], parentId: string, child: GridItem): GridItem[] => {
     return nodes.map(node => {
       if (node.id === parentId && 
-          (node.component.type === 'gridLayout' || node.component.type === 'rowStack')) {
+          (node.component.type === 'gridLayout' || 
+           node.component.type === 'rowStack' || 
+           node.component.type === 'colStack')) {
         return {
           ...node,
           component: {
@@ -117,7 +124,9 @@ export const useLayoutOperations = () => {
           }
         };
       }
-      if (node.component.type === 'gridLayout' || node.component.type === 'rowStack') {
+      if (node.component.type === 'gridLayout' || 
+          node.component.type === 'rowStack' || 
+          node.component.type === 'colStack') {
         return {
           ...node,
           component: {
@@ -144,7 +153,9 @@ export const useLayoutOperations = () => {
     return nodes
       .filter(node => node.id !== targetId)
       .map(node => {
-          if (node.component.type === 'gridLayout' || node.component.type === 'rowStack') {
+          if (node.component.type === 'gridLayout' || 
+              node.component.type === 'rowStack' || 
+              node.component.type === 'colStack') {
           return {
             ...node,
             component: {
@@ -171,7 +182,7 @@ export const useLayoutOperations = () => {
   const updateItemProps = (
     nodes: GridItem[],
     itemId: string,
-    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps | RadioGroupProps | RowStackProps>
+    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps | RadioGroupProps | RowStackProps | ColStackProps>
   ): GridItem[] => {
     return nodes.map(node => {
       if (node.id === itemId) {
@@ -211,6 +222,12 @@ export const useLayoutOperations = () => {
               ...(newProps as Partial<RowStackProps>)
             } as RowStackProps;
             break;
+          case 'colStack':
+            updatedComponent.props = {
+              ...updatedComponent.props,
+              ...(newProps as Partial<ColStackProps>)
+            } as ColStackProps;
+            break;
           default:
             console.warn(`Unsupported component type: ${componentType}`);
             return node;
@@ -222,7 +239,9 @@ export const useLayoutOperations = () => {
         };
       }
       
-      if (node.component.type === 'gridLayout') {
+      if (node.component.type === 'gridLayout' || 
+          node.component.type === 'rowStack' || 
+          node.component.type === 'colStack') {
         return {
           ...node,
           component: {

@@ -5,6 +5,7 @@ import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
 import GridLayoutComponent from './GridLayoutComponent';
 import RadioGroupComponent from './RadioGroupComponent';
+import ColStackComponent from './ColStackComponent';
 import RowStackComponent from './RowStackComponent';
 
 /**
@@ -17,7 +18,8 @@ const componentMap = {
   textField: TextFieldComponent,
   gridLayout: GridLayoutComponent,
   radioGroup: RadioGroupComponent,
-  rowStack: RowStackComponent
+  rowStack: RowStackComponent,
+  colStack: ColStackComponent
 };
 
 type ComponentMapType = typeof componentMap;
