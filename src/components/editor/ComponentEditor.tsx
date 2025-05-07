@@ -9,6 +9,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import EditOffIcon from '@mui/icons-material/EditOff';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { useLayoutOperations } from '../../hooks/useLayoutOperations';
+import { useTreeOperations } from '../../hooks/useTreeOperations';
 import type { 
   Layout, 
   GridItem, 
@@ -89,36 +91,21 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     setItems(initializeGridItems(rootId));
   }, [setItems]);
 
-  const updateItemLayout = (itemId: string, newLayout: Layout) => {
-    setItems(prevItems => updateLayoutInTree(prevItems, itemId, newLayout));
-  };
+  // カスタムフックを使用
+  const {
+    findAvailablePosition,
+    updateLayoutInTree,
+    addChildToTree,
+    removeFromTree,
+    updateItemProps,
+  } = useLayoutOperations();
 
-  const updateLayoutInTree = (nodes: GridItem[], itemId: string, newLayout: Layout): GridItem[] => {
-    return nodes.map(node => {
-      if (node.id === itemId) {
-        return {
-          ...node,
-          layout: {
-            ...node.layout,
-            ...newLayout
-          }
-        };
-      }
-      if (node.component.type === 'gridLayout') {
-        return {
-          ...node,
-          component: {
-            ...node.component,
-            props: {
-              ...node.component.props,
-              children: updateLayoutInTree(node.component.props.children, itemId, newLayout)
-            }
-          }
-        };
-      }
-      return node;
-    });
-  };
+  const {
+    findItemInTree,
+    calculateDepth,
+    isItemInEditTarget,
+    isNestedItemSelected,
+  } = useTreeOperations();
 
   const generateLayoutId = (itemId: string): string => {
     return `layout_${itemId}`;
@@ -126,6 +113,10 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
   const extractItemId = (layoutId: string): string => {
     return layoutId.startsWith('layout_') ? layoutId.substring(7) : layoutId;
+  };
+
+  const updateItemLayout = (itemId: string, newLayout: Layout) => {
+    setItems(prevItems => updateLayoutInTree(prevItems, itemId, newLayout));
   };
 
   const handleLayoutChange = (layout: Layout[]) => {
@@ -146,85 +137,12 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     });
   };
 
-  const findItemInTree = (nodes: GridItem[], id: string): GridItem | null => {
-    for (const node of nodes) {
-      if (node.id === id) {
-        return node;
-      }
-      if (node.component.type === 'gridLayout') {
-        const found = findItemInTree(node.component.props.children, id);
-        if (found) {
-          return found;
-        }
-      }
-    }
-    return null;
-  };
-
-  const findAvailablePosition = (w: number, h: number, targetItems: GridItem[]): { x: number, y: number, canPlace: boolean } => {
-    const grid = Array(12).fill(null).map(() => Array(12).fill(false));
-    
-    const markOccupiedSpace = (nodes: GridItem[]) => {
-      nodes.forEach(item => {
-        const { x, y, w: itemW, h: itemH } = item.layout;
-        for (let i = x; i < x + itemW && i < 12; i++) {
-          for (let j = y; j < y + itemH && j < 12; j++) {
-            if (i >= 0 && j >= 0) {
-              grid[i][j] = true;
-            }
-          }
-        }
-        if (item.component.type === 'gridLayout' && item.component.props.children.length > 0) {
-          markOccupiedSpace(item.component.props.children);
-        }
-      });
-    };
-
-    markOccupiedSpace(targetItems);
-
-    for (let y = 0; y < 12; y++) {
-      for (let x = 0; x <= 12 - w; x++) {
-        let canPlace = true;
-        for (let i = x; i < x + w && canPlace; i++) {
-          for (let j = y; j < y + h && canPlace; j++) {
-            if (grid[i][j]) {
-              canPlace = false;
-            }
-          }
-        }
-        if (canPlace) {
-          return { x, y, canPlace: true };
-        }
-      }
-    }
-    return { x: 0, y: 0, canPlace: false };
-  };
-
-  const calculateDepth = (itemId: string): number => {
-    const calculateDepthRecursive = (nodes: GridItem[], targetId: string, currentDepth: number = 0): number => {
-      for (const node of nodes) {
-        if (node.id === targetId) {
-          return currentDepth;
-        }
-        if (node.component.type === 'gridLayout') {
-          const childDepth = calculateDepthRecursive(node.component.props.children, targetId, currentDepth + 1);
-          if (childDepth !== -1) {
-            return childDepth;
-          }
-        }
-      }
-      return -1;
-    };
-
-    return calculateDepthRecursive(items, itemId, 0);
-  };
-
   const handleAddComponent = (
     componentType: ComponentType,
     idPrefix: string
   ): boolean => {
     if (editTargetId) {
-      const depth = calculateDepth(editTargetId);
+      const depth = calculateDepth(items, editTargetId);
       if (depth >= 4) {
         alert('これ以上階層を深くすることはできません（最大5階層まで）');
         return false;
@@ -373,132 +291,6 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     }
   };
 
-  const addChildToTree = (nodes: GridItem[], parentId: string, child: GridItem): GridItem[] => {
-    return nodes.map(node => {
-      if (node.id === parentId && node.component.type === 'gridLayout') {
-        return {
-          ...node,
-          component: {
-            ...node.component,
-            props: {
-              ...node.component.props,
-              children: [...node.component.props.children, child]
-            }
-          }
-        };
-      }
-      if (node.component.type === 'gridLayout') {
-        return {
-          ...node,
-          component: {
-            ...node.component,
-            props: {
-              ...node.component.props,
-              children: addChildToTree(node.component.props.children, parentId, child)
-            }
-          }
-        };
-      }
-      return node;
-    });
-  };
-
-  const updateItemProps = (
-    nodes: GridItem[],
-    itemId: string,
-    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps>
-  ): GridItem[] => {
-    return nodes.map(node => {
-      if (node.id === itemId) {
-        const updatedComponent = { ...node.component };
-        const componentType = updatedComponent.type as ComponentType;
-        
-        switch (componentType) {
-          case 'button':
-            updatedComponent.props = {
-              ...updatedComponent.props,
-              ...(newProps as Partial<ButtonProps>)
-            } as ButtonProps;
-            break;
-          case 'textField':
-            updatedComponent.props = {
-              ...updatedComponent.props,
-              ...(newProps as Partial<TextFieldProps>)
-            } as TextFieldProps;
-            break;
-          case 'gridLayout':
-            updatedComponent.props = {
-              ...updatedComponent.props,
-              ...(newProps as Partial<GridLayoutProps>)
-            } as GridLayoutProps;
-            break;
-          default:
-            console.warn(`Unsupported component type: ${componentType}`);
-            return node;
-        }
-        
-        return {
-          ...node,
-          component: updatedComponent as ComponentConfig
-        };
-      }
-      
-      if (node.component.type === 'gridLayout') {
-        return {
-          ...node,
-          component: {
-            ...node.component,
-            props: {
-              ...node.component.props,
-              children: updateItemProps(node.component.props.children, itemId, newProps)
-            }
-          }
-        };
-      }
-      
-      return node;
-    });
-  };
-
-  const removeFromTree = (nodes: GridItem[], targetId: string): GridItem[] => {
-    return nodes
-      .filter(node => node.id !== targetId)
-      .map(node => {
-        if (node.component.type === 'gridLayout') {
-          return {
-            ...node,
-            component: {
-              ...node.component,
-              props: {
-                ...node.component.props,
-                children: removeFromTree(node.component.props.children, targetId)
-              }
-            }
-          };
-        }
-        return node;
-      });
-  };
-
-  const isItemInEditTarget = (itemId: string, targetEditId: string): boolean => {
-    const editTarget = findItemInTree(items, targetEditId);
-    if (!editTarget || editTarget.component.type !== 'gridLayout') return false;
-
-    if (itemId === targetEditId) return true;
-
-    const searchInChildren = (nodes: GridItem[]): boolean => {
-      return nodes.some(node => {
-        if (node.id === itemId) return true;
-        if (node.component.type === 'gridLayout') {
-          return searchInChildren(node.component.props.children);
-        }
-        return false;
-      });
-    };
-
-    return searchInChildren(editTarget.component.props.children);
-  };
-
   const handleSelect = (id: string): void => {
     const selectedItem = findItemInTree(items, id);
     if (!selectedItem) return;
@@ -513,7 +305,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     }
 
     if (editTargetId) {
-      if (isItemInEditTarget(id, editTargetId)) {
+      if (isItemInEditTarget(items, id, editTargetId)) {
         setSelectedItemId(id);
       }
       return;
@@ -531,21 +323,6 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     } else {
       setSelectingMode(true);
     }
-  };
-
-  const isNestedItemSelected = (selectedId: string | null, nodes: GridItem[], excludeSelfId: string | null = null): boolean => {
-    if (!selectedId) return false;
-    const search = (items: GridItem[]): boolean =>
-      items.some(item => {
-        if (item.id === selectedId) {
-          return excludeSelfId ? item.id !== excludeSelfId : true;
-        }
-        if (item.component.type === 'gridLayout') {
-          return search(item.component.props.children);
-        }
-        return false;
-      });
-    return search(nodes);
   };
 
   const renderElement = (item: GridItem): React.ReactNode => {
