@@ -7,8 +7,11 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Stack,
-  Paper
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { BaseLayoutProps, ComponentAlignment, ParentType } from '../../../types';
 
 /**
@@ -85,12 +88,23 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
     }
   };
 
+  // アコーディオンの展開状態を管理
+  const [absoluteExpanded, setAbsoluteExpanded] = React.useState(false);
+  const [relativeExpanded, setRelativeExpanded] = React.useState(false);
+
   return (
-    <Stack spacing={2}>
+    <Stack spacing={1}>
       {/* 絶対サイズ設定 */}
-      <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-        <Box>
-          <Typography variant="subtitle2" gutterBottom>絶対サイズ設定</Typography>
+      <Accordion
+        expanded={absoluteExpanded}
+        onChange={(_, isExpanded) => setAbsoluteExpanded(isExpanded)}
+        elevation={0}
+        sx={{ bgcolor: 'background.default' }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle2">絶対サイズ設定</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
           <Box sx={{ px: 1 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               幅（rem または "auto"）
@@ -147,14 +161,21 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               helperText="「auto」または数値（単位: rem）を入力"
             />
           </Box>
-        </Box>
-      </Paper>
+        </AccordionDetails>
+      </Accordion>
 
       {/* 相対サイズ・パディング・配置設定 */}
-      <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-        <Box>
+      <Accordion
+        expanded={relativeExpanded}
+        onChange={(_, isExpanded) => setRelativeExpanded(isExpanded)}
+        elevation={0}
+        sx={{ bgcolor: 'background.default' }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle2">相対サイズ・配置設定</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
           {/* 相対サイズ設定 */}
-          <Typography variant="subtitle2" gutterBottom>相対サイズ設定</Typography>
           <Box sx={{ px: 1, mb: 3 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               幅 ({props.widthPercentage}%)
@@ -233,8 +254,8 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               <ToggleButton value="end">下</ToggleButton>
             </ToggleButtonGroup>
           </Box>
-        </Box>
-      </Paper>
+        </AccordionDetails>
+      </Accordion>
     </Stack>
   );
 };

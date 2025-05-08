@@ -206,7 +206,7 @@ const defaultRowStackProps: RowStackProps = {
 };
 
 componentRegistry.registerComponent('rowStack', {
-  displayName: 'RowStack',
+  displayName: '横スタック',
   icon: createElement(AddBoxIcon),
   defaultWidth: 12,
   defaultHeight: 2,
@@ -223,7 +223,7 @@ const defaultColStackProps: ColStackProps = {
 };
 
 componentRegistry.registerComponent('colStack', {
-  displayName: 'ColStack',
+  displayName: '縦スタック',
   icon: createElement(AddBoxIcon),
   defaultWidth: 2,
   defaultHeight: 12,

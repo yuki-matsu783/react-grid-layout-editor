@@ -543,7 +543,6 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
 
     // グリッドアイテムの基本スタイルとイベントハンドラを設定
     const sectionProps = {
-      key: item.layout.i,
       'data-grid': item.layout,
       className: "grid-item",
       sx: {
@@ -697,7 +696,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     if (!content) return null;
 
     return (
-      <Box {...sectionProps}>
+      <Box key={item.layout.i} {...sectionProps}>
         <Box {...wrapperProps}>
           {content}
         </Box>
