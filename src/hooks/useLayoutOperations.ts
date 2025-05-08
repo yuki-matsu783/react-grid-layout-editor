@@ -1,4 +1,4 @@
-import { GridItem, Layout, ButtonProps, GridLayoutProps, TextFieldProps, RadioGroupProps, RowStackProps, ColStackProps } from '../types';
+import { GridItem, Layout, ButtonProps, GridLayoutProps, TextFieldProps, RadioGroupProps, RowStackProps, ColStackProps, TypographyProps } from '../types';
 
 /**
  * レイアウト操作に関する共通ロジックを提供するカスタムフック
@@ -182,7 +182,7 @@ export const useLayoutOperations = () => {
   const updateItemProps = (
     nodes: GridItem[],
     itemId: string,
-    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps | RadioGroupProps | RowStackProps | ColStackProps>
+    newProps: Partial<ButtonProps | GridLayoutProps | TextFieldProps | RadioGroupProps | RowStackProps | ColStackProps | TypographyProps>
   ): GridItem[] => {
     return nodes.map(node => {
       if (node.id === itemId) {
@@ -227,6 +227,12 @@ export const useLayoutOperations = () => {
               ...updatedComponent.props,
               ...(newProps as Partial<ColStackProps>)
             } as ColStackProps;
+            break;
+          case 'typography':
+            updatedComponent.props = {
+              ...updatedComponent.props,
+              ...(newProps as Partial<TypographyProps>)
+            } as TypographyProps;
             break;
           default:
             console.warn(`Unsupported component type: ${componentType}`);

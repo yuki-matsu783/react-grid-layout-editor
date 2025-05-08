@@ -30,7 +30,7 @@ export type ComponentAlignment = 'start' | 'center' | 'end';
 /**
  * 利用可能なコンポーネントタイプを定義
  */
-export type ComponentType = 'gridLayout' | 'rowStack' | 'colStack' | 'button' | 'textField' | 'radioGroup' ;
+export type ComponentType = 'gridLayout' | 'rowStack' | 'colStack' | 'button' | 'textField' | 'radioGroup' | 'typography';
 
 /**
  * コンポーネントの基本レイアウトプロパティを定義
@@ -170,6 +170,22 @@ export type LayoutComponentType = 'gridLayout' | 'rowStack' | 'colStack';
 /**
  * コンポーネントの設定を定義
  */
+/**
+ * Typographyコンポーネントのプロパティを定義
+ */
+export interface TypographyProps extends BaseLayoutProps {
+  /** テキストの種類 */
+  variant: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'subtitle1' | 'subtitle2' | 'body1' | 'body2';
+  /** 表示するテキスト */
+  text: string;
+  /** テキストの色 */
+  color?: 'primary' | 'secondary' | 'error' | 'text.primary' | 'text.secondary';
+  /** テキストの配置 */
+  align?: 'left' | 'center' | 'right' | 'justify';
+  /** 下部マージンの有無 */
+  gutterBottom?: boolean;
+}
+
 export type ComponentConfig =
   | { type: 'button'; props: ButtonProps }
   | { type: 'textField'; props: TextFieldProps }
@@ -177,6 +193,7 @@ export type ComponentConfig =
   | { type: 'gridLayout'; props: GridLayoutProps }
   | { type: 'rowStack'; props: RowStackProps }
   | { type: 'colStack'; props: ColStackProps }
+  | { type: 'typography'; props: TypographyProps }
 
 /**
  * グリッドアイテムの構造を定義
@@ -239,8 +256,8 @@ export type ComponentProps<T extends ComponentConfig> =
   ? RowStackProps
   : T extends { type: 'colStack' }
   ? ColStackProps
-  : T extends { type: 'transferList' }
-  ? TransferListProps
+  : T extends { type: 'typography' }
+  ? TypographyProps
   : never;
 
 /**

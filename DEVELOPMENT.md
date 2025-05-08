@@ -173,7 +173,22 @@ pnpm build
    };
    ```
 
-5. **エディタへの追加**
+5. **プロパティ更新ロジックの追加**
+   - `src/hooks/useLayoutOperations.ts`に新しいコンポーネントの更新処理を追加します。
+   ```typescript
+   // 型インポートに追加
+   import { NewComponentProps } from '../types';
+
+   // updateItemPropsのswitch文に追加
+   case 'newComponent':
+     updatedComponent.props = {
+       ...updatedComponent.props,
+       ...(newProps as Partial<NewComponentProps>)
+     } as NewComponentProps;
+     break;
+   ```
+
+6. **エディタへの追加**
    - `src/components/editor/ComponentEditor.tsx` で以下の3つの実装を行います。
 
    ```tsx
@@ -209,18 +224,7 @@ pnpm build
    </Box>
    ```
 
-6. **プロパティ更新ロジックの追加**
-   - `src/hooks/useLayoutOperations.ts` に新しいコンポーネントのプロパティ更新ロジックを追加します。
-   ```typescript
-   case 'newComponent':
-     updatedComponent.props = {
-       ...updatedComponent.props,
-       ...(newProps as Partial<NewComponentProps>),
-     } as NewComponentProps;
-     break;
-   ```
-
-7. **動作確認**
+6. **動作確認**
    - プロジェクトを起動し、エディタ画面で「XXXを追加」ボタンをクリック。
    - グリッドに `NewComponent` が追加され、設定パネルでプロパティを編集できることを確認します。
 

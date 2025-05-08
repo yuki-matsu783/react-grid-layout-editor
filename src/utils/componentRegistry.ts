@@ -7,11 +7,13 @@ import type {
   TextFieldProps,
   RadioGroupProps,
   RowStackProps,
-  ColStackProps
+  ColStackProps,
+  TypographyProps
 } from '../types';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import TextFieldsIcon from '@mui/icons-material/TextFields';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import TextFormatIcon from '@mui/icons-material/TextFormat';
 
 /**
  * コンポーネントのメタデータを定義するインターフェース
@@ -40,6 +42,7 @@ type ComponentMetadataMap = {
   radioGroup: ComponentMetadata<RadioGroupProps>;
   rowStack: ComponentMetadata<RowStackProps>;
   colStack: ComponentMetadata<ColStackProps>;
+  typography: ComponentMetadata<TypographyProps>;
 };
 
 /**
@@ -204,6 +207,23 @@ componentRegistry.registerComponent('colStack', {
   defaultWidth: 2,
   defaultHeight: 12,
   defaultProps: defaultColStackProps
+});
+
+// デフォルトのTypographyコンポーネントを登録
+const defaultTypographyProps: TypographyProps = {
+  variant: 'body1',
+  text: 'テキスト',
+  color: 'text.primary',
+  align: 'left',
+  gutterBottom: false
+};
+
+componentRegistry.registerComponent('typography', {
+  displayName: 'テキスト',
+  icon: createElement(TextFormatIcon),
+  defaultWidth: 4,
+  defaultHeight: 1,
+  defaultProps: defaultTypographyProps
 });
 
 export default componentRegistry;

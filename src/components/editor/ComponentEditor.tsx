@@ -18,6 +18,7 @@ import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
 import RadioGroupComponent from './RadioGroupComponent';
+import TypographyComponent from './TypographyComponent';
 import GridLayout from './layout/GridLayout';
 import { useComponentEditor } from "./hooks/useComponentEditor";
 import { useSourceCodeGenerator } from "./logic/useSourceCodeGenerator";
@@ -28,6 +29,7 @@ const componentMap = {
   button: ButtonComponent,
   textField: TextFieldComponent,
   radioGroup: RadioGroupComponent,
+  typography: TypographyComponent,
 };
 
 type ComponentMapType = typeof componentMap;
@@ -421,6 +423,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
                 startIcon={<AddBoxIcon />}
               >
                 ラジオグループ
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => handleAddComponent('typography', 'typography')}
+                startIcon={<AddBoxIcon />}
+              >
+                テキスト
               </Button>
             </Box>
           </Box>

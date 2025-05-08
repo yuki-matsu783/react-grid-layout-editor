@@ -10,6 +10,7 @@ import GridLayoutComponent from './GridLayoutComponent';
 import RadioGroupComponent from './RadioGroupComponent';
 import ColStackComponent from './ColStackComponent';
 import RowStackComponent from './RowStackComponent';
+import TypographyComponent from './TypographyComponent';
 
 /**
  * コンポーネントタイプごとの設定コンポーネントマッピング
@@ -22,7 +23,8 @@ const componentMap = {
   gridLayout: GridLayoutComponent,
   radioGroup: RadioGroupComponent,
   rowStack: RowStackComponent,
-  colStack: ColStackComponent
+  colStack: ColStackComponent,
+  typography: TypographyComponent
 };
 
 type ComponentMapType = typeof componentMap;
