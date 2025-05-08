@@ -81,6 +81,22 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   /**
    * グリッドアイテムをレンダリングする
    * アイテムの種類に応じて適切なコンポーネントを生成し、スタイルと配置を設定する
+   * 
+   * レンダリングの種類：
+   * 1. 基本コンポーネント（button, textField, radioGroup）
+   *    - componentMapから対応するレンダラーを使用
+   *    - コンポーネント固有のプロパティを適用
+   * 
+   * 2. レイアウトコンポーネント（gridLayout, rowStack, colStack）
+   *    - 子要素を再帰的にレンダリング
+   *    - グリッドまたはスタックレイアウトで配置
+   *    - 編集モードに応じてドラッグ＆ドロップを制御
+   * 
+   * スタイリング：
+   * - 選択状態、編集状態に応じたボーダースタイル
+   * - 親要素の種類（grid/stack）に応じたサイズ設定
+   * - 水平・垂直方向の配置制御
+   * 
    * @param item - レンダリングするグリッドアイテム
    * @returns レンダリングされたReactノード
    */
@@ -89,6 +105,10 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     const isEditTarget = editTargetId === item.id;
 
     // 水平・垂直方向の配置設定を計算
+    // コンポーネントのプロパティから配置設定を取得し、Flexboxの配置プロパティに変換
+    // - horizontalAlign: 水平方向の配置（'start' | 'center' | 'end'）
+    // - verticalAlign: 垂直方向の配置（'start' | 'center' | 'end'）
+    // - widthPercentage/heightPercentage: 親要素に対するサイズ（%）
     const { horizontalAlign, verticalAlign, widthPercentage, heightPercentage } = item.component.props;
     const justifyContent = horizontalAlign === 'start' ? 'flex-start'
       : horizontalAlign === 'end' ? 'flex-end'
@@ -180,7 +200,10 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       }
     };
 
-    // コンポーネントの種類に応じてコンテンツをレンダリング（button, textField, gridLayout）
+    // コンポーネントの種類に応じてコンテンツをレンダリング
+    // 1. 基本コンポーネント: componentMapに登録されたレンダラーを使用
+    // 2. gridLayout: 独自のGridLayoutコンポーネントで子要素を配置
+    // 3. rowStack/colStack: MUIのStackコンポーネントで子要素を水平/垂直に配置
     let content: React.ReactNode = null;
 
     if (item.component.type in componentMap) {

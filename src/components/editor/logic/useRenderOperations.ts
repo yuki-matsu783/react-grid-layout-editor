@@ -1,5 +1,5 @@
 import type { Theme } from '@mui/material';
-import type { GridItem, ComponentType, ComponentConfig, BaseLayoutProps } from '../../../types';
+import type { GridItem, BaseLayoutProps } from '../../../types';
 import { useTreeOperations } from '../../../hooks/useTreeOperations';
 
 /**

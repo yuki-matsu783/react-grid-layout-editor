@@ -1,5 +1,5 @@
-import type { ComponentType, GridItem, Layout, ParentType } from '../../../types';
-import componentRegistry, { ComponentMetadata } from '../../../utils/componentRegistry';
+import type { ComponentType, GridItem,  } from '../../../types';
+import  { ComponentMetadata } from '../../../utils/componentRegistry';
 
 /**
  * コンポーネント操作に関連する関数を提供するカスタムフック

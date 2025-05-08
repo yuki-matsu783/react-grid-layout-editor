@@ -14,6 +14,26 @@ import componentRegistry, { ComponentMetadata } from '../../../utils/componentRe
 
 /**
  * ComponentEditorのロジックを提供するカスタムフック
+ * 
+ * 主な機能：
+ * 1. コンポーネントの管理
+ *    - 追加、削除、更新
+ *    - ネスト構造の制御（最大5階層）
+ *    - プロパティの設定
+ * 
+ * 2. レイアウト制御
+ *    - グリッドレイアウトの更新
+ *    - ドラッグ＆ドロップの制御
+ *    - サイズ変更の管理
+ * 
+ * 3. 状態管理
+ *    - 選択状態の追跡
+ *    - 編集モードの制御
+ *    - インポート/エクスポート
+ * 
+ * @param cols - グリッドのカラム数
+ * @param rowHeight - グリッドの行の高さ
+ * @param margin - グリッドアイテム間のマージン
  */
 export const useComponentEditor = (cols: any, rowHeight: number, margin: [number, number]) => {
   // グローバル状態
@@ -127,6 +147,25 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
 
   /**
    * 新しいコンポーネントをグリッドに追加する
+   * 
+   * 処理の流れ：
+   * 1. ネストの深さチェック
+   *    - 編集対象が選択されている場合、最大5階層までの制限を確認
+   * 
+   * 2. 追加位置の決定
+   *    - Stack系の場合: 子要素の数に基づいて位置を決定
+   *    - Grid系の場合: 利用可能なスペースを探索
+   * 
+   * 3. コンポーネントの生成
+   *    - レイアウトコンポーネント: 子要素配列を初期化
+   *    - 基本コンポーネント: メタデータから初期設定を適用
+   * 
+   * 4. コンポーネントの追加
+   *    - 編集対象の有無に応じて、ルートまたは子要素として追加
+   * 
+   * @param componentType - 追加するコンポーネントの種類
+   * @param idPrefix - 生成するIDのプレフィックス
+   * @returns 追加が成功したかどうか
    */
   const handleAddComponent = (
     componentType: ComponentType,
@@ -283,7 +322,11 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
   };
 
   /**
-   * 新しいグリッドレイアウトコンポーネントを追加する
+   * グリッドレイアウトの変更を処理する
+   * 
+   * - ドラッグ＆ドロップやリサイズ操作後のレイアウト更新を処理
+   * - レイアウトIDとアイテムIDの相互変換を行い、正しい要素を更新
+   * - ネストされたグリッドの場合も適切に処理
    */
   const handleAddGridLayout = () => handleAddComponent('gridLayout', 'grid');
 
@@ -384,6 +427,20 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
 
   /**
    * グリッドアイテムを選択する
+   * 
+   * 処理モード：
+   * 1. 編集対象選択モード
+   *    - レイアウトコンポーネントのみ選択可能
+   *    - 選択後、編集モードに移行
+   * 
+   * 2. 編集モード
+   *    - 編集対象の子孫要素のみ選択可能
+   *    - レイアウトコンポーネントの場合、その中の要素を編集可能
+   * 
+   * 3. 通常モード
+   *    - 制限なく任意のアイテムを選択可能
+   * 
+   * @param id - 選択するアイテムのID
    */
   const handleSelect = (id: string): void => {
     const selectedItem = findItemInTree(items, id);

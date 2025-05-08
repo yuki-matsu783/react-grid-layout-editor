@@ -5,6 +5,72 @@
 このプロジェクトは、React Grid Layoutを利用したインタラクティブなグリッドレイアウトエディタです。
 ドラッグ＆ドロップで自由にレイアウトを編集でき、コンポーネントのネスト構造にも対応しています。
 
+## アプリケーション構造
+
+### コンポーネント構成
+```mermaid
+graph TD
+    A[ComponentEditor] --> B[GridLayout]
+    A --> C[ComponentSettingsPanel]
+    A --> D[コンポーネント追加パネル]
+    
+    B --> E[ButtonComponent]
+    B --> F[TextFieldComponent]
+    B --> G[RadioGroupComponent]
+    B --> H[ネストされたGridLayout]
+    
+    subgraph データフロー
+    I[atoms.ts] --> J[useComponentEditor]
+    J --> K[useLayoutOperations]
+    J --> L[useTreeOperations]
+    end
+    
+    subgraph フック
+    M[useComponentEditor] --> N[レイアウト管理]
+    M --> O[コンポーネント操作]
+    M --> P[ファイル操作]
+    end
+```
+
+### ディレクトリ構造
+```mermaid
+graph LR
+    A[src/] --> B[components/]
+    A --> C[hooks/]
+    A --> D[store/]
+    A --> E[types/]
+    A --> F[utils/]
+    
+    B --> G[editor/]
+    G --> H[コンポーネント群]
+    G --> I[hooks/]
+    G --> J[logic/]
+    G --> K[layout/]
+    
+    D --> L[atoms.ts]
+    E --> M[型定義]
+    F --> N[componentRegistry.ts]
+```
+
+### 操作フロー
+```mermaid
+sequenceDiagram
+    participant User
+    participant Editor
+    participant Hook
+    participant Store
+    
+    User->>Editor: コンポーネント追加
+    Editor->>Hook: handleAddComponent
+    Hook->>Store: グリッドアイテム追加
+    Store-->>Editor: 状態更新
+    
+    User->>Editor: レイアウト変更
+    Editor->>Hook: handleLayoutChange
+    Hook->>Store: レイアウト更新
+    Store-->>Editor: 状態更新
+```
+
 ## 主な機能
 
 - グリッドレイアウトの動的な編集
@@ -81,9 +147,8 @@ pnpm build
    export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'radioGroup' | 'newComponent';
 
    export interface NewComponentProps extends BaseLayoutProps {
-  // コンポーネント固有のプロパティを追加
      label: string;
-     variant: 'outlined' | 'contained';
+     variant: 'outlined' | 'contained';  // コンポーネント固有のプロパティを追加
    }
    ```
 
@@ -226,10 +291,9 @@ pnpm build
 - ネストは最大5階層まで
 - グリッドは12x12サイズ
 - コンポーネントは重ならないように配置される
-- 作成したコンポーネントの縦横比は内側の要素の大きさに関わらず固定される
-- コンポーネントのサイズは親要素に対する相対値（パーセンテージ）で指定
-- レイアウト系コンポーネントの中の要素がレイアウト自体のサイズを超えた場合、コンポーネントごとにスクロールされる
-  - グリッドレイアウトはその内部のグリッドのサイズを超える要素がある場合はグリッドごとにスクロールが発生する
+- レイアウト系コンポーネントの中の要素がレイアウト自体のサイズを超えた場合、要素ごとにスクロールが発生する
+  - グリッドレイアウトで作成したグリッドの縦横比は内側の要素の大きさに関わらず固定される
+  - グリッドレイアウトはグリッドのサイズを超える要素がある場合はグリッドごとにスクロールが発生する
   - コンポーネント全体をまとめてスクロールさせたい場合は、１つの大きなcolStackで囲んだ上で、その中にstack系要素を配置すること
 
 ## 技術スタック
@@ -240,4 +304,3 @@ pnpm build
 - react-grid-layout
 - Vite
 - ESLint
-
