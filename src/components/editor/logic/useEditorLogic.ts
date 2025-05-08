@@ -3,11 +3,10 @@ import { useState, useEffect } from 'react';
 import { gridItemsAtom, selectedItemIdAtom, initializeGridItems } from '../../../store/atoms';
 import { useLayoutOperations } from '../../../hooks/useLayoutOperations';
 import { useTreeOperations } from '../../../hooks/useTreeOperations';
-import { useComponentOperations } from './useComponentOperations';
 import { useFileOperations } from './useFileOperations';
 import { useRenderOperations } from './useRenderOperations';
 import { useAddComponentOperations } from './useAddComponentOperations';
-import type { Layout } from '../../../types';
+import type { Layout, ComponentType } from '../../../types';
 
 /**
  * エディタの主要なロジックを管理するカスタムフック
@@ -155,7 +154,7 @@ export const useEditorLogic = (cols: number, rowHeight: number, margin: [number,
     },
     // コンポーネント追加
     add: {
-      handleAddComponent: (type: any, prefix: string) => {
+      handleAddComponent: (type: ComponentType, prefix: string) => {
         const [success, newItems] = handleAddComponent(items, editTargetId, type, prefix);
         if (success) {
           setItems(newItems);
