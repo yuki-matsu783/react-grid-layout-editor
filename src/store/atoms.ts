@@ -27,8 +27,6 @@ export const initializeGridItems = (): GridItem[] => [
       y: 1,
       w: 10,
       h: 7,
-      moved: false,
-      static: false
     },
     component: {
       type: "gridLayout",
@@ -49,8 +47,6 @@ export const initializeGridItems = (): GridItem[] => [
       y: 0,
       w: 10,
       h: 1,
-      moved: false,
-      static: false
     },
     component: {
       type: "rowStack",
@@ -71,8 +67,6 @@ export const initializeGridItems = (): GridItem[] => [
       y: 0,
       w: 2,
       h: 8,
-      moved: false,
-      static: false
     },
     component: {
       type: "colStack",
