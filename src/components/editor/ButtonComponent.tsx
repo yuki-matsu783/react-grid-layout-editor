@@ -1,9 +1,13 @@
-import React from 'react';
 import {
   Box,
   Button,
   Typography,
-  ButtonGroup,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Switch,
   TextField,
 } from '@mui/material';
 import type { ButtonProps, BaseComponent, ParentType } from '../../types';
@@ -58,77 +62,77 @@ const ButtonComponent: BaseComponent<ButtonProps> = {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* 共通レイアウト設定 */}
         <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
-        <Typography variant="body2" gutterBottom>基本設定</Typography>
+        
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>基本設定</Typography>
 
-        {/* テキスト設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>テキスト</Typography>
+          {/* テキスト設定 */}
           <TextField
             size="small"
             fullWidth
+            label="ボタンテキスト"
             value={props.label}
             onChange={(e) => onUpdate({ label: e.target.value })}
-            sx={{ mb: 1 }}
+            sx={{ mb: 1.5 }}
           />
         </Box>
 
         {/* スタイル設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>スタイル</Typography>
-          {/* ボタンの種類（variant）設定 */}
-          <ButtonGroup size="small" variant="outlined" fullWidth sx={{ mb: 1 }}>
-            {(['contained', 'outlined', 'text'] as const).map((v) => (
-              <Button
-                key={v}
-                onClick={() => onUpdate({ variant: v })}
-                color={props.variant === v ? 'primary' : 'inherit'}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                {v}
-              </Button>
-            ))}
-          </ButtonGroup>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>スタイル設定</Typography>
+          
+          <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
+            <InputLabel>ボタンの種類</InputLabel>
+            <Select
+              value={props.variant}
+              label="ボタンの種類"
+              onChange={(e) => onUpdate({ variant: e.target.value as 'contained' | 'outlined' | 'text' })}
+            >
+              <MenuItem value="contained">塗りつぶし</MenuItem>
+              <MenuItem value="outlined">枠線付き</MenuItem>
+              <MenuItem value="text">テキスト</MenuItem>
+            </Select>
+          </FormControl>
 
-          {/* 色（color）設定 */}
-          <ButtonGroup size="small" variant="outlined" fullWidth sx={{ mb: 1 }}>
-            {(['primary', 'secondary', 'error'] as const).map((c) => (
-              <Button
-                key={c}
-                onClick={() => onUpdate({ color: c })}
-                color={props.color === c ? c : 'inherit'}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                {c}
-              </Button>
-            ))}
-          </ButtonGroup>
+          <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
+            <InputLabel>サイズ</InputLabel>
+            <Select
+              value={props.size}
+              label="サイズ"
+              onChange={(e) => onUpdate({ size: e.target.value as 'small' | 'medium' | 'large' })}
+            >
+              <MenuItem value="small">小</MenuItem>
+              <MenuItem value="medium">中</MenuItem>
+              <MenuItem value="large">大</MenuItem>
+            </Select>
+          </FormControl>
 
-          {/* サイズ（size）設定 */}
-          <ButtonGroup size="small" variant="outlined" fullWidth>
-            {(['small', 'medium', 'large'] as const).map((s) => (
-              <Button
-                key={s}
-                onClick={() => onUpdate({ size: s })}
-                color={props.size === s ? 'primary' : 'inherit'}
-                sx={{ fontSize: '0.75rem' }}
-              >
-                {s}
-              </Button>
-            ))}
-          </ButtonGroup>
+          <Typography variant="body2" gutterBottom>カラー</Typography>
+          <FormControl fullWidth size="small">
+            <Select
+              value={props.color}
+              onChange={(e) => onUpdate({ color: e.target.value as 'primary' | 'secondary' | 'error' })}
+            >
+              <MenuItem value="primary">プライマリ</MenuItem>
+              <MenuItem value="secondary">セカンダリ</MenuItem>
+              <MenuItem value="error">エラー</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         {/* その他の設定 */}
         <Box>
-          <Button
-            size="small"
-            variant="outlined"
-            fullWidth
-            onClick={() => onUpdate({ disabled: !props.disabled })}
-            color={props.disabled ? 'primary' : 'inherit'}
-          >
-            無効化 {props.disabled ? 'ON' : 'OFF'}
-          </Button>
+          <Typography variant="body2" gutterBottom>その他の設定</Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={props.disabled || false}
+                onChange={(e) => onUpdate({ disabled: e.target.checked })}
+              />
+            }
+            label={<Typography variant="body2">無効化</Typography>}
+          />
         </Box>
       </Box>
     );

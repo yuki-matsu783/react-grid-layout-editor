@@ -260,6 +260,45 @@ pnpm build
    - 真偽値で切り替える設定
    - 例：折り返し設定（wrap/nowrap）
 
+### 入力形式ごとのデザインガイドライン
+
+1. **テキストボックス / 数値入力 (TextField)**
+   - `size="small"` を指定して、コンパクトな表示にする
+   - `fullWidth` を指定して、親要素の幅いっぱいに広げる
+   - ラベルは `label` プロパティで指定し、日本語で表示する
+   - 補足説明が必要な場合は `helperText` プロパティを使用する
+   - 数値入力の場合は `type="number"` を指定し、適切な `min`/`max`/`step` を設定する
+   - 単位付きの場合は `InputProps` で単位をサフィックスとして表示する
+
+2. **スライダー (Slider)**
+   - `size="small"` を指定して、コンパクトな表示にする
+   - 上部に `Typography variant="body2"` でラベルを表示する
+   - `valueLabelDisplay="auto"` を指定して、ドラッグ時に現在値を表示する
+   - 適切な `min`/`max`/`step` を設定する
+   - パーセンテージの場合は現在値を上部ラベルに表示する
+
+3. **ドロップダウンリスト (Select)**
+   - `size="small"` を指定して、コンパクトな表示にする
+   - `fullWidth` を指定して、親要素の幅いっぱいに広げる
+   - FormControlで囲み、`InputLabel` コンポーネントでラベルを表示する
+   - MenuItem の value は英語、表示テキストは日本語にする
+   - デフォルト値がある場合は必ず設定する
+   - 未選択を許可する場合は空の MenuItem を追加する
+
+4. **トグルスイッチ (Switch)**
+   - `size="small"` を指定して、コンパクトな表示にする
+   - FormControlLabel で囲み、ラベルテキストを Typography で表示する
+   - ラベルは機能を説明する日本語の文言にする
+   - ON/OFFの状態が分かりやすい文言にする
+   - 必要に応じて `disabled` 状態を設定する
+
+5. **共通のスタイリング**
+   - 各設定項目間は `gap: 1.5` で空間を開ける
+   - セクション間は `mb: 2` で空間を開ける
+   - 見出しには `Typography variant="body2" gutterBottom` を使用する
+   - コンポーネントグループは Box で囲み、一貫性のある余白を設定する
+   - エラー状態には `error` プロパティと `helperText` でエラーメッセージを表示する
+
 ### 実装例
 
 ```typescript

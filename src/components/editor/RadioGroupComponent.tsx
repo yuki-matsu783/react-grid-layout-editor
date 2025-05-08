@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   Typography,
@@ -8,13 +7,14 @@ import {
   FormControlLabel,
   Radio,
   Button,
-  ButtonGroup,
   TextField,
   IconButton,
   Stack,
   Select,
   MenuItem,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Switch,
+  InputLabel
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -80,6 +80,7 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
    * ラジオグループコンポーネントの設定UIをレンダリングする
    * @param props - 現在のラジオグループのプロパティ
    * @param onUpdate - プロパティ更新時のコールバック関数
+   * @param parentType - 親コンポーネントのタイプ
    * @returns レンダリングされた設定UI
    */
   renderSettings: (
@@ -98,9 +99,6 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
         label: `オプション${newIndex}`
       });
       onUpdate({ options: newOptions });
-
-      // 新規作成時はコンソールに追加を表示
-      console.log('ラジオオプションを追加:', `option${newIndex}`);
     };
 
     /**
@@ -109,12 +107,8 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
      */
     const handleDeleteOption = (index: number) => {
       const newOptions = [...props.options];
-      const deletedOption = newOptions[index];
       newOptions.splice(index, 1);
       onUpdate({ options: newOptions });
-
-      // 削除時はコンソールに表示
-      console.log('ラジオオプションを削除:', deletedOption.value);
     };
 
     /**
@@ -130,9 +124,6 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
         [field]: value
       };
       onUpdate({ options: newOptions });
-
-      // 更新時はコンソールに表示
-      console.log(`ラジオオプションの${field}を更新:`, `${newOptions[index].value} -> ${value}`);
     };
 
     return (
@@ -140,41 +131,43 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
         {/* 共通レイアウト設定 */}
         <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
 
-        <Typography variant="body2" gutterBottom>基本設定</Typography>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>基本設定</Typography>
 
-        {/* ラベル設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>ラベル</Typography>
+          {/* ラベル設定 */}
           <TextField
             size="small"
             fullWidth
+            label="グループラベル"
             value={props.label}
             onChange={(e) => onUpdate({ label: e.target.value })}
+            sx={{ mb: 1.5 }}
           />
         </Box>
 
-        {/* オプション設定 */}
-          {/* 現在の選択値 */}
-          <Box>
-            <Typography variant="body2" gutterBottom>現在の選択</Typography>
-            <FormControl size="small" fullWidth sx={{ mb: 1.5 }}>
-              <Select
-                value={props.value || ''}
-                onChange={(e: SelectChangeEvent<string>) => onUpdate({ value: e.target.value })}
-              >
-                {props.options.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+        {/* 現在の選択値 */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>現在の選択</Typography>
+          <FormControl size="small" fullWidth>
+            <InputLabel>選択されている値</InputLabel>
+            <Select
+              value={props.value || ''}
+              label="選択されている値"
+              onChange={(e: SelectChangeEvent<string>) => onUpdate({ value: e.target.value })}
+            >
+              {props.options.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
 
-          {/* オプション設定 */}
-          <Box>
-            <Typography variant="body2" gutterBottom>オプション</Typography>
-            <Stack spacing={1}>
+        {/* オプション設定 */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>オプション設定</Typography>
+          <Stack spacing={1.5}>
             {props.options.map((option, index) => (
               <Box key={index} sx={{ display: 'flex', gap: 1 }}>
                 <TextField
@@ -212,55 +205,62 @@ const RadioGroupComponent: BaseComponent<RadioGroupProps> = {
         </Box>
 
         {/* レイアウト設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>レイアウト</Typography>
-          <Button
-            size="small"
-            variant="outlined"
-            fullWidth
-            onClick={() => onUpdate({ row: !props.row })}
-            color={props.row ? 'primary' : 'inherit'}
-          >
-            水平配置 {props.row ? 'ON' : 'OFF'}
-          </Button>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>レイアウト設定</Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={props.row}
+                onChange={(e) => onUpdate({ row: e.target.checked })}
+              />
+            }
+            label={<Typography variant="body2">水平配置</Typography>}
+          />
         </Box>
 
         {/* カラー設定 */}
-        <Box>
-          <Typography variant="body2" gutterBottom>カラー</Typography>
-          <ButtonGroup size="small" variant="outlined" fullWidth>
-            {(['primary', 'secondary', 'error'] as const).map((c) => (
-              <Button
-                key={c}
-                onClick={() => onUpdate({ color: c })}
-                color={props.color === c ? c : 'inherit'}
-              >
-                {c}
-              </Button>
-            ))}
-          </ButtonGroup>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>カラー設定</Typography>
+          <FormControl fullWidth size="small">
+            <InputLabel>カラー</InputLabel>
+            <Select
+              value={props.color ?? 'primary'}
+              label="カラー"
+              onChange={(e) => onUpdate({ color: e.target.value as 'primary' | 'secondary' | 'error' })}
+            >
+              <MenuItem value="primary">プライマリ</MenuItem>
+              <MenuItem value="secondary">セカンダリ</MenuItem>
+              <MenuItem value="error">エラー</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         {/* その他の設定 */}
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            size="small"
-            variant="outlined"
-            fullWidth
-            onClick={() => onUpdate({ disabled: !props.disabled })}
-            color={props.disabled ? 'primary' : 'inherit'}
-          >
-            無効化 {props.disabled ? 'ON' : 'OFF'}
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            fullWidth
-            onClick={() => onUpdate({ required: !props.required })}
-            color={props.required ? 'primary' : 'inherit'}
-          >
-            必須 {props.required ? 'ON' : 'OFF'}
-          </Button>
+        <Box>
+          <Typography variant="body2" gutterBottom>その他の設定</Typography>
+          <Stack spacing={1.5}>
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={props.disabled ?? false}
+                  onChange={(e) => onUpdate({ disabled: e.target.checked })}
+                />
+              }
+              label={<Typography variant="body2">入力を無効化</Typography>}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  size="small"
+                  checked={props.required ?? false}
+                  onChange={(e) => onUpdate({ required: e.target.checked })}
+                />
+              }
+              label={<Typography variant="body2">必須入力</Typography>}
+            />
+          </Stack>
         </Box>
       </Box>
     );

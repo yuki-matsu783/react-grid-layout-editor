@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   TextField,
@@ -67,17 +66,18 @@ const TextFieldComponent: BaseComponent<TextFieldProps> = {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* 共通レイアウト設定 */}
         <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
-        <Typography variant="body2" gutterBottom>基本設定</Typography>
+        
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" gutterBottom>基本設定</Typography>
 
-        {/* 基本設定 */}
-        <Box>
+          {/* 基本設定 */}
           <TextField
             size="small"
             fullWidth
             label="ラベル"
             value={props.label}
             onChange={(e) => onUpdate({ label: e.target.value })}
-            sx={{ mb: 1 }}
+            sx={{ mb: 1.5 }}
           />
           <TextField
             size="small"
@@ -89,9 +89,9 @@ const TextFieldComponent: BaseComponent<TextFieldProps> = {
         </Box>
 
         {/* スタイル設定 */}
-        <Box>
+        <Box sx={{ mb: 2 }}>
           <Typography variant="body2" gutterBottom>スタイル設定</Typography>
-          <FormControl size="small" fullWidth sx={{ mb: 1 }}>
+          <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
             <InputLabel>スタイル</InputLabel>
             <Select
               value={props.variant}
@@ -104,7 +104,7 @@ const TextFieldComponent: BaseComponent<TextFieldProps> = {
             </Select>
           </FormControl>
 
-          <FormControl size="small" fullWidth>
+          <FormControl fullWidth size="small">
             <InputLabel>入力タイプ</InputLabel>
             <Select
               value={props.type}
@@ -120,7 +120,7 @@ const TextFieldComponent: BaseComponent<TextFieldProps> = {
         </Box>
 
         {/* マルチライン設定 */}
-        <Box>
+        <Box sx={{ mb: 2 }}>
           <Typography variant="body2" gutterBottom>テキストエリア設定</Typography>
           <FormControlLabel
             control={
@@ -139,15 +139,17 @@ const TextFieldComponent: BaseComponent<TextFieldProps> = {
               type="number"
               label="行数"
               value={props.rows ?? 3}
+              inputProps={{ min: 1, max: 10, step: 1 }}
               onChange={(e) => onUpdate({ rows: parseInt(e.target.value, 10) })}
-              sx={{ mt: 1 }}
+              sx={{ mt: 1.5 }}
             />
           )}
         </Box>
 
         {/* その他の設定 */}
         <Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Typography variant="body2" gutterBottom>その他の設定</Typography>
+          <Box sx={{ display: 'flex', gap: 1.5 }}>
             <FormControlLabel
               control={
                 <Switch
