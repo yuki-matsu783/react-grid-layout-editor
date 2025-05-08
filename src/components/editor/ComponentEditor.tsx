@@ -377,7 +377,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
                 onClick={() => handleAddComponent('rowStack', 'row')}
                 startIcon={<AddBoxIcon />}
               >
-                RowStack
+                横スタック
               </Button>
               <Button
                 variant="outlined"
@@ -385,7 +385,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
                 onClick={() => handleAddComponent('colStack', 'col')}
                 startIcon={<AddBoxIcon />}
               >
-                ColStack
+                縦スタック
               </Button>
             </Box>
           </Box>
