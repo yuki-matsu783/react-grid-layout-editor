@@ -242,8 +242,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
             backgroundImage: `
-              repeating-linear-gradient(0deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px),
-              repeating-linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px)
+              repeating-linear-gradient(0deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 2.5rem),
+              repeating-linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 2.5rem)
             `,
           }}
         >
@@ -264,7 +264,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             minHeight: 'fit-content',
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
-            backgroundImage: 'repeating-linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px)',
+            backgroundImage: 'repeating-linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 2.5rem)',
           }}
         >
           {item.component.props.children.map(child => renderElement(child))}
@@ -284,7 +284,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             minWidth: 'fit-content',
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
-            backgroundImage: 'repeating-linear-gradient(0deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 40px)',
+            backgroundImage: 'repeating-linear-gradient(0deg, rgba(25, 118, 210, 0.08) 0px, rgba(25, 118, 210, 0.08) 1px, transparent 1px, transparent 2.5rem)',
           }}
         >
           {item.component.props.children.map(child => renderElement(child))}
