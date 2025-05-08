@@ -280,7 +280,26 @@ pnpm build
 
    これにより、エディタのツールバーに新しいコンポーネントを追加するボタンが表示され、クリック時にコンポーネントが追加されます。handleAddComponentはグリッドレイアウトにコンポーネントを配置するための内部関数です。
 
-6. **プロパティ更新ロジックの追加**
+6. **ComponentMapTypeの型定義の追加**
+   - `src/components/editor/ComponentEditor.tsx` にComponentMapTypeの型定義を追加します。
+   ```typescript
+   type ComponentMapType = {
+     // ...existing components...
+     newComponent: BaseComponent<NewComponentProps>;
+   };
+   ```
+
+7. **ソースコード生成ロジックの追加**
+   - `src/components/editor/logic/useSourceCodeGenerator.ts` にJSX生成ロジックを追加します。
+   ```typescript
+   case 'newComponent':
+     const newComponentProps = stringifyProps({
+       ...props
+     });
+     // コンポーネント固有のJSX生成ロジックを追加
+   ```
+
+8. **プロパティ更新ロジックの追加**
    - `src/hooks/useLayoutOperations.ts` に新しいコンポーネントのプロパティ更新ロジックを追加します。
    ```typescript
    case 'newComponent':
@@ -291,7 +310,7 @@ pnpm build
      break;
    ```
 
-7. **動作確認**
+9. **動作確認**
    - プロジェクトを起動し、エディタ画面で「XXXを追加」ボタンをクリック。
    - グリッドに `NewComponent` が追加され、設定パネルでプロパティを編集できることを確認します。
 
