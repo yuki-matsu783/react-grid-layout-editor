@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   Box, 
-  Typography as MUITypography, 
   Typography,
   FormControl, 
   InputLabel,
@@ -33,14 +32,14 @@ const TypographyComponent: BaseComponent<TypographyProps> = {
     } = props;
     
     return (
-      <MUITypography
+      <Typography
         variant={variant}
         color={color}
         align={align}
         gutterBottom={gutterBottom}
       >
         {text}
-      </MUITypography>
+      </Typography>
     );
   },
 
