@@ -499,7 +499,7 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
    */
   const getParentType = (item: GridItem): ParentType => {
     const parent = findParentItem(items, item.id);
-    if (!parent) return 'grid';
+    if (!parent) return 'root';  // 親がない場合はroot要素
     return ['rowStack', 'colStack'].includes(parent.component.type) ? 'stack' : 'grid';
   };
 

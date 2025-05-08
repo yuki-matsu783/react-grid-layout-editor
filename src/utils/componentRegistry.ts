@@ -117,11 +117,7 @@ const defaultButtonProps: ButtonProps = {
   variant: 'contained',
   color: 'primary',
   label: 'ボタン',
-  size: 'medium',
-  widthPercentage: 90,
-  heightPercentage: 90,
-  horizontalAlign: 'center',
-  verticalAlign: 'center',
+  size: 'medium'
 };
 
 componentRegistry.registerComponent('button', {
@@ -134,11 +130,7 @@ componentRegistry.registerComponent('button', {
 
 // デフォルトのグリッドレイアウトコンポーネントを登録
 const defaultGridLayoutProps: GridLayoutProps = {
-  children: [],
-  widthPercentage: 95,
-  heightPercentage: 95,
-  horizontalAlign: 'center',
-  verticalAlign: 'center'
+  children: []
 };
 
 componentRegistry.registerComponent('gridLayout', {
@@ -157,11 +149,7 @@ const defaultTextFieldProps: TextFieldProps = {
   type: 'text',
   multiline: false,
   disabled: false,
-  required: false,
-  widthPercentage: 90,
-  heightPercentage: 90,
-  horizontalAlign: 'center',
-  verticalAlign: 'center',
+  required: false
 };
 
 componentRegistry.registerComponent('textField', {
@@ -181,11 +169,7 @@ const defaultRadioGroupProps: RadioGroupProps = {
   ],
   value: 'option1',
   row: false,
-  color: 'primary',
-  widthPercentage: 90,
-  heightPercentage: 90,
-  horizontalAlign: 'center',
-  verticalAlign: 'center'
+  color: 'primary'
 };
 
 componentRegistry.registerComponent('radioGroup', {
@@ -198,11 +182,7 @@ componentRegistry.registerComponent('radioGroup', {
 
 // デフォルトのRowStackコンポーネントを登録
 const defaultRowStackProps: RowStackProps = {
-  children: [],
-  widthPercentage: 100,
-  heightPercentage: 100,
-  horizontalAlign: 'center',
-  verticalAlign: 'center'
+  children: []
 };
 
 componentRegistry.registerComponent('rowStack', {
@@ -215,11 +195,7 @@ componentRegistry.registerComponent('rowStack', {
 
 // デフォルトのColStackコンポーネントを登録
 const defaultColStackProps: ColStackProps = {
-  children: [],
-  widthPercentage: 100,
-  heightPercentage: 100,
-  horizontalAlign: 'center',
-  verticalAlign: 'center'
+  children: []
 };
 
 componentRegistry.registerComponent('colStack', {

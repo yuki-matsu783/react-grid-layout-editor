@@ -128,7 +128,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     // - horizontalAlign: 水平方向の配置（'start' | 'center' | 'end'）
     // - verticalAlign: 垂直方向の配置（'start' | 'center' | 'end'）
     // - widthPercentage/heightPercentage: 親要素に対するサイズ（%）
-    const { horizontalAlign, verticalAlign, widthPercentage, heightPercentage } = item.component.props;
+    const { horizontalAlign, verticalAlign, widthPercentage, heightPercentage, width, height } = item.component.props;
     const justifyContent = horizontalAlign === 'start' ? 'flex-start'
       : horizontalAlign === 'end' ? 'flex-end'
       : 'center';
@@ -142,6 +142,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       'data-grid': item.layout,
       className: "grid-item",
       sx: {
+        width: width ?? '100%',
+        height: height ?? '100%',
         position: 'relative',
         bgcolor: isEditTarget ? 'rgba(0, 0, 255, 0.05)' : '#ffffff',
         border: (theme: Theme) => {
@@ -204,13 +206,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       sx: {
         border: '0.5px dotted #e0e0e0',
         borderRadius: '4px',
-        ...(getParentType(item) === 'grid' ? {
-          width: `${widthPercentage}%`,
-          height: `${heightPercentage}%`,
-        } : {
-          width: item.component.props.width !== undefined ? item.component.props.width : 'auto',
-          height: item.component.props.height !== undefined ? item.component.props.height : 'auto',
-        }),
+        width: widthPercentage ? `${widthPercentage}%` : 'auto',
+        height: heightPercentage ? `${heightPercentage}%` : 'auto',
         padding: `${item.component.props.paddingPercentage ?? 0}%`,
         overflow: 'auto',
         display: 'flex',

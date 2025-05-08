@@ -37,19 +37,19 @@ export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'radioGroup'
  */
 export interface BaseLayoutProps {
   /** 幅の設定（親要素に対する割合 1-100%） */
-  widthPercentage: number;
+  widthPercentage?: number;
   /** 高さの設定（親要素に対する割合 1-100%） */
-  heightPercentage: number;
+  heightPercentage?: number;
   /** パディング設定（親要素に対する割合 0-100%） */
   paddingPercentage?: number;
   /** 水平方向の配置設定 */
-  horizontalAlign: ComponentAlignment;
+  horizontalAlign?: ComponentAlignment;
   /** 垂直方向の配置設定 */
-  verticalAlign: ComponentAlignment;
-  /** 幅（rem値またはauto） */
-  width?: string | number;
-  /** 高さ（rem値またはauto） */
-  height?: string | number;
+  verticalAlign?: ComponentAlignment;
+  /** 幅 ({数値}% or auto or {数値}rem) */
+  width?: string;
+  /** 高さ ({数値}% or auto or {数値}rem) */
+  height?: string;
 }
 
 /**
@@ -181,7 +181,13 @@ export interface GridItem {
 /**
  * コンポーネントの親要素のタイプを定義
  */
-export type ParentType = 'grid' | 'stack';
+/**
+ * コンポーネントの親要素のタイプを定義
+ * root: 最上位要素
+ * grid: gridLayout内の要素
+ * stack: stack内の要素
+ */
+export type ParentType = 'root' | 'grid' | 'stack';
 
 export interface BaseComponent<T = any> {
   /**

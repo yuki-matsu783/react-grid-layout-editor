@@ -18,12 +18,47 @@ import type { BaseLayoutProps, ComponentAlignment, ParentType } from '../../../t
  * 共通レイアウト設定のプロパティ
  * @property props - 現在の設定値を含むベースレイアウトプロパティ
  * @property onUpdate - 設定値が変更された時のコールバック関数
+ * @property parentType - 親要素のタイプ（grid または stack）
  */
 interface CommonLayoutSettingsProps {
   props: BaseLayoutProps;
   onUpdate: (newProps: Partial<BaseLayoutProps>) => void;
   parentType: ParentType;
 }
+
+/**
+ * 親タイプに基づいたデフォルト値を取得
+ * root: width/height = 100%, percentage = 100%　　(エディタ全体のサイズをベース)
+ * grid: width/height = 100%, percentage = 90%　　(グリッドの大きさをベースにしている)
+ * stack: width/height = auto, percentage = 100%　(含まれる要素の大きさをベースにしている)
+ */
+const getDefaultProps = (parentType: ParentType): Partial<BaseLayoutProps> => {
+  if (parentType === 'root') {
+    return {
+      width: '100%',
+      height: '100%',
+      widthPercentage: 100,
+      heightPercentage: 100
+    };
+  }
+  
+  if (parentType === 'grid') {
+    return {
+      width: '100%',
+      height: '100%',
+      widthPercentage: 90,
+      heightPercentage: 90
+    };
+  }
+  
+  // stack
+  return {
+    width: 'auto',
+    height: 'auto',
+    widthPercentage: 100,
+    heightPercentage: 100
+  };
+};
 
 /**
  * 共通のレイアウト設定UIコンポーネント
@@ -38,55 +73,43 @@ interface CommonLayoutSettingsProps {
  * @param onUpdate - 設定値が更新された時のコールバック
  */
 export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ props, onUpdate, parentType }) => {
+  const defaults = getDefaultProps(parentType);
+
   // ローカルの状態を追加して値の変更をトラッキング
   const [widthValue, setWidthValue] = React.useState<string>(
-    props.width !== undefined ? props.width.toString() : 'auto'
+    props.width ?? defaults.width as string
   );
   const [heightValue, setHeightValue] = React.useState<string>(
-    props.height !== undefined ? props.height.toString() : 'auto'
+    props.height ?? defaults.height as string
   );
 
-  // 親プロパティが変化したらローカル状態を更新
+  // 親プロパティまたは親タイプが変化したらローカル状態を更新
   React.useEffect(() => {
-    setWidthValue(props.width !== undefined ? props.width.toString() : 'auto');
-    setHeightValue(props.height !== undefined ? props.height.toString() : 'auto');
-  }, [props.width, props.height]);
+    const defaults = getDefaultProps(parentType);
+    setWidthValue(props.width ?? defaults.width as string);
+    setHeightValue(props.height ?? defaults.height as string);
+  }, [props.width, props.height, parentType]);
 
-  // サイズ設定を処理する関数
-  const handleSizeChange = (
-    type: 'width' | 'height',
-    value: string
-  ) => {
-    const prop = type === 'width' ? 'width' : 'height';
-    
-    console.log(`Updating ${prop} to:`, value);
-    
-    // ローカル状態を更新
-    if (type === 'width') {
-      setWidthValue(value);
-    } else {
-      setHeightValue(value);
-    }
-    
-    // 空またはautoの場合は'auto'に設定
-    if (!value || value === 'auto') {
-      onUpdate({ [prop]: 'auto' });
-      return;
-    }
-    
-    // 数値の場合はrem単位として処理
-    // 数値だけ入力された場合は、自動的にrem単位を付与
-    if (/^\d*\.?\d+$/.test(value)) {
-      const remValue = `${value}rem`;
-      onUpdate({ [prop]: remValue });
-      return;
-    }
-    
-    // すでに単位がついている場合（rem, px, em, %など）はそのまま渡す
-    if (/^\d*\.?\d+(rem|px|em|%|vh|vw)$/.test(value)) {
-      onUpdate({ [prop]: value });
-    }
+  // プロパティが未設定の場合のデフォルト値
+  const defaultBaseProps = {
+    widthPercentage: 100,
+    heightPercentage: 100,
+    horizontalAlign: 'center' as const,
+    verticalAlign: 'center' as const
   };
+
+  // コンポーネントのマウント時と親タイプの変更時に適切なデフォルト値を設定
+  React.useEffect(() => {
+    const updates: Partial<BaseLayoutProps> = {};
+    if (props.widthPercentage === undefined) updates.widthPercentage = defaultBaseProps.widthPercentage;
+    if (props.heightPercentage === undefined) updates.heightPercentage = defaultBaseProps.heightPercentage;
+    if (props.horizontalAlign === undefined) updates.horizontalAlign = defaultBaseProps.horizontalAlign;
+    if (props.verticalAlign === undefined) updates.verticalAlign = defaultBaseProps.verticalAlign;
+
+    if (Object.keys(updates).length > 0) {
+      onUpdate(updates);
+    }
+  }, []);
 
   // アコーディオンの展開状態を管理
   const [absoluteExpanded, setAbsoluteExpanded] = React.useState(false);
@@ -107,7 +130,7 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
         <AccordionDetails>
           <Box sx={{ px: 1 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              幅（rem または "auto"）
+              幅(rem または "auto")
             </Typography>
             <TextField
               value={widthValue}
@@ -130,12 +153,12 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               size="small"
               fullWidth
               placeholder="auto"
-              helperText="「auto」または数値（単位: rem）を入力"
+              disabled={parentType === 'root' || parentType === 'grid'}
             />
           </Box>
           <Box sx={{ px: 1, mt: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
-              高さ（rem または "auto"）
+              高さ(rem または "auto")
             </Typography>
             <TextField
               value={heightValue}
@@ -158,7 +181,7 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               size="small"
               fullWidth
               placeholder="auto"
-              helperText="「auto」または数値（単位: rem）を入力"
+              disabled={parentType === 'root' || parentType === 'grid'}
             />
           </Box>
         </AccordionDetails>
@@ -176,32 +199,32 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
         </AccordionSummary>
         <AccordionDetails>
           {/* 相対サイズ設定 */}
-          <Box sx={{ px: 1, mb: 3 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              幅 ({props.widthPercentage}%)
-            </Typography>
-            <Slider
-              value={props.widthPercentage}
-              min={1}
-              max={100}
-              onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
-              valueLabelDisplay="auto"
-              size="small"
-            />
-          </Box>
-          <Box sx={{ px: 1, mb: 3 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              高さ ({props.heightPercentage}%)
-            </Typography>
-            <Slider
-              value={props.heightPercentage}
-              min={1}
-              max={100}
-              onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
-              valueLabelDisplay="auto"
-              size="small"
-            />
-          </Box>
+      <Box sx={{ px: 1, mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          幅 ({props.widthPercentage ?? getDefaultProps(parentType).widthPercentage}%)
+        </Typography>
+        <Slider
+          value={props.widthPercentage ?? defaultBaseProps.widthPercentage}
+          min={1}
+          max={100}
+          onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
+          valueLabelDisplay="auto"
+          size="small"
+        />
+      </Box>
+      <Box sx={{ px: 1, mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          高さ ({props.heightPercentage ?? getDefaultProps(parentType).heightPercentage}%)
+        </Typography>
+        <Slider
+          value={props.heightPercentage ?? defaultBaseProps.heightPercentage}
+          min={1}
+          max={100}
+          onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
+          valueLabelDisplay="auto"
+          size="small"
+        />
+      </Box>
 
           {/* パディング設定 */}
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>パディング設定</Typography>
@@ -227,7 +250,7 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               水平方向の配置
             </Typography>
             <ToggleButtonGroup
-              value={props.horizontalAlign}
+              value={props.horizontalAlign ?? defaultBaseProps.horizontalAlign}
               exclusive
               onChange={(_, value) => value && onUpdate({ horizontalAlign: value as ComponentAlignment })}
               fullWidth
@@ -243,7 +266,7 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               垂直方向の配置
             </Typography>
             <ToggleButtonGroup
-              value={props.verticalAlign}
+              value={props.verticalAlign ?? defaultBaseProps.verticalAlign}
               exclusive
               onChange={(_, value) => value && onUpdate({ verticalAlign: value as ComponentAlignment })}
               fullWidth
