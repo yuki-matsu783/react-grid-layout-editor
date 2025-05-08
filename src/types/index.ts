@@ -30,7 +30,7 @@ export type ComponentAlignment = 'start' | 'center' | 'end';
 /**
  * 利用可能なコンポーネントタイプを定義
  */
-export type ComponentType = 'button' | 'gridLayout' | 'textField' | 'radioGroup' | 'rowStack' | 'colStack';
+export type ComponentType = 'gridLayout' | 'rowStack' | 'colStack' | 'button' | 'textField' | 'radioGroup' ;
 
 /**
  * コンポーネントの基本レイアウトプロパティを定義
@@ -176,7 +176,7 @@ export type ComponentConfig =
   | { type: 'radioGroup'; props: RadioGroupProps }
   | { type: 'gridLayout'; props: GridLayoutProps }
   | { type: 'rowStack'; props: RowStackProps }
-  | { type: 'colStack'; props: ColStackProps };
+  | { type: 'colStack'; props: ColStackProps }
 
 /**
  * グリッドアイテムの構造を定義
@@ -239,6 +239,8 @@ export type ComponentProps<T extends ComponentConfig> =
   ? RowStackProps
   : T extends { type: 'colStack' }
   ? ColStackProps
+  : T extends { type: 'transferList' }
+  ? TransferListProps
   : never;
 
 /**
