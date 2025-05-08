@@ -337,8 +337,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
       
       // Stack内のコンポーネントの場合、初期設定を追加
       if (parentType === 'stack') {
-        newItem.component.props.stackWidth = 'auto';
-        newItem.component.props.stackHeight = 'auto';
+        newItem.component.props.width = 'auto';
+        newItem.component.props.height = 'auto';
       }
     }
 
@@ -613,8 +613,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           width: `${widthPercentage}%`,
           height: `${heightPercentage}%`,
         } : {
-          width: item.component.props.stackWidth !== undefined ? item.component.props.stackWidth : 'auto',
-          height: item.component.props.stackHeight !== undefined ? item.component.props.stackHeight : 'auto',
+          width: item.component.props.width !== undefined ? item.component.props.width : 'auto',
+          height: item.component.props.height !== undefined ? item.component.props.height : 'auto',
         }),
         padding: `${item.component.props.paddingPercentage ?? 0}%`,
         overflow: 'auto',

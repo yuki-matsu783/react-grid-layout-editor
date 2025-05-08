@@ -46,10 +46,10 @@ export interface BaseLayoutProps {
   horizontalAlign: ComponentAlignment;
   /** 垂直方向の配置設定 */
   verticalAlign: ComponentAlignment;
-  /** Stack内での幅（ピクセル値またはauto） */
-  stackWidth?: string | number;
-  /** Stack内での高さ（ピクセル値またはauto） */
-  stackHeight?: string | number;
+  /** 幅（rem値またはauto） */
+  width?: string | number;
+  /** 高さ（rem値またはauto） */
+  height?: string | number;
 }
 
 /**

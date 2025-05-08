@@ -36,33 +36,33 @@ interface CommonLayoutSettingsProps {
  */
 export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ props, onUpdate, parentType }) => {
   // ローカルの状態を追加して値の変更をトラッキング
-  const [stackWidthValue, setStackWidthValue] = React.useState<string>(
-    props.stackWidth !== undefined ? props.stackWidth.toString() : 'auto'
+  const [widthValue, setWidthValue] = React.useState<string>(
+    props.width !== undefined ? props.width.toString() : 'auto'
   );
-  const [stackHeightValue, setStackHeightValue] = React.useState<string>(
-    props.stackHeight !== undefined ? props.stackHeight.toString() : 'auto'
+  const [heightValue, setHeightValue] = React.useState<string>(
+    props.height !== undefined ? props.height.toString() : 'auto'
   );
 
   // 親プロパティが変化したらローカル状態を更新
   React.useEffect(() => {
-    setStackWidthValue(props.stackWidth !== undefined ? props.stackWidth.toString() : 'auto');
-    setStackHeightValue(props.stackHeight !== undefined ? props.stackHeight.toString() : 'auto');
-  }, [props.stackWidth, props.stackHeight]);
+    setWidthValue(props.width !== undefined ? props.width.toString() : 'auto');
+    setHeightValue(props.height !== undefined ? props.height.toString() : 'auto');
+  }, [props.width, props.height]);
 
-  // Stack内のサイズ設定を処理する関数
-  const handleStackSizeChange = (
+  // サイズ設定を処理する関数
+  const handleSizeChange = (
     type: 'width' | 'height',
     value: string
   ) => {
-    const prop = type === 'width' ? 'stackWidth' : 'stackHeight';
+    const prop = type === 'width' ? 'width' : 'height';
     
     console.log(`Updating ${prop} to:`, value);
     
     // ローカル状態を更新
     if (type === 'width') {
-      setStackWidthValue(value);
+      setWidthValue(value);
     } else {
-      setStackHeightValue(value);
+      setHeightValue(value);
     }
     
     // 空またはautoの場合は'auto'に設定
@@ -87,110 +87,104 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
 
   return (
     <Stack spacing={2}>
-      {/* サイズ設定セクション */}
+      {/* 絶対サイズ設定 */}
       <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
         <Box>
-          {/* セクションタイトル */}
-          <Typography variant="subtitle2" gutterBottom>サイズ設定</Typography>
-          {parentType === 'grid' ? (
-            <>
-              {/* 幅設定スライダー */}
-              <Box sx={{ px: 1 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  幅 ({props.widthPercentage}%)
-                </Typography>
-                <Slider
-                  value={props.widthPercentage}
-                  min={1}
-                  max={100}
-                  onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
-                  valueLabelDisplay="auto"
-                  size="small"
-                />
-              </Box>
-              {/* 高さ設定スライダー */}
-              <Box sx={{ px: 1, mt: 2 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  高さ ({props.heightPercentage}%)
-                </Typography>
-                <Slider
-                  value={props.heightPercentage}
-                  min={1}
-                  max={100}
-                  onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
-                  valueLabelDisplay="auto"
-                  size="small"
-                />
-              </Box>
-            </>
-          ) : (
-            <>
-              {/* Stack用のサイズ設定（rem単位またはauto） */}
-              <Box sx={{ px: 1 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  幅（rem または "auto"）
-                </Typography>
-                <TextField
-                  value={stackWidthValue}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    console.log('前: stackWidth =', props.stackWidth);
-                    handleStackSizeChange('width', e.target.value);
-                    // 遅延してログを出力して値の変更を確認
-                    setTimeout(() => {
-                      console.log('後: stackWidth =', props.stackWidth);
-                    }, 100);
-                  }}
-                  size="small"
-                  fullWidth
-                  placeholder="auto"
-                  helperText="「auto」または数値（単位: rem）を入力"
-                />
-              </Box>
-              {/* 高さ設定 */}
-              <Box sx={{ px: 1, mt: 2 }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  高さ（rem または "auto"）
-                </Typography>
-                <TextField
-                  value={stackHeightValue}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    console.log('前: stackHeight =', props.stackHeight);
-                    handleStackSizeChange('height', e.target.value);
-                    // 遅延してログを出力して値の変更を確認
-                    setTimeout(() => {
-                      console.log('後: stackHeight =', props.stackHeight);
-                    }, 100);
-                  }}
-                  size="small"
-                  fullWidth
-                  placeholder="auto"
-                  helperText="「auto」または数値（単位: rem）を入力"
-                />
-              </Box>
-              
-              {/* 従来のパーセンテージの幅高さも保持（内部用） */}
-              <Box sx={{ px: 1, mt: 2, display: 'none' }}>
-                <TextField
-                  type="hidden"
-                  value={props.widthPercentage}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const value = Math.max(1, parseInt(e.target.value) || 1);
-                    onUpdate({ widthPercentage: value });
-                  }}
-                />
-                <TextField
-                  type="hidden"
-                  value={props.heightPercentage}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const value = Math.max(1, parseInt(e.target.value) || 1);
-                    onUpdate({ heightPercentage: value });
-                  }}
-                />
-              </Box>
-            </>
-          )}
-          {/* パディング設定スライダー */}
+          <Typography variant="subtitle2" gutterBottom>絶対サイズ設定</Typography>
+          <Box sx={{ px: 1 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              幅（rem または "auto"）
+            </Typography>
+            <TextField
+              value={widthValue}
+              onChange={(e) => setWidthValue(e.target.value)}
+              onFocus={() => {
+                if (widthValue === 'auto') {
+                  setWidthValue('');
+                }
+              }}
+              onBlur={() => {
+                if (!widthValue || widthValue === '') {
+                  setWidthValue('auto');
+                  onUpdate({ width: 'auto' });
+                } else if (/^\d*\.?\d+$/.test(widthValue)) {
+                  const withUnit = `${widthValue}rem`;
+                  setWidthValue(withUnit);
+                  onUpdate({ width: withUnit });
+                }
+              }}
+              size="small"
+              fullWidth
+              placeholder="auto"
+              helperText="「auto」または数値（単位: rem）を入力"
+            />
+          </Box>
           <Box sx={{ px: 1, mt: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              高さ（rem または "auto"）
+            </Typography>
+            <TextField
+              value={heightValue}
+              onChange={(e) => setHeightValue(e.target.value)}
+              onFocus={() => {
+                if (heightValue === 'auto') {
+                  setHeightValue('');
+                }
+              }}
+              onBlur={() => {
+                if (!heightValue || heightValue === '') {
+                  setHeightValue('auto');
+                  onUpdate({ height: 'auto' });
+                } else if (/^\d*\.?\d+$/.test(heightValue)) {
+                  const withUnit = `${heightValue}rem`;
+                  setHeightValue(withUnit);
+                  onUpdate({ height: withUnit });
+                }
+              }}
+              size="small"
+              fullWidth
+              placeholder="auto"
+              helperText="「auto」または数値（単位: rem）を入力"
+            />
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* 相対サイズ・パディング・配置設定 */}
+      <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
+        <Box>
+          {/* 相対サイズ設定 */}
+          <Typography variant="subtitle2" gutterBottom>相対サイズ設定</Typography>
+          <Box sx={{ px: 1, mb: 3 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              幅 ({props.widthPercentage}%)
+            </Typography>
+            <Slider
+              value={props.widthPercentage}
+              min={1}
+              max={100}
+              onChange={(_, value) => onUpdate({ widthPercentage: value as number })}
+              valueLabelDisplay="auto"
+              size="small"
+            />
+          </Box>
+          <Box sx={{ px: 1, mb: 3 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              高さ ({props.heightPercentage}%)
+            </Typography>
+            <Slider
+              value={props.heightPercentage}
+              min={1}
+              max={100}
+              onChange={(_, value) => onUpdate({ heightPercentage: value as number })}
+              valueLabelDisplay="auto"
+              size="small"
+            />
+          </Box>
+
+          {/* パディング設定 */}
+          <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>パディング設定</Typography>
+          <Box sx={{ px: 1, mb: 3 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               パディング ({props.paddingPercentage ?? 0}%)
             </Typography>
@@ -204,15 +198,9 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               size="small"
             />
           </Box>
-        </Box>
-      </Paper>
 
-      {/* 配置設定セクション */}
-      <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-        <Box>
-          {/* セクションタイトル */}
-          <Typography variant="subtitle2" gutterBottom>配置設定</Typography>
-          {/* 水平方向の配置設定 */}
+          {/* 配置設定 */}
+          <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>配置設定</Typography>
           <Box sx={{ px: 1 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               水平方向の配置
@@ -229,8 +217,6 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
               <ToggleButton value="end">右</ToggleButton>
             </ToggleButtonGroup>
           </Box>
-
-          {/* 垂直方向の配置設定 */}
           <Box sx={{ px: 1, mt: 2 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>
               垂直方向の配置
