@@ -371,15 +371,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
                 onClick={handleAddGridLayout}
                 startIcon={<AddBoxIcon />}
               >
-                グリッドレイアウト
-              </Button>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={() => handleAddComponent('rowStack', 'row')}
-                startIcon={<AddBoxIcon />}
-              >
-                横スタック
+                グリッド
               </Button>
               <Button
                 variant="outlined"
@@ -388,6 +380,14 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
                 startIcon={<AddBoxIcon />}
               >
                 縦スタック
+              </Button>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => handleAddComponent('rowStack', 'row')}
+                startIcon={<AddBoxIcon />}
+              >
+                横スタック
               </Button>
             </Box>
           </Box>

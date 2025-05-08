@@ -19,7 +19,7 @@ body {
 
 /* react-grid-layoutのスタイル調整 */
 .react-grid-item.react-grid-placeholder {
-  background: #1976d2 !important;
+  background: #0D418C !important;
   opacity: 0.2;
   border-radius: 4px;
   transition-duration: 100ms;
@@ -69,7 +69,7 @@ body {
 /* スクロールバーのカスタマイズ */
 * {
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* Firefox */
+  scrollbar-color: rgba(13, 65, 140, 0.2) transparent; /* Firefox */
   -ms-overflow-style: -ms-autohiding-scrollbar; /* IE and Edge */
 }
 
@@ -84,11 +84,11 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(13, 65, 140, 0.2);
   border-radius: 3px;
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(13, 65, 140, 0.3);
 }
