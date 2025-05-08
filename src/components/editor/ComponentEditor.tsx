@@ -8,6 +8,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import EditOffIcon from '@mui/icons-material/EditOff';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import CodeIcon from '@mui/icons-material/Code';
 import type { 
   GridItem, 
   ComponentEditorProps,
@@ -18,6 +19,7 @@ import TextFieldComponent from './TextFieldComponent';
 import RadioGroupComponent from './RadioGroupComponent';
 import GridLayout from './layout/GridLayout';
 import { useComponentEditor } from "./hooks/useComponentEditor";
+import { useSourceCodeGenerator } from "./logic/useSourceCodeGenerator";
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -77,6 +79,23 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     hasChildren,
     isItemInEditTarget,
   } = useComponentEditor(cols, rowHeight, margin);
+
+  const { generateSourceCode } = useSourceCodeGenerator();
+
+  /**
+   * ソースコードを生成してダウンロードする
+   */
+  const handleGenerateCode = () => {
+    const sourceCode = generateSourceCode(items);
+    const element = document.createElement("a");
+    const file = new Blob([sourceCode], { type: "text/javascript" });
+    element.href = URL.createObjectURL(file);
+    element.download = "GeneratedComponent.tsx";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    URL.revokeObjectURL(element.href);
+  };
 
   /**
    * グリッドアイテムをレンダリングする
@@ -456,6 +475,13 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
               startIcon={<FileDownloadIcon />}
             >
               エクスポート
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleGenerateCode}
+              startIcon={<CodeIcon />}
+            >
+              ソースコード生成(実験中)
             </Button>
             <input
               type="file"
