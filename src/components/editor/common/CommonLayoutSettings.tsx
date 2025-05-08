@@ -4,21 +4,26 @@ import {
   Typography,
   Slider,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Stack,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import type { BaseLayoutProps, ComponentAlignment, ParentType } from '../../../types';
+import type { BaseLayoutProps, ComponentAlignment, ParentType, StackBaseProps } from '../../../types';
 
 /**
  * 共通レイアウト設定のプロパティ
  * @property props - 現在の設定値を含むベースレイアウトプロパティ
  * @property onUpdate - 設定値が変更された時のコールバック関数
  * @property parentType - 親要素のタイプ（grid または stack）
+ * @property isStack - Stackコンポーネントかどうか
  */
 interface CommonLayoutSettingsProps {
   props: BaseLayoutProps;
@@ -114,6 +119,7 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
   // アコーディオンの展開状態を管理
   const [absoluteExpanded, setAbsoluteExpanded] = React.useState(false);
   const [relativeExpanded, setRelativeExpanded] = React.useState(false);
+
 
   return (
     <Stack spacing={1}>
@@ -245,37 +251,33 @@ export const CommonLayoutSettings: React.FC<CommonLayoutSettingsProps> = ({ prop
 
           {/* 配置設定 */}
           <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>配置設定</Typography>
-          <Box sx={{ px: 1 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              水平方向の配置
-            </Typography>
-            <ToggleButtonGroup
-              value={props.horizontalAlign ?? defaultBaseProps.horizontalAlign}
-              exclusive
-              onChange={(_, value) => value && onUpdate({ horizontalAlign: value as ComponentAlignment })}
-              fullWidth
-              size="small"
-            >
-              <ToggleButton value="start">左</ToggleButton>
-              <ToggleButton value="center">中央</ToggleButton>
-              <ToggleButton value="end">右</ToggleButton>
-            </ToggleButtonGroup>
+          <Box sx={{ px: 1, mb: 2 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>水平方向の配置</InputLabel>
+              <Select
+                value={props.horizontalAlign ?? defaultBaseProps.horizontalAlign}
+                onChange={(e) => onUpdate({ horizontalAlign: e.target.value as ComponentAlignment })}
+                label="水平方向の配置"
+              >
+                <MenuItem value="start">左</MenuItem>
+                <MenuItem value="center">中央</MenuItem>
+                <MenuItem value="end">右</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
-          <Box sx={{ px: 1, mt: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              垂直方向の配置
-            </Typography>
-            <ToggleButtonGroup
-              value={props.verticalAlign ?? defaultBaseProps.verticalAlign}
-              exclusive
-              onChange={(_, value) => value && onUpdate({ verticalAlign: value as ComponentAlignment })}
-              fullWidth
-              size="small"
-            >
-              <ToggleButton value="start">上</ToggleButton>
-              <ToggleButton value="center">中央</ToggleButton>
-              <ToggleButton value="end">下</ToggleButton>
-            </ToggleButtonGroup>
+          <Box sx={{ px: 1 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>垂直方向の配置</InputLabel>
+              <Select
+                value={props.verticalAlign ?? defaultBaseProps.verticalAlign}
+                onChange={(e) => onUpdate({ verticalAlign: e.target.value as ComponentAlignment })}
+                label="垂直方向の配置"
+              >
+                <MenuItem value="start">上</MenuItem>
+                <MenuItem value="center">中央</MenuItem>
+                <MenuItem value="end">下</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
         </AccordionDetails>
       </Accordion>

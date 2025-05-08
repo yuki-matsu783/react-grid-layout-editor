@@ -1,6 +1,8 @@
 import React from 'react';
 import type { BaseComponent, RowStackProps, ParentType } from '../../types';
 import { CommonLayoutSettings } from './common/CommonLayoutSettings';
+import { StackSettings } from './common/StackSettings';
+import { Stack } from '@mui/material';
 
 /**
  * RowStackコンポーネント
@@ -14,7 +16,10 @@ const RowStackComponent: BaseComponent<RowStackProps> = {
 
   renderSettings: (props: RowStackProps, onUpdate: (newProps: Partial<RowStackProps>) => void, parentType: ParentType) => {
     return (
-      <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
+      <Stack spacing={1}>
+        <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
+        <StackSettings props={props} onUpdate={onUpdate} />
+      </Stack>
     );
   }
 };

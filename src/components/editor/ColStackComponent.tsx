@@ -1,6 +1,8 @@
 import React from 'react';
 import type { BaseComponent, ColStackProps, ParentType } from '../../types';
 import { CommonLayoutSettings } from './common/CommonLayoutSettings';
+import { StackSettings } from './common/StackSettings';
+import { Stack } from '@mui/material';
 
 /**
  * ColStackコンポーネント
@@ -14,7 +16,10 @@ const ColStackComponent: BaseComponent<ColStackProps> = {
 
   renderSettings: (props: ColStackProps, onUpdate: (newProps: Partial<ColStackProps>) => void, parentType: ParentType) => {
     return (
-      <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
+      <Stack spacing={1}>
+        <CommonLayoutSettings props={props} onUpdate={onUpdate} parentType={parentType} />
+        <StackSettings props={props} onUpdate={onUpdate} />
+      </Stack>
     );
   }
 };

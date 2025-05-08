@@ -133,9 +133,23 @@ export interface RadioGroupProps extends BaseLayoutProps {
 }
 
 /**
+ * Stackコンポーネントの共通プロパティを定義
+ */
+export interface StackBaseProps extends BaseLayoutProps {
+  /** アイテム間のスペース (rem単位) */
+  spacing?: number;
+  /** アイテムの配置方法 */
+  alignItems?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
+  /** 主軸方向のアイテム配置 */
+  justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
+  /** アイテムの折り返し設定 */
+  wrap?: 'nowrap' | 'wrap';
+}
+
+/**
  * RowStackコンポーネントのプロパティを定義
  */
-export interface RowStackProps extends BaseLayoutProps {
+export interface RowStackProps extends StackBaseProps {
   /** RowStack内の子アイテム */
   children: GridItem[];
 }
@@ -143,7 +157,7 @@ export interface RowStackProps extends BaseLayoutProps {
 /**
  * ColStackコンポーネントのプロパティを定義
  */
-export interface ColStackProps extends BaseLayoutProps {
+export interface ColStackProps extends StackBaseProps {
   /** ColStack内の子アイテム */
   children: GridItem[];
 }
@@ -160,7 +174,9 @@ export type ComponentConfig =
   | { type: 'button'; props: ButtonProps }
   | { type: 'textField'; props: TextFieldProps }
   | { type: 'radioGroup'; props: RadioGroupProps }
-  | { type: LayoutComponentType; props: HasChildrenProps & BaseLayoutProps };
+  | { type: 'gridLayout'; props: GridLayoutProps }
+  | { type: 'rowStack'; props: RowStackProps }
+  | { type: 'colStack'; props: ColStackProps };
 
 /**
  * グリッドアイテムの構造を定義

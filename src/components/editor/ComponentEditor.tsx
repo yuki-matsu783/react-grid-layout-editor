@@ -12,7 +12,8 @@ import CodeIcon from '@mui/icons-material/Code';
 import type { 
   GridItem, 
   ComponentEditorProps,
-   } from '../../types';
+  StackBaseProps,
+} from '../../types';
 import ComponentSettingsPanel from './ComponentSettingsPanel';
 import ButtonComponent from './ButtonComponent';
 import TextFieldComponent from './TextFieldComponent';
@@ -248,16 +249,18 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         </GridLayout>
       );
     } else if (item.component.type === 'rowStack') {
+      const stackProps = item.component.props as StackBaseProps;
       content = (
         <Stack
           direction="row"
-          spacing={0}
+          spacing={stackProps.spacing ?? 1}
           sx={{
             height: '100%',
             width: '100%',
             overflow: 'auto',
-            justifyContent: 'center',
-            alignItems: 'center',
+            justifyContent: stackProps.justifyContent ?? 'flex-start',
+            alignItems: stackProps.alignItems ?? 'center',
+            flexWrap: stackProps.wrap ?? 'nowrap',
             minHeight: 'fit-content',
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
@@ -268,16 +271,18 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         </Stack>
       );
     } else if (item.component.type === 'colStack') {
+      const stackProps = item.component.props as StackBaseProps;
       content = (
         <Stack
           direction="column"
-          spacing={0}
+          spacing={stackProps.spacing ?? 1}
           sx={{
             width: '100%',
             height: '100%',
             overflow: 'auto',
-            justifyContent: 'center',
-            alignItems: 'center',
+            justifyContent: stackProps.justifyContent ?? 'flex-start',
+            alignItems: stackProps.alignItems ?? 'center',
+            flexWrap: stackProps.wrap ?? 'nowrap',
             minWidth: 'fit-content',
             border: '1px solid #e0e0e0',
             borderRadius: '4px',
