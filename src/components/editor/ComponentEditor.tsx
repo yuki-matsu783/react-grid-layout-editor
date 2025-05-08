@@ -22,6 +22,8 @@ import TypographyComponent from './TypographyComponent';
 import GridLayout from './layout/GridLayout';
 import { useComponentEditor } from "./hooks/useComponentEditor";
 import { useSourceCodeGenerator } from "./logic/useSourceCodeGenerator";
+import { getDefaultGridItems } from "../../store/atoms";
+import ViewComfyIcon from '@mui/icons-material/ViewComfy';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -61,6 +63,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     
     // アクション
     setSelectedItemId,
+    setEditTargetId,
+    setItems,
     
     // メソッド
     handleLayoutChange,
@@ -84,6 +88,16 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   } = useComponentEditor(cols, rowHeight, margin);
 
   const { generateSourceCode } = useSourceCodeGenerator();
+
+  /**
+   * サンプルレイアウトを表示する
+   * デフォルトで用意されているグリッドアイテムを読み込んで表示する
+   */
+  const handleShowSampleLayout = () => {
+    setSelectedItemId(null);
+    setEditTargetId(null);
+    setItems(getDefaultGridItems());
+  };
 
   /**
    * ソースコードを生成してダウンロードする
@@ -494,6 +508,13 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
               startIcon={<CodeIcon />}
             >
               ソースコード生成(実験中)
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleShowSampleLayout}
+              startIcon={<ViewComfyIcon/>}
+            >
+              サンプルレイアウト
             </Button>
             <input
               type="file"

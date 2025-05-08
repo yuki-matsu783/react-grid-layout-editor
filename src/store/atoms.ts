@@ -18,7 +18,12 @@ export const selectedItemIdAtom = atom<string | null>(null);
  * アプリケーション起動時に呼び出され、指定されたレイアウトを生成する
  * @returns 初期化されたグリッドアイテムの配列
  */
-export const initializeGridItems = (): GridItem[] => [
+/**
+ * デフォルトのグリッドアイテムを返す関数
+ * サンプルレイアウトとして使用される
+ * @returns デフォルトのグリッドアイテムの配列
+ */
+export const getDefaultGridItems = (): GridItem[] => [
   {
     id: "grid_initial",
     layout: {
@@ -80,3 +85,10 @@ export const initializeGridItems = (): GridItem[] => [
     }
   }
 ];
+
+/**
+ * 初期グリッドアイテムを生成する関数
+ * アプリケーション起動時に呼び出され、空のレイアウトを返す
+ * @returns 空のグリッドアイテムの配列
+ */
+export const initializeGridItems = (): GridItem[] => [];

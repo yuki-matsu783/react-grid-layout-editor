@@ -534,6 +534,8 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
     
     // アクション
     setSelectedItemId,
+    setEditTargetId,
+    setItems,
     
     // メソッド
     handleLayoutChange,
