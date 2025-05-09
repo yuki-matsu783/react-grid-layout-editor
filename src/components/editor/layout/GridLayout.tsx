@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { WidthProvider, Responsive } from "react-grid-layout";
+import { useAtom } from 'jotai';
+import { layersAtom } from '../../../store/atoms';
 import type { Layout } from '../../../types';
 import type { SxProps, Theme } from '@mui/material';
 
@@ -28,6 +30,8 @@ interface GridLayoutProps {
   itemId?: string;
   /** スタイルプロパティ */
   sx?: SxProps<Theme>;
+  /** レイヤーID */
+  layerId?: string;
 }
 
 /**
@@ -43,12 +47,19 @@ const GridLayout: React.FC<GridLayoutProps> = ({
   isDraggable,
   isResizable,
   onLayoutChange,
+  layerId,
   sx,
   ...rest
 }) => {
   // コンテナの高さを状態として保持
   const [height, setHeight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [layers] = useAtom(layersAtom);
+
+  // レイヤーの透明度を取得
+  const opacity = layerId
+    ? layers.find(layer => layer.id === layerId)?.opacity ?? 1
+    : 1;
 
   /**
    * 高さの測定と更新
@@ -105,6 +116,7 @@ const GridLayout: React.FC<GridLayoutProps> = ({
         width: '100%',
         height: '100%',
         position: 'relative',
+        opacity,
         ...(sx || {})
       }}
     >

@@ -1,7 +1,9 @@
 import React from "react";
 import { WidthProvider, Responsive } from "react-grid-layout";
-import { Box, Button, Stack, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography, Divider } from '@mui/material';
 import type { Theme } from '@mui/material';
+import { useAtom } from 'jotai';
+import { layersAtom, activeLayerIdAtom } from '../../store/atoms';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import EditIcon from '@mui/icons-material/Edit';
@@ -24,6 +26,7 @@ import { useComponentEditor } from "./hooks/useComponentEditor";
 import { useSourceCodeGenerator } from "./logic/useSourceCodeGenerator";
 import { getDefaultGridItems } from "../../store/atoms";
 import ViewComfyIcon from '@mui/icons-material/ViewComfy';
+import { LayerControlPanel } from './LayerControlPanel';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -52,9 +55,13 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   rowHeight, 
   margin 
 }) => {
+  const [layers, setLayers] = useAtom(layersAtom);
+  const [activeLayerId, setActiveLayerId] = useAtom(activeLayerIdAtom);
+  const activeLayer = layers.find(layer => layer.id === activeLayerId);
+  const items = activeLayer?.gridItems || [];
+
   const {
     // 状態
-    items,
     selectedItemId,
     editTargetId,
     selectingMode,
@@ -64,7 +71,6 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
     // アクション
     setSelectedItemId,
     setEditTargetId,
-    setItems,
     
     // メソッド
     handleLayoutChange,
@@ -96,7 +102,11 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   const handleShowSampleLayout = () => {
     setSelectedItemId(null);
     setEditTargetId(null);
-    setItems(getDefaultGridItems());
+    setLayers(prevLayers => prevLayers.map(layer => 
+      layer.id === activeLayerId 
+        ? { ...layer, gridItems: getDefaultGridItems() }
+        : layer
+    ));
   };
 
   /**
@@ -545,19 +555,25 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             p: 1,
             overflow: 'auto'
           }}>
-            <ResponsiveReactGridLayout
-            isDraggable={isDraggableResizable}
-            isResizable={isDraggableResizable}
-            cols={cols}
-            rowHeight={rowHeight}
-            margin={margin}
-            onLayoutChange={handleLayoutChange}
-            compactType={null}
-            preventCollision
-            resizeHandles={isDraggableResizable? ['se']:[]}
-          >
-            {items.map(item => renderElement(item))}
-            </ResponsiveReactGridLayout>
+            {layers.map(layer => (
+              layer.isVisible && (
+                <ResponsiveReactGridLayout
+                  key={layer.id}
+                  isDraggable={isDraggableResizable && layer.id === activeLayerId}
+                  isResizable={isDraggableResizable && layer.id === activeLayerId}
+                  cols={cols}
+                  rowHeight={rowHeight}
+                  margin={margin}
+                  onLayoutChange={handleLayoutChange}
+                  compactType={null}
+                  preventCollision
+                  resizeHandles={isDraggableResizable? ['se']:[]}
+                  style={{ opacity: layer.opacity }}
+                >
+                  {layer.gridItems.map(item => renderElement(item))}
+                </ResponsiveReactGridLayout>
+              )
+            ))}
           </Box>
         </Box>
       </Box>
@@ -576,10 +592,22 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <ComponentSettingsPanel
-          selectedItem={selectedItemId ? findItemInTree(items, selectedItemId) : null}
-          onUpdate={handleUpdateProps}
-        />
+        <Box sx={{ p: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'medium' }}>
+            {selectedItemId ? "コンポーネント設定" : "レイヤー管理"}
+          </Typography>
+          {selectedItemId ? (
+            <ComponentSettingsPanel
+              selectedItem={findItemInTree(items, selectedItemId)}
+              onUpdate={handleUpdateProps}
+            />
+          ) : (
+            <>
+              <LayerControlPanel />
+              <Divider sx={{ my: 2 }} />
+            </>
+          )}
+        </Box>
       </Box>
     </Box>
   );

@@ -5,9 +5,16 @@ import type {
   GridItem, 
   ComponentType,
   GridLayoutProps,
-  ParentType
+  ParentType,
+  Layer
 } from '../../../types';
-import { gridItemsAtom, selectedItemIdAtom, initializeGridItems } from '../../../store/atoms';
+import { 
+  gridItemsAtom, 
+  selectedItemIdAtom, 
+  initializeGridItems,
+  layersAtom,
+  activeLayerIdAtom
+} from '../../../store/atoms';
 import { useLayoutOperations } from '../../../hooks/useLayoutOperations';
 import { useTreeOperations } from '../../../hooks/useTreeOperations';
 import componentRegistry, { ComponentMetadata } from '../../../utils/componentRegistry';
@@ -39,6 +46,8 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
   // グローバル状態
   const [items, setItems] = useAtom(gridItemsAtom);
   const [selectedItemId, setSelectedItemId] = useAtom(selectedItemIdAtom);
+  const [layers, setLayers] = useAtom(layersAtom);
+  const [activeLayerId] = useAtom(activeLayerIdAtom);
 
   // ローカル状態
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
@@ -71,8 +80,22 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
    * レイアウトの初期化
    */
   useEffect(() => {
-    setItems(initializeGridItems());
-  }, [setItems]);
+    const initialItems = initializeGridItems();
+    setItems(initialItems);
+    
+    // レイヤーが空の場合、初期アイテムをデフォルトレイヤーに追加
+    if (layers.length === 0) {
+      setLayers([
+        {
+          id: 'default',
+          name: 'デフォルトレイヤー',
+          isVisible: true,
+          opacity: 1,
+          gridItems: initialItems
+        }
+      ]);
+    }
+  }, [setItems, setLayers, layers.length]);
 
   /**
    * アイテムIDからレイアウトIDを生成する
@@ -310,13 +333,18 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
       }
     }
 
-    // アイテムを追加（編集対象があれば子要素として、なければルートレベルに）
-    setItems(prevItems => {
-      console.log('Adding new item:', newItem, 'to parent:', editTargetId);
-      return !editTargetId
-        ? [...prevItems, newItem]
-        : addChildToTree(prevItems, editTargetId, newItem);
-    });
+      // アクティブなレイヤーにアイテムを追加
+      setLayers(prevLayers => prevLayers.map(layer => {
+        if (layer.id === activeLayerId) {
+          return {
+            ...layer,
+            gridItems: !editTargetId
+              ? [...layer.gridItems, newItem]
+              : addChildToTree(layer.gridItems, editTargetId, newItem)
+          };
+        }
+        return layer;
+      }));
 
     return true;
   };
@@ -417,8 +445,16 @@ export const useComponentEditor = (cols: any, rowHeight: number, margin: [number
   const handleRemoveItem = () => {
     if (!selectedItemId) return;
     
-    // アイテムを削除し、選択状態をリセット
-    setItems(prev => removeFromTree(prev, selectedItemId));
+    // アクティブなレイヤーからアイテムを削除
+    setLayers(prevLayers => prevLayers.map(layer => {
+      if (layer.id === activeLayerId) {
+        return {
+          ...layer,
+          gridItems: removeFromTree(layer.gridItems, selectedItemId)
+        };
+      }
+      return layer;
+    }));
     setSelectedItemId(null);
     if (editTargetId === selectedItemId) {
       setEditTargetId(null);

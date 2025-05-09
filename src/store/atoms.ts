@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import type { GridItem } from '../types';
+import type { GridItem, Layer } from '../types';
 
 /**
  * グリッドアイテムの状態を管理するatom
@@ -12,6 +12,24 @@ export const gridItemsAtom = atom<GridItem[]>([]);
  * 現在選択されているグリッドアイテムのIDを保持する
  */
 export const selectedItemIdAtom = atom<string | null>(null);
+
+/**
+ * レイヤー一覧を管理するatom
+ */
+export const layersAtom = atom<Layer[]>([
+  {
+    id: 'default',
+    name: 'デフォルトレイヤー',
+    isVisible: true,
+    opacity: 1,
+    gridItems: []
+  }
+]);
+
+/**
+ * 現在アクティブなレイヤーのIDを管理するatom
+ */
+export const activeLayerIdAtom = atom<string>('default');
 
 /**
  * 初期グリッドアイテムを生成する関数

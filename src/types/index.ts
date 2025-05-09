@@ -269,3 +269,19 @@ export interface ComponentSettingsPanelProps {
   /** アイテムのプロパティ更新時のコールバック */
   onUpdate: <T extends ComponentConfig>(id: string, newProps: Partial<ComponentProps<T>>) => void;
 }
+
+/**
+ * レイヤーの設定を定義
+ */
+export interface Layer {
+  /** レイヤーの一意のID */
+  id: string;
+  /** レイヤーの名前 */
+  name: string;
+  /** レイヤーの表示状態 */
+  isVisible: boolean;
+  /** レイヤーの透明度 (0-1) */
+  opacity: number;
+  /** レイヤーに含まれるグリッドアイテム */
+  gridItems: GridItem[];
+}
